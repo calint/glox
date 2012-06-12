@@ -212,6 +212,131 @@ p3 window::a=p3();
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+template<class T>class lut{
+private:
+	int size;
+	class el{
+	public:
+		const char*key;
+		T data;
+		el*nxt;
+		el(const char*key,T data):key(key),data(data),nxt(NULL){}
+		~el(){
+			if(nxt)
+				delete nxt;
+		}
+	};
+	el**array;
+public:
+	static unsigned int hash(const char*key,const unsigned int roll){
+		unsigned int i=0;
+		const char*p=key;
+		while(*p)
+			i+=*p++;
+		i%=roll;
+		return i;
+	}
+	lut(const int size=8):size(size){
+		array=(el**)calloc(size,sizeof(el*));
+	}
+	~lut(){
+		clear();
+		delete array;
+	}
+	T operator[](const char*key)const{
+		const int h=hash(key,size);
+		el*l=array[h];
+		if(!l)
+			return NULL;
+		while(1){
+			if(!strcmp(l->key,key)){
+				return l->data;
+			}
+			if(l->nxt){
+				l=l->nxt;
+				continue;
+			}
+			return NULL;
+		}
+	}
+	void put(const char*key,T data){
+		const int h=hash(key,size);
+		el*l=array[h];
+		if(!l){
+			array[h]=new el(key,data);
+			return;
+		}
+		while(1){
+			if(!strcmp(l->key,key)){
+				l->data=data;
+				return;
+			}
+			if(l->nxt){
+				l=l->nxt;
+				continue;
+			}
+			l->nxt=new el(key,data);
+			return;
+		}
+	}
+	void clear(){
+		for(int i=0;i<size;i++){
+			el*e=array[i];
+			if(!e)
+				continue;
+			delete e;
+			array[i]=NULL;
+		}
+	}
+};
+class xser{
+private:
+	FILE*in;
+	FILE*out;
+public:
+	xser(FILE*in,FILE*out):in(in),out(out){}
+	xser&w(const size_t d){fprintf(out,"%lu ",d);return*this;}
+	xser&r(size_t&d){fscanf(in,"%lu ",&d);return*this;}
+	xser&w(const char*b,const size_t size=0){fprintf(out,"%lu %s ",size?size:strlen(b),b);return*this;}
+	xser&r(char**buf,size_t&size){
+		if(*buf)
+			delete *buf;
+		fscanf(in,"%lu ",&size);
+		*buf=new char[size];
+		const size_t s=fread(*buf,size,1,in);
+		if(s!=1)
+			{perror("rs");exit(101);}
+		return*this;
+	}
+	xser&r(char**buf){size_t size=0;return r(buf,size);}
+	xser&flush(){fflush(out);return*this;}
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 int main(int argc,char**argv){return window::main(argc,argv);}
 
 #endif
