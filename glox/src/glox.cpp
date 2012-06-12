@@ -303,6 +303,7 @@ public:
 			}
 			return NULL;
 		}
+		return NULL;
 	}
 	void put(const char*key,T data){
 		const int h=hash(key,size);
