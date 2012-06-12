@@ -105,6 +105,18 @@ public:
 };
 
 
+#include <execinfo.h>
+extern "C"{
+	static void stktrace(){
+		const int na=20;
+	  void*va[na];
+	  const size_t n=backtrace(va,na);
+	  backtrace_symbols_fd(va,n,2);
+	  exit(1);
+	}
+}
+
+
 class window{
 public:
 	static world&wld;
@@ -157,6 +169,7 @@ public:
 		glDisable(GL_BLEND);
 	}
 	static void keybd(const unsigned char key,const int x,const int y){
+throw __FUNCTION__;
 		cout<<" keydown: "<<key<<" "<<(int)key<<"@"<<x<<","<<y<<endl;
 	}
 	static void keybu(const unsigned char key,const int x,const int y){
@@ -176,9 +189,6 @@ public:
 	//	return;
 	//}
 	static void mousemov(const int x,const int y){cout<<"mousemov: "<<x<<","<<y<<endl;}
-
-
-
 	static int main(int argc,char**argv){
 		printf("glox ");
 		glutInit(&argc,argv);
@@ -196,9 +206,17 @@ public:
 		glutTimerFunc(0,timer,100);//? world::fixdt
 	//	glutIdleFunc(idle);
 //		glutReportErrors();
-		glutMainLoop();
-		glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
-		return 0;
+		try{glutMainLoop();}
+		catch(exception const&e){cout<<"•••• error: "<<e.what()<<endl;stktrace();}
+ 		catch(const int i){cout<<"••• error: "<<i<<endl;stktrace();}
+		catch(const char*s){cout<<"••• error: "<<s<<endl;stktrace();}
+		catch(const void*s){cout<<"•• error: "<<s<<" "<<s<<endl;stktrace();}
+		catch(...){cerr<<"• error:"<<endl;stktrace();}
+		return 1;
+
+
+//		glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
+//		return 0;
 	}
 };
 world&window::wld=*new world();
@@ -206,6 +224,28 @@ int window::w=512;
 int window::h=512;
 p3 window::p=p3(0,0,-.5);
 p3 window::a=p3();
+
+
+
+//
+//#include <execinfo.h>
+//extern "C"{
+//	static void stktrace(){
+//		const int na=20;
+//	  void*va[na];
+//	  const size_t n=backtrace(va,na);
+//	  backtrace_symbols_fd(va,n,2);
+//	  exit(1);
+//	}
+//}
+//try{return window::main(0,NULL);}
+//catch(const char*p){cout<<"••• error: "<<p<<endl;stktrace();}
+//catch(void*p){cout<<"•• error: "<<p<<" "<<p<<endl;stktrace();}
+//catch(...){cerr<<"•••• error:"<<endl;stktrace();}
+
+int main(){return window::main(0,NULL);}
+
+
 
 
 
@@ -233,37 +273,30 @@ private:
 		T data;
 		el*nxt;
 		el(const char*key,T data):key(key),data(data),nxt(NULL){}
-		~el(){
-			if(nxt)
-				delete nxt;
-		}
+		~el(){if(nxt)delete nxt;}
 	};
 	el**array;
 public:
 	static unsigned int hash(const char*key,const unsigned int roll){
 		unsigned int i=0;
 		const char*p=key;
-		while(*p)
+		while(*p){
+			*p=0;
 			i+=*p++;
+		}
 		i%=roll;
 		return i;
 	}
-	lut(const int size=8):size(size){
-		array=(el**)calloc(size,sizeof(el*));
-	}
-	~lut(){
-		clear();
-		delete array;
-	}
+	lut(const int size=8):size(size){array=(el**)calloc(size,sizeof(el*));}
+	~lut(){clear();delete array;}
 	T operator[](const char*key)const{
 		const int h=hash(key,size);
 		el*l=array[h];
 		if(!l)
 			return NULL;
 		while(1){
-			if(!strcmp(l->key,key)){
+			if(!strcmp(l->key,key))
 				return l->data;
-			}
 			if(l->nxt){
 				l=l->nxt;
 				continue;
@@ -273,7 +306,7 @@ public:
 	}
 	void put(const char*key,T data){
 		const int h=hash(key,size);
-		el*l=array[h];
+		const el*l=array[h];
 		if(!l){
 			array[h]=new el(key,data);
 			return;
@@ -293,7 +326,7 @@ public:
 	}
 	void clear(){
 		for(int i=0;i<size;i++){
-			el*e=array[i];
+			const el*e=array[i];
 			if(!e)
 				continue;
 			delete e;
@@ -301,6 +334,9 @@ public:
 		}
 	}
 };
+
+
+
 class xser{
 private:
 	FILE*in;
@@ -312,32 +348,20 @@ public:
 	xser&w(const char*b,const size_t size=0){fprintf(out,"%lu %s ",size?size:strlen(b),b);return*this;}
 	xser&r(char**buf,size_t&size){
 		if(*buf)
-			delete *buf;
+			delete *buf;//?
 		fscanf(in,"%lu ",&size);
 		*buf=new char[size];
 		const size_t s=fread(*buf,size,1,in);
-		if(s!=1)
-			{perror("rs");exit(101);}
+		if(s!=1){
+			perror("rs");
+			throw "error whilre reading";
+//			exit(101);
+		}
 		return*this;
 	}
 	xser&r(char**buf){size_t size=0;return r(buf,size);}
 	xser&flush(){fflush(out);return*this;}
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-int main(int argc,char**argv){return window::main(argc,argv);}
 
 #endif
 
