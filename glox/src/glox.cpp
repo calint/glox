@@ -1,5 +1,6 @@
 #ifndef __glox__
 #define __glox__
+
 #ifdef __APPLE__
 #include <gl.h>
 #include <glu.h>
@@ -13,17 +14,11 @@
 class glox{
 public:
 	const static int dtms=100;
-//	const static float dt;
+	const static float dt;
 };
-//const float glox::dt=glox::dtms/.1f;
-inline float d(const float f){return f*.1f;}
-#endif
+const float glox::dt=glox::dtms/1000.f;
+inline float d(const float f){return f*glox::dt;}
 
-
-
-
-#ifndef __p3__
-#define __p3__
 class p3{
 	float x,y,z;
 public:
@@ -34,13 +29,7 @@ public:
 	inline const float getz()const{return z;}
 	inline p3&transl(const float dx,const float dy,const float dz){x+=dx;y+=dy;z+=dz;return*this;}
 };
-#endif
 
-
-
-
-#ifndef __object__
-#define __object__
 #include<iostream>
 #include<vector>
 using namespace std;
@@ -75,12 +64,8 @@ public:
 		}
 	}
 };
-#endif
 
 
-
-#ifndef __teapot__
-#define __teapot__
 class teapot:public object{
 public:
 	teapot(object&pt):object(pt){}
@@ -99,14 +84,8 @@ public:
 		transl(0,d(.1),0);
 	}
 };
-#endif
 
 
-
-
-
-#ifndef __world__
-#define __world__
 class world:public object{
 public:
 	world():object(*this){
@@ -124,15 +103,8 @@ public:
 		object::tick();
 	}
 };
-#endif
 
 
-
-
-
-
-#ifndef __window__
-#define __window__
 class window{
 public:
 	static world&wld;
@@ -234,10 +206,15 @@ int window::w=512;
 int window::h=512;
 p3 window::p=p3(0,0,-.5);
 p3 window::a=p3();
+
+
+
+
+
+
 int main(int argc,char**argv){return window::main(argc,argv);}
+
 #endif
-
-
 
 
 
