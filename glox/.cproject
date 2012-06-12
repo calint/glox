@@ -18,7 +18,7 @@
 					<folderInfo id="cdt.managedbuild.config.gnu.macosx.exe.debug.2090847021." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.macosx.exe.debug.1054009231" name="MacOSX GCC" nonInternalBuilderId="cdt.managedbuild.target.gnu.builder.macosx.exe.debug" superClass="cdt.managedbuild.toolchain.gnu.macosx.exe.debug">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.macosx.exe.debug.464390420" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.macosx.exe.debug"/>
-							<builder autoBuildTarget="all" buildPath="${workspace_loc:/glox/Debug}" cleanBuildTarget="clean" id="org.eclipse.cdt.build.core.internal.builder.123230754" incrementalBuildTarget="all" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="CDT Internal Builder" superClass="org.eclipse.cdt.build.core.internal.builder"/>
+							<builder autoBuildTarget="all" buildPath="${workspace_loc:/glox/Debug}" cleanBuildTarget="clean" enableAutoBuild="true" enabledIncrementalBuild="true" id="org.eclipse.cdt.build.core.internal.builder.170097864" incrementalBuildTarget="all" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="CDT Internal Builder" superClass="org.eclipse.cdt.build.core.internal.builder"/>
 							<tool id="cdt.managedbuild.tool.macosx.c.linker.macosx.exe.debug.1788127487" name="MacOS X C Linker" superClass="cdt.managedbuild.tool.macosx.c.linker.macosx.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.debug.171811085" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.debug">
 								<option id="macosx.cpp.link.option.flags.1324859707" name="Linker flags" superClass="macosx.cpp.link.option.flags" value="-framework Carbon -framework OpenGL -framework GLUT" valueType="string"/>
@@ -44,6 +44,7 @@
 								</option>
 								<option id="gnu.cpp.compiler.option.warnings.pedantic.1734171221" name="Pedantic (-pedantic)" superClass="gnu.cpp.compiler.option.warnings.pedantic" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.warnings.extrawarn.1354286325" name="Extra warnings (-Wextra)" superClass="gnu.cpp.compiler.option.warnings.extrawarn" value="true" valueType="boolean"/>
+								<option id="gnu.cpp.compiler.option.warnings.toerrors.32920028" name="Warnings as errors (-Werror)" superClass="gnu.cpp.compiler.option.warnings.toerrors" value="true" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1450677622" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.macosx.exe.debug.209717922" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.macosx.exe.debug">
@@ -106,22 +107,22 @@
 	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 		<project id="glox2.cdt.managedbuild.target.macosx.exe.1154390067" name="Executable" projectType="cdt.managedbuild.target.macosx.exe"/>
 	</storageModule>
+	<storageModule moduleId="refreshScope" versionNumber="1">
+		<resource resourceType="PROJECT" workspacePath="/glox"/>
+	</storageModule>
 	<storageModule moduleId="scannerConfiguration">
 		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.macosx.exe.release.865523163;cdt.managedbuild.config.macosx.exe.release.865523163.;cdt.managedbuild.tool.gnu.c.compiler.macosx.exe.release.126579266;cdt.managedbuild.tool.gnu.c.compiler.input.1195054832">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.macosx.exe.debug.2090847021;cdt.managedbuild.config.gnu.macosx.exe.debug.2090847021.;cdt.managedbuild.tool.gnu.cpp.compiler.macosx.exe.debug.1195467957;cdt.managedbuild.tool.gnu.cpp.compiler.input.1450677622">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.macosx.exe.release.865523163;cdt.managedbuild.config.macosx.exe.release.865523163.;cdt.managedbuild.tool.gnu.cpp.compiler.macosx.exe.release.461295876;cdt.managedbuild.tool.gnu.cpp.compiler.input.1203737356">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.macosx.exe.release.865523163;cdt.managedbuild.config.macosx.exe.release.865523163.;cdt.managedbuild.tool.gnu.c.compiler.macosx.exe.release.126579266;cdt.managedbuild.tool.gnu.c.compiler.input.1195054832">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.macosx.exe.debug.2090847021;cdt.managedbuild.config.gnu.macosx.exe.debug.2090847021.;cdt.managedbuild.tool.gnu.c.compiler.macosx.exe.debug.209717922;cdt.managedbuild.tool.gnu.c.compiler.input.417367520">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.macosx.exe.debug.2090847021;cdt.managedbuild.config.gnu.macosx.exe.debug.2090847021.;cdt.managedbuild.tool.gnu.cpp.compiler.macosx.exe.debug.1195467957;cdt.managedbuild.tool.gnu.cpp.compiler.input.1450677622">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
-		</scannerConfigBuildInfo>
-	</storageModule>
-	<storageModule moduleId="refreshScope" versionNumber="1">
-		<resource resourceType="PROJECT" workspacePath="/glox"/>
 	</storageModule>
 </cproject>

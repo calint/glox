@@ -16,10 +16,7 @@ public:
 	}
 	void gldraw(){}
 	virtual void tick(){
-		object::dtms=100;
-		cout<<"    tick: "<<object::dtms<<"ms"<<endl;
-		object::dt=object::dtms/1000.;
-		object::tms+=object::dtms;
+		cout<<"    tick: "<<endl;
 		object::tick();
 	}
 };

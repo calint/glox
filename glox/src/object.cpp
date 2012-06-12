@@ -2,7 +2,7 @@
 #define __object__
 
 #include"p3.cpp";
-#include"glinc.cpp";
+#include"glox.cpp";
 #include<iostream>
 #include<vector>
 
@@ -10,15 +10,10 @@ using namespace std;
 
 class object:public p3{
 protected:
-	static long tms;
-	static int dtms;
-	static float dt;
 	object&pt;
 	p3 a;
 	vector<object*>chs;
 public:
-	static inline float d(const float f){return dt*f;}
-
 	object(object&parent):p3(),pt(parent),a(){}
 	virtual ~object(){}
 	void draw(){
@@ -44,8 +39,4 @@ public:
 		}
 	}
 };
-long object::tms=0;
-int object::dtms=0;
-float object::dt=0;
-
 #endif

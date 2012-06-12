@@ -18,7 +18,7 @@ public:
 	}
 	virtual void tick(){
 //		cout<<"teapot tick  "<<getx()<<endl;
-		transl(0,d(1),0);
+		transl(0,d(.1),0);
 	}
 };
 

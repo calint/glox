@@ -73,6 +73,9 @@ public:
 	//	return;
 	//}
 	static void mousemov(const int x,const int y){cout<<"mousemov: "<<x<<","<<y<<endl;}
+
+
+
 	static int main(int argc,char**argv){
 		printf("glox ");
 		glutInit(&argc,argv);
@@ -87,7 +90,7 @@ public:
 		glutKeyboardUpFunc(keybu);
 		glutMouseFunc(mouseclk);
 		glutMotionFunc(mousemov);
-		glutTimerFunc(0,timer,1000);
+		glutTimerFunc(0,timer,100);//? world::fixdt
 	//	glutIdleFunc(idle);
 //		glutReportErrors();
 		glutMainLoop();
@@ -101,5 +104,4 @@ int window::h=512;
 p3 window::p=p3(0,0,-.5);
 p3 window::a=p3();
 int main(int argc,char**argv){return window::main(argc,argv);}
-
 #endif
