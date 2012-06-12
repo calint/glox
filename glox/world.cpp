@@ -6,11 +6,12 @@
 class world:public object{
 public:
 	world():object(*this){
-		for(int k=-3;k<3;k++){
+		for(int i=-3;i<3;i++){
 			teapot*o=new teapot(*this);
-			o->rot(p3(k*90,0,0));
-			o->transl(2.f*k,0.f,-10.f);
+			o->rot(p3(i*90,0,0));
+			o->transl(2.f*i,0.f,-10.f);
 			chs.push_back(o);
+//			chs.push_back((object*const&)*o);
 		}
 	}
 	void gldraw(){}
