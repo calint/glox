@@ -7,13 +7,14 @@ class teapot:public object{
 public:
 	teapot(object&pt):object(pt){}
 	void gldraw(){
-		glEnable(GL_CULL_FACE);//? pushpop enables
+		glPushAttrib(GL_ENABLE_BIT);
+		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
-
 		glFrontFace(GL_CW);
 		glutSolidTeapot(1);
+		glPopAttrib();
 	}
 };
 
