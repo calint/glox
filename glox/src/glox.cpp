@@ -143,7 +143,7 @@ public:
 		glFrontFace(GL_CCW);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
-		glColor3f(0,0,0);
+		glColor4f(0,0,1.f,1.f);
 		glutSolidSphere(.2,10,10);
 		glPopAttrib();
 	}
@@ -249,7 +249,10 @@ public:
 	static int h;
 	static p3 p;
 	static p3 a;
-	static void reshape(const int width,const int height){cout<<" reshape: "<<w<<"x"<<h<<endl;w=width;h=height;}
+	static void reshape(const int width,const int height){
+		cout<<" reshape: "<<w<<"x"<<h<<endl;
+		w=width;h=height;
+	}
 	static void draw(){
 		cout<<"    draw: "<<endl;
 //		glClearColor(0,0,0,1);
@@ -303,8 +306,12 @@ public:
 	}
 	static void keybu(const unsigned char key,const int x,const int y){
 		cout<<"   keyup: "<<key<<" "<<(int)key<<"@"<<x<<","<<y<<endl;
-		if(key==27)//esc
+		if(key==27)// esc
 			exit(0);
+		else if(key==96)// `
+			glutReshapeWindow(w,h);
+		else if(key==126)// ~
+			glutFullScreen();
 	}
 	static void mouseclk(const int button,const int state,int x,const int y){cout<<"mouseclk: "<<state<<"  "<<button<<" @ "<<x<<","<<y<<endl;}
 	static void timer(const int value){
@@ -327,6 +334,8 @@ public:
 		glutInitWindowSize(w,h);
 		glutInitDisplayMode(GLUT_DOUBLE|GLUT_DEPTH);
 		glutCreateWindow("glox");
+		glutFullScreen();
+
 		glutDisplayFunc(draw);
 		glutReshapeFunc(reshape);
 		glutKeyboardFunc(keybd);
@@ -336,8 +345,11 @@ public:
 		glutTimerFunc(0,timer,glox::dtms);
 //		glutIdleFunc(idle);
 //		glutReportErrors();
+
 		glutMainLoop();
+
 		glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
+
 		return 0;
 	}
 };
