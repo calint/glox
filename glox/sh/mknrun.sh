@@ -1,7 +1,7 @@
 srcdir=src
 bindir=bin
 
-src=window.cpp
+src=glox.cpp
 bin=$bindir/glox
 
 cmd="g++ -o $bin $srcdir/$src \
