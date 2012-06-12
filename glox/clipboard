@@ -1,0 +1,13 @@
+g++ -L/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries -framework Carbon -framework OpenGL -framework GLUT -o "glox2"  ./glox.o   -lgl -lglu
+
+
+-framework Carbon -framework OpenGL -framework GLUT
+
+
+/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries
+
+
+g++ -I/System/Library/Frameworks/GLUT.framework/Versions/Current/Headers/ -I/System/Library/Frameworks/OpenGL.framework/Versions/Current/Headers/ -O0 -g3 -pedantic -Wall -Wextra -c -fmessage-length=0 -MMD -MP -MF"glox.d" -MT"glox.d" -o "glox.o" "../glox.cpp"
+g++ -L/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries -framework Carbon -framework OpenGL -framework GLUT -o "glox"  ./glox.o   
+ 
+ 
