@@ -1,16 +1,7 @@
 #ifndef __glox__
 #define __glox__
 
-#ifdef __APPLE__
-#include <gl.h>
-#include <glu.h>
-#include <glut.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
-#endif
-
+const char*glox="glox";
 class glox{
 public:
 	const static int dtms=100;
@@ -30,14 +21,20 @@ public:
 	inline p3&transl(const float dx,const float dy,const float dz){x+=dx;y+=dy;z+=dz;return*this;}
 };
 
+#ifdef __APPLE__
+#include <gl.h>
+#include <glu.h>
+#include <glut.h>
+#else
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glut.h>
+#endif
 
-
-
-
-
-#include<execinfo.h>
 #include<iostream>
 using namespace std;
+
+#include<execinfo.h>
 class signl{
 	const int i;
 	const char*s;
@@ -52,19 +49,27 @@ public:
 	inline const int num()const{return i;}
 	inline const char* str()const{return s;}
 };
-template<class T>class span{
+
+template<class T>class array{
 private:
 	T*a;
 	int of;
 	int ln;
 public:
-	inline span(T ae[],const int offset,const int len):a(ae),of(offset),ln(len){}
+	inline array(T ae[],const int offset,const int len):a(ae),of(offset),ln(len){}
 	inline T&operator[](const int i)const{
 		if(i<0||i>=ln)throw signl(1,"indexoutofbounds");
 		return a[of+i];
 	}
-	inline void foreach(const int offset,const int len,void(*f)(T&e)){
-		if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofbounds");
+	inline void ro(const int offset,const int len,void(*f)(const T&e)){
+		if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinro");
+		T*p=a+of+offset;
+		int i=len;
+		while(i--)
+			(*f)(*p++);
+	}
+	inline void rw(const int offset,const int len,void(*f)(T&e)){
+		if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinrw");
 		T*p=a+of+offset;
 		int i=len;
 		while(i--)
@@ -73,9 +78,8 @@ public:
 	inline int len()const{return ln;}
 };
 
-
-
 #include<vector>
+
 class object:public p3{
 protected:
 	object&pt;
@@ -94,9 +98,6 @@ public:
 		for(unsigned int n=0;n<chs.size();n++){
 			chs[n]->draw();
 		}
-//		for(vector<obj*>::iterator it=chs.begin();it!=chs.end();++it){
-//			(*it)->draw();
-//		}
 		glPopMatrix();
 	}
 	virtual void gldraw(){};
@@ -123,7 +124,6 @@ public:
 		glPopAttrib();
 	}
 	virtual void tick(){
-//		cout<<"teapot tick  "<<getx()<<endl;
 		transl(0,d(.1),0);
 	}
 };
@@ -159,8 +159,6 @@ public:
 	static void reshape(const int width,const int height){cout<<" reshape: "<<w<<"x"<<h<<endl;w=width;h=height;}
 	static void draw() {
 		cout<<"    draw: "<<endl;
-//		char*xx=0;*xx=0;
-//		throw signl(2,"testing exception ");
 		glClearColor(0, 0, 0, 0);
 		glClearDepth(1);
 		glEnable(GL_DEPTH_TEST);
@@ -203,7 +201,6 @@ public:
 		glDisable(GL_BLEND);
 	}
 	static void keybd(const unsigned char key,const int x,const int y){
-//		throw signl(__LINE__,__FUNCTION__);
 		cout<<" keydown: "<<key<<" "<<(int)key<<"@"<<x<<","<<y<<endl;
 	}
 	static void keybu(const unsigned char key,const int x,const int y){
@@ -237,19 +234,11 @@ public:
 		glutKeyboardUpFunc(keybu);
 		glutMouseFunc(mouseclk);
 		glutMotionFunc(mousemov);
-		glutTimerFunc(0,timer,100);//? world::fixdt
-	//	glutIdleFunc(idle);
+		glutTimerFunc(0,timer,glox::dtms);
+//		glutIdleFunc(idle);
 //		glutReportErrors();
 		glutMainLoop();
-//		catch(exception const&e){cout<<"•••• error: "<<e.what()<<endl;stktrace();}
-// 		catch(const int i){cout<<"••• error: "<<i<<endl;stktrace();}
-//		catch(const char*s){cout<<"••• error: "<<s<<endl;stktrace();}
-//		catch(const void*s){cout<<"•• error: "<<s<<" "<<s<<endl;stktrace();}
-//		catch(...){cerr<<"• error:"<<endl;stktrace();}
-//		return 1;
-
-
-//		glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
+		glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
 		return 0;
 	}
 };
@@ -260,26 +249,6 @@ p3 window::p=p3(0,0,-.5);
 p3 window::a=p3();
 
 
-
-//
-//#include <execinfo.h>
-//extern "C"{
-//	static void stktrace(){
-//		const int na=20;
-//	  void*va[na];
-//	  const size_t n=backtrace(va,na);
-//	  backtrace_symbols_fd(va,n,2);
-//	  exit(1);
-//	}
-//}
-//try{return window::main(0,NULL);}
-//catch(const char*p){cout<<"••• error: "<<p<<endl;stktrace();}
-//catch(void*p){cout<<"•• error: "<<p<<" "<<p<<endl;stktrace();}
-//catch(...){cerr<<"•••• error:"<<endl;stktrace();}
-
-
-//static void f(char&c){cout<<c;}
-//static void f2(char&c){cout<<c;c=' ';}
 //static void main_sigf(const int a){
 //	cout<<" ••• terminated with signal "<<a<<endl;
 //	exit(a);
@@ -288,15 +257,6 @@ int main(){
 //	for(int i=0;i<32;i++)//?
 //		signal(i,main_sigf);
 	return window::main(0,NULL);
-//
-//	char s[]="hello world";
-//	span<char>a=span<char>(s,0,5);
-//	span<char>b=span<char>(s,6,5);
-//	char&c=b[1];
-//	c='a';
-//	a.foreach(0,a.len(),f);cout<<endl;
-//	b.foreach(2,2,f2);cout<<endl;
-//	b.foreach(1,5,f2);cout<<endl;
 }
 
 
