@@ -1,22 +1,21 @@
-g++ -L/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries -framework Carbon -framework OpenGL -framework GLUT -o "glox2"  ./glox.o   -lgl -lglu
 
-
--framework Carbon -framework OpenGL -framework GLUT
-
-
-/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries
-
-
-g++ -I/System/Library/Frameworks/GLUT.framework/Versions/Current/Headers/ -I/System/Library/Frameworks/OpenGL.framework/Versions/Current/Headers/ -O0 -g3 -pedantic -Wall -Wextra -c -fmessage-length=0 -MMD -MP -MF"glox.d" -MT"glox.d" -o "glox.o" "../glox.cpp"
-g++ -L/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries -framework Carbon -framework OpenGL -framework GLUT -o "glox"  ./glox.o   
- 
- 
- 
- 
- g++ -I/System/Library/Frameworks/GLUT.framework/Versions/Current/Headers/ -I/System/Library/Frameworks/OpenGL.framework/Versions/Current/Headers/ -O0 -g3 -pedantic -Wall -Wextra -Werror -c -fmessage-length=0 -o src/glox.o ../src/glox.cpp
+g++ -I/System/Library/Frameworks/GLUT.framework/Versions/Current/Headers/ -I/System/Library/Frameworks/OpenGL.framework/Versions/Current/Headers/ -O0 -g3 -pedantic -Wall -Wextra -Werror -c -fmessage-length=0 -o src/glox.o ../src/glox.cpp
 g++ -L/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries -framework Carbon -framework OpenGL -framework GLUT -o glox src/glox.o
 
 
+
+cmd="g++ -o $bbin $srcdir/$src \
+	-framework GLUT \
+	-framework OpenGL \
+	-I/System/Library/Frameworks/OpenGL.framework/Versions/Current/Headers/ \
+	-I/System/Library/Frameworks/GLUT.framework/Versions/Current/Headers/ \
+	-L/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries"&&
+
+-framework Carbon
+-framework OpenGL -framework GLUT
+
+
+/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries
 
 
 //try{return window::main(0,NULL);}
@@ -25,41 +24,40 @@ g++ -L/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries -framewor
 //catch(...){cerr<<"•••• error:"<<endl;stktrace();}
 
 
-inline static void f(const char&c){cout<<c;}
-inline static void f2(char&c){cout<<c;c=' ';}
-//static void main_sigf(const int a){
-//	cout<<" ••• terminated with signal "<<a<<endl;
-//	exit(a);
-//}
-
-
-//
-//
+//inline static void f(const char&c){cout<<c;}
+//inline static void f2(char&c){cout<<c;c=' ';}
 //	char s[]="jello world";
 //	puts(s);
 //	array<const char>a=array<const char>("hello world",0,3);
 //	a.ro(0,a.len(),f);
 //	a.rw(0,a.len(),f);
+//	cout<<endl;
 //	array<char>b=array<char>(s,0,3);
 //	b.ro(0,a.len(),f);
 //	b.rw(0,a.len(),f2);
-//
-//
-//	const char s[]="hello world";
-//	char s[]="hello world";
-//	span<char>a=span<char>(s,0,5);
-//	span<char>b=span<char>(s,6,5);
-//	char&c=b[1];
-//	c='a';
-//	a.foreach(0,a.len(),f);cout<<endl;
-//	b.foreach(2,2,f2);cout<<endl;
-//	b.foreach(1,5,f2);cout<<endl;
+//	cout<<endl;
+//	puts(s);
 
 
+static void main_sigf(const int a){
+	cout<<" ••• terminated with signal "<<a<<endl;
+	exit(a);
+}
+int main(){
+	for(int i=0;i<32;i++)//?
+		signal(i,main_sigf);
+	return window::main(0,NULL);
+}
+
+
+
+
+//		throw signl(2,"exception");
 //		throw signl(__LINE__,__FUNCTION__);
 
-//		char*xx=0;*xx=0;
-//		throw signl(2,"exception");
+
+
+
 
 //		for(vector<obj*>::iterator it=chs.begin();it!=chs.end();++it){
 //			(*it)->draw();

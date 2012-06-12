@@ -2,6 +2,7 @@
 #define __glox__
 
 const char*glox="glox";
+
 class glox{
 public:
 	const static int dtms=100;
@@ -18,7 +19,7 @@ public:
 	inline const float getx()const{return x;}
 	inline const float gety()const{return y;}
 	inline const float getz()const{return z;}
-	inline p3&transl(const float dx,const float dy,const float dz){x+=dx;y+=dy;z+=dz;return*this;}
+	inline p3&add(const float dx,const float dy,const float dz){x+=dx;y+=dy;z+=dz;return*this;}
 };
 
 #ifdef __APPLE__
@@ -124,7 +125,7 @@ public:
 		glPopAttrib();
 	}
 	virtual void tick(){
-		transl(0,d(.1),0);
+		add(0,d(.1),0);
 	}
 };
 
@@ -135,7 +136,7 @@ public:
 		for(int i=-3;i<3;i++){
 			teapot*o=new teapot(*this);
 			o->rot(p3(i*90,0,0));
-			o->transl(2.f*i,0.f,-10.f);
+			o->add(2.f*i,0.f,-10.f);
 			chs.push_back(o);
 //			chs.push_back((object*const&)*o);
 		}
@@ -249,13 +250,13 @@ p3 window::p=p3(0,0,-.5);
 p3 window::a=p3();
 
 
-//static void main_sigf(const int a){
-//	cout<<" ••• terminated with signal "<<a<<endl;
-//	exit(a);
-//}
+static void main_sigf(const int a){
+	cout<<" ••• terminated with signal "<<a<<endl;
+	exit(a);
+}
 int main(){
-//	for(int i=0;i<32;i++)//?
-//		signal(i,main_sigf);
+	for(int i=0;i<32;i++)//?
+		signal(i,main_sigf);
 	return window::main(0,NULL);
 }
 
