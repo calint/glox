@@ -30,9 +30,52 @@ public:
 	inline p3&transl(const float dx,const float dy,const float dz){x+=dx;y+=dy;z+=dz;return*this;}
 };
 
+
+
+
+
+
+#include<execinfo.h>
 #include<iostream>
-#include<vector>
 using namespace std;
+class signl{
+	const int i;
+	const char*s;
+public:
+	signl(const int i,const char*s):i(i),s(s){
+		cout<<" ••• signal "<<i<<" · "<<s<<endl;
+		const int na=10;
+		void*va[na];
+		const size_t n=backtrace(va,na);
+		backtrace_symbols_fd(va,n,2);
+	}
+	const int num()const{return i;}
+	const char* str()const{return s;}
+};
+template<class T>class span{
+private:
+	T*a;
+	int of;
+	int ln;
+public:
+	span(T*ae,const int offset,const int len):a(ae),of(offset),ln(len){}
+	T&operator[](const int i)const{
+		if(i>=ln)throw signl(1,"indexoutofbounds");
+		return a[of+i];
+	}
+	void scan(const int offset,const int len,void(*f)(T&e)){
+		if(ln<(offset+len))throw signl(1,"spanoutofbounds");
+		T*p=a+of+offset;
+		int i=len;
+		while(i--)
+			(*f)(*p++);
+	}
+	inline int len()const{return ln;}
+};
+
+
+
+#include<vector>
 class object:public p3{
 protected:
 	object&pt;
@@ -105,17 +148,6 @@ public:
 };
 
 
-#include <execinfo.h>
-extern "C"{
-	static void stktrace(){
-		const int na=20;
-	  void*va[na];
-	  const size_t n=backtrace(va,na);
-	  backtrace_symbols_fd(va,n,2);
-	  exit(1);
-	}
-}
-
 
 class window{
 public:
@@ -127,6 +159,8 @@ public:
 	static void reshape(const int width,const int height){cout<<" reshape: "<<w<<"x"<<h<<endl;w=width;h=height;}
 	static void draw() {
 		cout<<"    draw: "<<endl;
+//		char*xx=0;*xx=0;
+//		throw signl(2,"testing exception ");
 		glClearColor(0, 0, 0, 0);
 		glClearDepth(1);
 		glEnable(GL_DEPTH_TEST);
@@ -169,7 +203,7 @@ public:
 		glDisable(GL_BLEND);
 	}
 	static void keybd(const unsigned char key,const int x,const int y){
-throw __FUNCTION__;
+//		throw signl(__LINE__,__FUNCTION__);
 		cout<<" keydown: "<<key<<" "<<(int)key<<"@"<<x<<","<<y<<endl;
 	}
 	static void keybu(const unsigned char key,const int x,const int y){
@@ -206,17 +240,17 @@ throw __FUNCTION__;
 		glutTimerFunc(0,timer,100);//? world::fixdt
 	//	glutIdleFunc(idle);
 //		glutReportErrors();
-		try{glutMainLoop();}
-		catch(exception const&e){cout<<"•••• error: "<<e.what()<<endl;stktrace();}
- 		catch(const int i){cout<<"••• error: "<<i<<endl;stktrace();}
-		catch(const char*s){cout<<"••• error: "<<s<<endl;stktrace();}
-		catch(const void*s){cout<<"•• error: "<<s<<" "<<s<<endl;stktrace();}
-		catch(...){cerr<<"• error:"<<endl;stktrace();}
-		return 1;
+		glutMainLoop();
+//		catch(exception const&e){cout<<"•••• error: "<<e.what()<<endl;stktrace();}
+// 		catch(const int i){cout<<"••• error: "<<i<<endl;stktrace();}
+//		catch(const char*s){cout<<"••• error: "<<s<<endl;stktrace();}
+//		catch(const void*s){cout<<"•• error: "<<s<<" "<<s<<endl;stktrace();}
+//		catch(...){cerr<<"• error:"<<endl;stktrace();}
+//		return 1;
 
 
 //		glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
-//		return 0;
+		return 0;
 	}
 };
 world&window::wld=*new world();
@@ -243,7 +277,27 @@ p3 window::a=p3();
 //catch(void*p){cout<<"•• error: "<<p<<" "<<p<<endl;stktrace();}
 //catch(...){cerr<<"•••• error:"<<endl;stktrace();}
 
-int main(){return window::main(0,NULL);}
+
+//static void f(char&c){cout<<c;}
+//static void f2(char&c){cout<<c;c=' ';}
+//static void main_sigf(const int a){
+//	cout<<" ••• terminated with signal "<<a<<endl;
+//	exit(a);
+//}
+int main(){
+//	for(int i=0;i<32;i++)//?
+//		signal(i,main_sigf);
+	//static void f2(char&c){cout<<c;c=' ';}
+//	char s[]="hello world";
+//	span<char>a=span<char>(s,0,5);
+//	span<char>b=span<char>(s,6,5);
+//	char&c=b[1];
+//	c='a';
+//	a.scan(0,a.len(),f);cout<<endl;
+//	b.scan(2,2,f2);cout<<endl;
+//	b.scan(1,5,f2);cout<<endl;
+	return window::main(0,NULL);
+}
 
 
 
@@ -355,7 +409,7 @@ public:
 		const size_t s=fread(*buf,size,1,in);
 		if(s!=1){
 			perror("rs");
-			throw "error whilre reading";
+			throw "error while reading";
 //			exit(101);
 		}
 		return*this;
