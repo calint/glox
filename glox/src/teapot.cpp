@@ -9,12 +9,16 @@ public:
 	void gldraw(){
 		glPushAttrib(GL_ENABLE_BIT);
 		glEnable(GL_CULL_FACE);
-		glEnable(GL_DEPTH_TEST);
+		glFrontFace(GL_CW);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
-		glFrontFace(GL_CW);
+
 		glutSolidTeapot(1);
 		glPopAttrib();
+	}
+	virtual void tick(){
+//		cout<<"teapot tick  "<<getx()<<endl;
+		transl(0,d(1),0);
 	}
 };
 

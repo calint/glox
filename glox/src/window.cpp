@@ -18,7 +18,7 @@ public:
 		glViewport(0,0,w,h);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		gluPerspective(45,(GLdouble)(w) / h, .1, 1000);
+		gluPerspective(45,(GLdouble)w / h, .1, 1000);
 		glMatrixMode (GL_MODELVIEW);
 		glLoadIdentity();
 		glTranslatef(-p.getx(), -p.gety(), -p.getz());
@@ -61,7 +61,12 @@ public:
 			exit(0);
 	}
 	static void mouseclk(const int button,const int state,int x,const int y){cout<<"mouseclk: "<<state<<"  "<<button<<" @ "<<x<<","<<y<<endl;}
-	static void timer(const int value){cout<<"   timer: "<<value<<endl;glutTimerFunc(value,timer,value-1);}
+	static void timer(const int value){
+		cout<<"   timer: "<<value<<endl;
+		wld.tick();
+		glutPostRedisplay();
+		glutTimerFunc(value,timer,value-1);
+	}
 	//static void idle(){
 	//	printf("idle\n");
 	//	return;

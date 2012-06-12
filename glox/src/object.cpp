@@ -10,10 +10,17 @@ using namespace std;
 
 class object:public p3{
 protected:
+	static long tms;
+	static int dtms;
+	static float dt;
 	object&pt;
 	p3 a;
 	vector<object*>chs;
 public:
+	static inline float d(const float f){
+		return dt*f;
+	}
+
 	object(object&parent):p3(),pt(parent),a(){}
 	virtual ~object(){}
 	void draw(){
@@ -33,7 +40,14 @@ public:
 	}
 	virtual void gldraw(){};
 	inline object&rot(const p3&agl){a=agl;return*this;}
+	virtual void tick(){
+		for(unsigned int i=0;i<chs.size();i++){
+			chs[i]->tick();
+		}
+	}
 };
-
+long object::tms=0;
+int object::dtms=0;
+float object::dt=0;
 
 #endif

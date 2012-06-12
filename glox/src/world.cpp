@@ -15,6 +15,13 @@ public:
 		}
 	}
 	void gldraw(){}
+	virtual void tick(){
+		object::dtms=100;
+		cout<<"      dt: "<<dtms<<"ms"<<endl;
+		object::dt=object::dtms/1000.;
+		object::tms+=object::dtms;
+		object::tick();
+	}
 };
 
 
