@@ -17,9 +17,7 @@ protected:
 	p3 a;
 	vector<object*>chs;
 public:
-	static inline float d(const float f){
-		return dt*f;
-	}
+	static inline float d(const float f){return dt*f;}
 
 	object(object&parent):p3(),pt(parent),a(){}
 	virtual ~object(){}
