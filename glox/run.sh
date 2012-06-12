@@ -1,4 +1,4 @@
-src=sh/main.mknrun.sh
+src=sh/mknrun.sh
 
 pwd=`pwd`&&
 wd=`dirname $0`&&

@@ -49,8 +49,8 @@ public:
 		const size_t n=backtrace(va,na);
 		backtrace_symbols_fd(va,n,2);
 	}
-	const int num()const{return i;}
-	const char* str()const{return s;}
+	inline const int num()const{return i;}
+	inline const char* str()const{return s;}
 };
 template<class T>class span{
 private:
@@ -58,13 +58,13 @@ private:
 	int of;
 	int ln;
 public:
-	span(T*ae,const int offset,const int len):a(ae),of(offset),ln(len){}
-	T&operator[](const int i)const{
-		if(i>=ln)throw signl(1,"indexoutofbounds");
+	inline span(T ae[],const int offset,const int len):a(ae),of(offset),ln(len){}
+	inline T&operator[](const int i)const{
+		if(i<0||i>=ln)throw signl(1,"indexoutofbounds");
 		return a[of+i];
 	}
-	void foreach(const int offset,const int len,void(*f)(T&e)){
-		if(ln<(offset+len))throw signl(1,"spanoutofbounds");
+	inline void foreach(const int offset,const int len,void(*f)(T&e)){
+		if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofbounds");
 		T*p=a+of+offset;
 		int i=len;
 		while(i--)
@@ -287,16 +287,16 @@ p3 window::a=p3();
 int main(){
 //	for(int i=0;i<32;i++)//?
 //		signal(i,main_sigf);
-	//static void f2(char&c){cout<<c;c=' ';}
+	return window::main(0,NULL);
+//
 //	char s[]="hello world";
 //	span<char>a=span<char>(s,0,5);
 //	span<char>b=span<char>(s,6,5);
 //	char&c=b[1];
 //	c='a';
-//	a.scan(0,a.len(),f);cout<<endl;
-//	b.scan(2,2,f2);cout<<endl;
-//	b.scan(1,5,f2);cout<<endl;
-	return window::main(0,NULL);
+//	a.foreach(0,a.len(),f);cout<<endl;
+//	b.foreach(2,2,f2);cout<<endl;
+//	b.foreach(1,5,f2);cout<<endl;
 }
 
 
