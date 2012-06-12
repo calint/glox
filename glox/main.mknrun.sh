@@ -1,7 +1,10 @@
+srcdir=src
+bindir=bin
+
 src=window.cpp
-bin=glox
-rm $bin;
-g++ -o $bin $src \
+bin=$bindir/glox
+
+g++ -o $bin $srcdir/$src \
 	-framework GLUT \
 	-framework OpenGL \
 	-I/System/Library/Frameworks/OpenGL.framework/Versions/Current/Headers/ \
