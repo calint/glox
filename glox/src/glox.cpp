@@ -1,15 +1,14 @@
 #ifndef __glox__
 #define __glox__
 
-const char*glox="glox";
 
-class glox{
-public:
+namespace glox{
+	const char*name="glox";
 	const static int dtms=100;
-	const static float dt;
-};
-const float glox::dt=glox::dtms/1000.f;
-inline float d(const float f){return f*glox::dt;}
+	const static float dt=glox::dtms/1000.f;
+	inline float d(const float f){return f*glox::dt;}
+}
+using namespace glox;
 
 class p3{
 	float x,y,z;
@@ -19,18 +18,8 @@ public:
 	inline const float getx()const{return x;}
 	inline const float gety()const{return y;}
 	inline const float getz()const{return z;}
-	inline p3&add(const float dx,const float dy,const float dz){x+=dx;y+=dy;z+=dz;return*this;}
+	inline p3&transl(const float dx,const float dy,const float dz){x+=dx;y+=dy;z+=dz;return*this;}
 };
-
-#ifdef __APPLE__
-#include <gl.h>
-#include <glu.h>
-#include <glut.h>
-#else
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
-#endif
 
 #include<iostream>
 using namespace std;
@@ -79,6 +68,17 @@ public:
 	inline int len()const{return ln;}
 };
 
+
+#ifdef __APPLE__
+#include <gl.h>
+#include <glu.h>
+#include <glut.h>
+#else
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glut.h>
+#endif
+
 #include<vector>
 
 class object:public p3{
@@ -90,16 +90,16 @@ public:
 	object(object&parent):p3(),pt(parent),a(){}
 	virtual ~object(){}
 	void draw(){
-		glPushMatrix();
 		glTranslatef(getx(),gety(),getz());
-		glRotatef(a.getx(),1.f,0.f,0.f);
-		glRotatef(a.gety(),0.f,1.f,0.f);
-		glRotatef(a.getz(),0.f,0.f,1.f);
+		glRotatef(a.getx(),1,0,0);
+		glRotatef(a.gety(),0,1,0);
+		glRotatef(a.getz(),0,0,1);
 		gldraw();
 		for(unsigned int n=0;n<chs.size();n++){
+			glPushMatrix();
 			chs[n]->draw();
+			glPopMatrix();
 		}
-		glPopMatrix();
 	}
 	virtual void gldraw(){};
 	inline object&rot(const p3&agl){a=agl;return*this;}
@@ -112,8 +112,9 @@ public:
 
 
 class teapot:public object{
+	float dy;
 public:
-	teapot(object&pt):object(pt){}
+	teapot(object&pt):object(pt),dy(.1f){}
 	void gldraw(){
 		glPushAttrib(GL_ENABLE_BIT);
 		glEnable(GL_CULL_FACE);
@@ -125,21 +126,104 @@ public:
 		glPopAttrib();
 	}
 	virtual void tick(){
-		add(0,d(.1),0);
+		object::tick();
+		transl(0,d(dy),0);
+		if(gety()>10||gety()<0)dy=-dy;
 	}
 };
 
 
+class sphere:public object{
+public:
+	sphere(object&pt):object(pt){}
+	void gldraw(){
+		glPushAttrib(GL_ENABLE_BIT);
+		glEnable(GL_CULL_FACE);
+		glFrontFace(GL_CCW);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		glColor3f(0,0,0);
+		glutSolidSphere(.2,10,10);
+		glPopAttrib();
+	}
+	virtual void tick(){
+	}
+};
+
+#include<math.h>
+
+class lotsasphere:public object{
+public:
+	lotsasphere(object&pt):object(pt){
+		const float s=3;
+		const float ds=3.f/10;
+		for(float xx=-s;xx<s;xx+=ds)
+			for(float yy=-s;yy<s;yy+=ds){
+				if(sqrt(xx*xx+yy*yy)>3)
+					continue;
+				object*o=new sphere(*this);
+				o->transl(xx,yy,0);
+				chs.push_back(o);
+			}
+	}
+	virtual void tick(){a.transl(d(360/60),0,0);}
+};
+
+
+class worm:public object{
+public:
+	worm(object&pt,const int links):object(pt){
+		if(links==0)
+			return;
+		object*o=new worm(*this,links-1);
+		o->transl(0,.2f,0);
+		chs.push_back(o);
+	}
+	void gldraw(){
+		glPushAttrib(GL_ENABLE_BIT);
+		glEnable(GL_CULL_FACE);
+		glFrontFace(GL_CCW);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		glColor3b(0,0x20,0x60);
+		glutSolidSphere(.2,10,10);
+		glPopAttrib();
+	}
+	virtual void tick(){
+		object::tick();
+		a.transl(d(60),0,d(60));
+		a.transl(0,d(60),d(60));
+//		a.transl(d(60),0,0);
+//		a.transl(d(60),d(60),0);
+	}
+};
+
 class world:public object{
 public:
 	world():object(*this){
-		for(int i=-3;i<3;i++){
-			teapot*o=new teapot(*this);
-			o->rot(p3(i*90,0,0));
-			o->add(2.f*i,0.f,-10.f);
-			chs.push_back(o);
-//			chs.push_back((object*const&)*o);
-		}
+
+		object*o1=new worm(*this,1);
+		o1->transl(2,2,-10);
+		chs.push_back(o1);
+
+		object*o2=new worm(*this,3);
+		o2->transl(.3f,.7f,-10);
+		chs.push_back(o2);
+
+		object*o3=new worm(*this,16);
+		o3->transl(-1.9,.6,-10);
+		chs.push_back(o3);
+
+		object*o4=new lotsasphere(*this);
+		o4->transl(0,-1,-10);
+		chs.push_back(o4);
+//
+//		for(int i=-3;i<3;i++){
+//			teapot*o=new teapot(*this);
+//			o->rot(p3(i*90,0,0));
+//			o->transl(2.f*i,0.f,-10.f);
+//			chs.push_back(o);
+//		}
 	}
 	void gldraw(){}
 	virtual void tick(){
@@ -163,6 +247,7 @@ public:
 //		glClearColor(0,0,0,1);
 		glClearColor(.5f,.5f,1,1);
 		glClearDepth(1);
+		glShadeModel(GL_SMOOTH);
 		glEnable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
@@ -218,7 +303,8 @@ public:
 		cout<<"   timer: "<<value<<endl;
 		wld.tick();
 		glutPostRedisplay();
-		glutTimerFunc(value,timer,value-1);
+//		glutTimerFunc(value,timer,value-1);
+		glutTimerFunc(value,timer,value);
 	}
 	//static void idle(){
 	//	printf("idle\n");
