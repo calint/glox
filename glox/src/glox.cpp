@@ -158,11 +158,14 @@ public:
 	static p3 p;
 	static p3 a;
 	static void reshape(const int width,const int height){cout<<" reshape: "<<w<<"x"<<h<<endl;w=width;h=height;}
-	static void draw() {
+	static void draw(){
 		cout<<"    draw: "<<endl;
-		glClearColor(0, 0, 0, 0);
+//		glClearColor(0,0,0,1);
+		glClearColor(.5f,.5f,1,1);
 		glClearDepth(1);
 		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glViewport(0,0,w,h);
 		glMatrixMode(GL_PROJECTION);
@@ -178,10 +181,11 @@ public:
 		drwhud();
 		glutSwapBuffers();
 	}
-    static void pl(const GLfloat x,const GLfloat y,const char*text){
+    static void pl(const GLfloat x,const GLfloat y,const char*text,const GLfloat linewidth=1){
       char*cp=(char*)text;
       glPushMatrix();
-      glTranslatef(x, y, 0);
+      glTranslatef(x,y,0);
+      glLineWidth(linewidth);
       for(;*cp;cp++)
         glutStrokeCharacter(GLUT_STROKE_ROMAN,*cp);
 //      glutStrokeString(GLUT_STROKE_MONO_ROMAN,text);
@@ -198,7 +202,7 @@ public:
 		glDisable(GL_LIGHTING);
 		glColor3f(1,1,1);
 		glEnable(GL_BLEND);
-		pl(0,0,"glox");
+		pl(0,h>>1,"glox",(float)(h>>7));
 		glDisable(GL_BLEND);
 	}
 	static void keybd(const unsigned char key,const int x,const int y){
