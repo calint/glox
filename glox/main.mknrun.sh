@@ -1,4 +1,4 @@
-src=glox.cpp
+src=main.cpp
 bin=glox
 g++ -o $bin $src \
 	-framework GLUT \
