@@ -10,6 +10,7 @@ namespace glox{
 }
 using namespace glox;
 
+
 class p3{
 	float x,y,z;
 public:
@@ -68,6 +69,7 @@ public:
 	inline int len()const{return ln;}
 };
 
+#include<vector>
 
 #ifdef __APPLE__
 #include <gl.h>
@@ -79,7 +81,6 @@ public:
 #include <GL/glut.h>
 #endif
 
-#include<vector>
 
 class object:public p3{
 protected:
@@ -147,6 +148,10 @@ public:
 		glPopAttrib();
 	}
 	virtual void tick(){
+		const float dx=((float)rand()/RAND_MAX-.5f)*.2f;
+		const float dy=((float)rand()/RAND_MAX-.5f)*.2f;
+		const float dz=((float)rand()/RAND_MAX-.5f)*.2f;
+		transl(d(dx),d(dy),d(dz));
 	}
 };
 
@@ -166,7 +171,10 @@ public:
 				chs.push_back(o);
 			}
 	}
-	virtual void tick(){a.transl(d(360/60),0,0);}
+	virtual void tick(){
+		object::tick();
+		a.transl(d(360/60),0,0);
+	}
 };
 
 
