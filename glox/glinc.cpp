@@ -11,5 +11,6 @@
 #include <GL/glut.h>
 #endif
 
+class glinc{};
 
 #endif

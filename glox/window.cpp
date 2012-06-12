@@ -2,17 +2,16 @@
 #define __window__
 
 #include"world.cpp";
-
-static world wld;
-static int wi=512;
-static int hi=512;
-static p3 p=p3();
-static p3 a=p3();
 class window{
 public:
-	static void reshape(int w,int h){
+	static world&wld;
+	static int w;
+	static int h;
+	static p3 p;
+	static p3 a;
+	static void reshape(const int width,const int height){
 		cout<<"reshape: "<<w<<" x "<<h<<endl;
-		wi=w;hi=h;
+		w=width;h=height;
 		glViewport(0,0,w,h);
 		glMatrixMode(GL_PROJECTION);
 		gluPerspective(45,(GLdouble)w/h,.1,1000);
@@ -34,7 +33,7 @@ public:
 
 		glutSwapBuffers();
 	}
-	static void keyb(unsigned char key,const int x,const int y){cout<<"keyboard: "<<key<<" @ "<<x<<","<<y<<endl;}
+	static void keyb(const unsigned char key,const int x,const int y){cout<<"keyboard: "<<key<<" @ "<<x<<","<<y<<endl;}
 	static void mouseclk(const int button,const int state,int x,const int y){cout<<"mouseclk: "<<state<<"  "<<button<<" @ "<<x<<","<<y<<endl;}
 	static void timer(const int value){cout<<"timer: "<<value<<endl;glutTimerFunc(value,timer,value-1);}
 	//static void idle(){
@@ -42,9 +41,9 @@ public:
 	//	return;
 	//}
 	static void mousemov(const int x,const int y){cout<<"mousemov: "<<x<<","<<y<<endl;}
-	static int main(int argc,char**argv){
+	static int main_(int argc,char**argv){
 		glutInit(&argc,argv);
-		glutInitWindowSize(wi,hi);
+		glutInitWindowSize(w,h);
 		glutInitDisplayMode(GLUT_DOUBLE|GLUT_DEPTH);
 		glutCreateWindow("hello world");
 		glutDisplayFunc(window::draw);
@@ -59,5 +58,12 @@ public:
 	}
 };
 
+world&window::wld=*new world();
+int window::w=512;
+int window::h=512;
+p3 window::p=p3();
+p3 window::a=p3();
+
+int main(int argc,char**argv){return window::main_(argc,argv);}
 
 #endif

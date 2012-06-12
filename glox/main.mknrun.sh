@@ -1,5 +1,6 @@
-src=main.cpp
+src=window.cpp
 bin=glox
+rm $bin;
 g++ -o $bin $src \
 	-framework GLUT \
 	-framework OpenGL \
