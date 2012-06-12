@@ -63,7 +63,7 @@ public:
 		if(i>=ln)throw signl(1,"indexoutofbounds");
 		return a[of+i];
 	}
-	void scan(const int offset,const int len,void(*f)(T&e)){
+	void foreach(const int offset,const int len,void(*f)(T&e)){
 		if(ln<(offset+len))throw signl(1,"spanoutofbounds");
 		T*p=a+of+offset;
 		int i=len;
