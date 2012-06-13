@@ -88,14 +88,8 @@ protected:
 	p3 a;
 	vector<object*>chs;
 public:
-	object(object&parent):p3(),pt(parent),a(){
-		if(&pt==this)
-			return;
-		pt.chs.push_back(this);
-	}
+	object(object&parent):p3(),pt(parent),a(){}
 	virtual ~object(){}
-//	inline const p3&agl()const{return a;}
-	inline p3&agl(){return a;}
 	void draw(){
 		glTranslatef(getx(),gety(),getz());
 		glRotatef(a.getx(),1,0,0);
@@ -118,10 +112,10 @@ public:
 };
 
 
-class obteapot:public object{
+class teapot:public object{
 	float dy;
 public:
-	obteapot(object&pt):object(pt),dy(.1f){}
+	teapot(object&pt):object(pt),dy(.1f){}
 	void gldraw(){
 		glPushAttrib(GL_ENABLE_BIT);
 		glEnable(GL_CULL_FACE);
@@ -140,64 +134,52 @@ public:
 };
 
 #include<math.h>
-class obgridot:public object{
-	float r;
+class sphere:public object{
 	static int n;
 	float a;
 public:
-	obgridot(object&pt,const float r=1):object(pt),r(r){
+	sphere(object&pt):object(pt){
 //		a=.5f*n++*rand()/RAND_MAX;
-		a=.25*n++;
+		a=.02f*n;
 	}
 	void gldraw(){
 		glPushAttrib(GL_ENABLE_BIT);
-//		if(((float)rand()/RAND_MAX)>.001)
-			glShadeModel(GL_FLAT);
-//		else
-//			glShadeModel(GL_SMOOTH);
-
+		glShadeModel(GL_SMOOTH);
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
-//		glFrontFace(GL_CW);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
-		glEnable(GL_LIGHT1);
 		glColor4f(0,0,1.f,1.f);
+		const float r=.5;
 //		const float dr=rng*rand()/RAND_MAX-rng/2;
-		const float dr=.5*sin(a);
-		glutSolidSphere(r+dr,4,3);
-//		glutSolidTetrahedron();
-//		glutSolidCube(r+dr);
-//		glLineWidth(100);
-//		glutWireCube(r+dr);
-//		glutWireSphere(r+dr,5,5);
+		const float dr=100*r*sin(a);
+		glutSolidSphere(dr,10,10);
 		glPopAttrib();
 	}
 	virtual void tick(){
-		const float s=1;
-		const float dx=s*((float)rand()/RAND_MAX-.5f);
-		const float dy=0;//s*((float)rand()/RAND_MAX-.5f);
-		const float dz=s*((float)rand()/RAND_MAX-.5f);
-//		transl(d(dx),d(dy),d(dz));
-//		a+=d(.01*360/60);
+		const float dx=((float)rand()/RAND_MAX-.5f)*.2f;
+		const float dy=((float)rand()/RAND_MAX-.5f)*.2f;
+		const float dz=((float)rand()/RAND_MAX-.5f)*.2f;
+		transl(d(dx),d(dy),d(dz));
+		a=d(1);
 	}
 };
-int obgridot::n=0;
+int sphere::n=0;
 
 #include<math.h>
 
-class obgrid:public object{
+class lotsasphere:public object{
 public:
-	obgrid(object&pt):object(pt){
-		const float s=7;
-		const float ds=s/10;
+	lotsasphere(object&pt):object(pt){
+		const float s=3;
+		const float ds=3.f/10;
 		for(float xx=-s;xx<s;xx+=ds)
 			for(float yy=-s;yy<s;yy+=ds){
-				if(sqrt(xx*xx+yy*yy)>s)
+				if(sqrt(xx*xx+yy*yy)>3)
 					continue;
-				object*o=new obgridot(*this);
+				object*o=new sphere(*this);
 				o->transl(xx,yy,0);
-				o->agl().transl(90,0,0);
+				chs.push_back(o);
 			}
 	}
 	virtual void tick(){
@@ -207,28 +189,26 @@ public:
 };
 
 
-class obworm:public object{
+class worm:public object{
 public:
-	obworm(object&pt,const int links):object(pt){
+	worm(object&pt,const int links):object(pt){
 		if(links==0)
 			return;
-		object*o=new obworm(*this,links-1);
-		o->transl(0,.4f,0);
+		object*o=new worm(*this,links-1);
+		o->transl(0,.2f,0);
+		chs.push_back(o);
 	}
 	void gldraw(){
 		glPushAttrib(GL_ENABLE_BIT);
 		glShadeModel(GL_SMOOTH);
-//		glShadeModel(GL_FLAT);
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
 		glColor3b(0,0x20,0x60);
-		const float dr=.1f*rand()/RAND_MAX;
-//		const float dr=0;
-		const float r=.4;
-		glutSolidSphere(r+dr,6,6);
-//		glutSolidCube(r+dr);
+//		const float dr=.1f*rand()/RAND_MAX;
+		const float dr=0;
+		glutSolidSphere(.2+dr,10,10);
 		glPopAttrib();
 	}
 	virtual void tick(){
@@ -243,24 +223,23 @@ public:
 class world:public object{
 public:
 	world():object(*this){
-		const bool worms=false;
-		const bool grid=true;
-		if(worms){
-			object*o1=new obworm(*this,1);
-			o1->transl(2,2,-10);
 
-			object*o2=new obworm(*this,3);
-			o2->transl(-2,2,-10);
+		object*o1=new worm(*this,1);
+		o1->transl(2,2,-10);
+		chs.push_back(o1);
 
-			object*o3=new obworm(*this,16);
-	//		o3->transl(-1.9,.6,-10);
-			o3->transl(0,2,-10);
-		}
-		if(grid){
-			object*o4=new obgrid(*this);
-			o4->transl(0,-1,-10);
-			o4->agl().transl(-68,0,0);
-		}
+		object*o2=new worm(*this,3);
+		o2->transl(-2,2,-10);
+		chs.push_back(o2);
+
+		object*o3=new worm(*this,32);
+//		o3->transl(-1.9,.6,-10);
+		o3->transl(0,-1,-10);
+		chs.push_back(o3);
+
+		object*o4=new lotsasphere(*this);
+		o4->transl(0,-1,-10);
+		chs.push_back(o4);
 //
 //		for(int i=-3;i<3;i++){
 //			teapot*o=new teapot(*this);
@@ -269,9 +248,9 @@ public:
 //			chs.push_back(o);
 //		}
 	}
-//	void gldraw(){}
+	void gldraw(){}
 	virtual void tick(){
-//		cout<<"    tick: "<<endl;
+		cout<<"    tick: "<<endl;
 		object::tick();
 	}
 };
@@ -309,7 +288,6 @@ public:
 		glRotatef(-a.getz(), 0, 0, 1);
 		glRotatef(-a.getx(), 1, 0, 0);
 		glRotatef(-a.gety(), 0, 1, 0);
-
 		wld.draw();
 		drwhud();
 		glutSwapBuffers();
@@ -340,17 +318,15 @@ public:
 	}
 	static void keybd(const unsigned char key,const int x,const int y){
 		cout<<" keydown: "<<key<<" "<<(int)key<<"@"<<x<<","<<y<<endl;
-		if(key==96)// `
-			glutFullScreen();
-		else if(key==126)// ~
-			glutReshapeWindow(w,h);
-		if(key==32)// spc
-			{object*o=new obworm(wld,7);o->transl(0,3,-10);}
 	}
 	static void keybu(const unsigned char key,const int x,const int y){
 		cout<<"   keyup: "<<key<<" "<<(int)key<<"@"<<x<<","<<y<<endl;
 		if(key==27)// esc
 			exit(0);
+		else if(key==96)// `
+			glutReshapeWindow(w,h);
+		else if(key==126)// ~
+			glutFullScreen();
 	}
 	static void mouseclk(const int button,const int state,int x,const int y){cout<<"mouseclk: "<<state<<"  "<<button<<" @ "<<x<<","<<y<<endl;}
 	static void timer(const int value){

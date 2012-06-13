@@ -14,8 +14,7 @@ cmd="g++ -o $bbin $srcdir/$src \
 #echo $cmd&&
 $cmd&&
 mv -f $bbin $bin&&
-#ls -la $bin&&
-rm $bbin 2>/dev/null
+ls -la $bin&&
 ./$bin
 
 #	-framework Carbon \

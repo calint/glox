@@ -147,30 +147,30 @@ class obgridot:public object{
 public:
 	obgridot(object&pt,const float r=1):object(pt),r(r){
 //		a=.5f*n++*rand()/RAND_MAX;
-		a=.25*n++;
+		a=.1*n++;
 	}
 	void gldraw(){
 		glPushAttrib(GL_ENABLE_BIT);
 //		if(((float)rand()/RAND_MAX)>.001)
-			glShadeModel(GL_FLAT);
+//			glShadeModel(GL_FLAT);
 //		else
-//			glShadeModel(GL_SMOOTH);
+			glShadeModel(GL_SMOOTH);
 
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
 //		glFrontFace(GL_CW);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
-		glEnable(GL_LIGHT1);
+//		glEnable(GL_LIGHT1);
 		glColor4f(0,0,1.f,1.f);
 //		const float dr=rng*rand()/RAND_MAX-rng/2;
 		const float dr=.5*sin(a);
-		glutSolidSphere(r+dr,4,3);
+//		glutSolidSphere(r+dr,10,10);
 //		glutSolidTetrahedron();
 //		glutSolidCube(r+dr);
-//		glLineWidth(100);
-//		glutWireCube(r+dr);
-//		glutWireSphere(r+dr,5,5);
+		glLineWidth(100);
+		glutWireCube(r+dr);
+		glutWireSphere(r+dr,5,5);
 		glPopAttrib();
 	}
 	virtual void tick(){
@@ -178,8 +178,8 @@ public:
 		const float dx=s*((float)rand()/RAND_MAX-.5f);
 		const float dy=0;//s*((float)rand()/RAND_MAX-.5f);
 		const float dz=s*((float)rand()/RAND_MAX-.5f);
-//		transl(d(dx),d(dy),d(dz));
-//		a+=d(.01*360/60);
+		transl(d(dx),d(dy),d(dz));
+		a+=d(.01*360/60);
 	}
 };
 int obgridot::n=0;
@@ -197,7 +197,6 @@ public:
 					continue;
 				object*o=new obgridot(*this);
 				o->transl(xx,yy,0);
-				o->agl().transl(90,0,0);
 			}
 	}
 	virtual void tick(){
@@ -260,6 +259,7 @@ public:
 			object*o4=new obgrid(*this);
 			o4->transl(0,-1,-10);
 			o4->agl().transl(-68,0,0);
+			chs.push_back(o4);
 		}
 //
 //		for(int i=-3;i<3;i++){

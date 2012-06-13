@@ -147,7 +147,7 @@ class obgridot:public object{
 public:
 	obgridot(object&pt,const float r=1):object(pt),r(r){
 //		a=.5f*n++*rand()/RAND_MAX;
-		a=.25*n++;
+		a=.1*n++;
 	}
 	void gldraw(){
 		glPushAttrib(GL_ENABLE_BIT);
@@ -161,11 +161,11 @@ public:
 //		glFrontFace(GL_CW);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
-		glEnable(GL_LIGHT1);
+//		glEnable(GL_LIGHT1);
 		glColor4f(0,0,1.f,1.f);
 //		const float dr=rng*rand()/RAND_MAX-rng/2;
 		const float dr=.5*sin(a);
-		glutSolidSphere(r+dr,4,3);
+		glutSolidSphere(r+dr,6,3);
 //		glutSolidTetrahedron();
 //		glutSolidCube(r+dr);
 //		glLineWidth(100);

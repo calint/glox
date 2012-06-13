@@ -88,11 +88,7 @@ protected:
 	p3 a;
 	vector<object*>chs;
 public:
-	object(object&parent):p3(),pt(parent),a(){
-		if(&pt==this)
-			return;
-		pt.chs.push_back(this);
-	}
+	object(object&parent):p3(),pt(parent),a(){}
 	virtual ~object(){}
 //	inline const p3&agl()const{return a;}
 	inline p3&agl(){return a;}
@@ -141,45 +137,42 @@ public:
 
 #include<math.h>
 class obgridot:public object{
-	float r;
 	static int n;
 	float a;
 public:
-	obgridot(object&pt,const float r=1):object(pt),r(r){
+	obgridot(object&pt):object(pt){
 //		a=.5f*n++*rand()/RAND_MAX;
-		a=.25*n++;
+		a=.1*n++;
 	}
 	void gldraw(){
 		glPushAttrib(GL_ENABLE_BIT);
 //		if(((float)rand()/RAND_MAX)>.001)
-			glShadeModel(GL_FLAT);
+//			glShadeModel(GL_FLAT);
 //		else
-//			glShadeModel(GL_SMOOTH);
+			glShadeModel(GL_SMOOTH);
 
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
 //		glFrontFace(GL_CW);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
-		glEnable(GL_LIGHT1);
+//		glEnable(GL_LIGHT1);
 		glColor4f(0,0,1.f,1.f);
+		const float r=1;
 //		const float dr=rng*rand()/RAND_MAX-rng/2;
 		const float dr=.5*sin(a);
-		glutSolidSphere(r+dr,4,3);
+//		glutSolidSphere(r+dr,10,10);
 //		glutSolidTetrahedron();
-//		glutSolidCube(r+dr);
-//		glLineWidth(100);
-//		glutWireCube(r+dr);
-//		glutWireSphere(r+dr,5,5);
+		glutSolidCube(r+dr);
 		glPopAttrib();
 	}
 	virtual void tick(){
-		const float s=1;
-		const float dx=s*((float)rand()/RAND_MAX-.5f);
-		const float dy=0;//s*((float)rand()/RAND_MAX-.5f);
-		const float dz=s*((float)rand()/RAND_MAX-.5f);
-//		transl(d(dx),d(dy),d(dz));
-//		a+=d(.01*360/60);
+		const float s=.3;
+		const float dx=s*(rand()/RAND_MAX-.5f);
+		const float dy=s*(rand()/RAND_MAX-.5f);
+		const float dz=s*(rand()/RAND_MAX-.5f);
+		transl(d(dx),d(dy),d(dz));
+		a+=d(.4*360/60);
 	}
 };
 int obgridot::n=0;
@@ -197,7 +190,7 @@ public:
 					continue;
 				object*o=new obgridot(*this);
 				o->transl(xx,yy,0);
-				o->agl().transl(90,0,0);
+				chs.push_back(o);
 			}
 	}
 	virtual void tick(){
@@ -207,28 +200,27 @@ public:
 };
 
 
-class obworm:public object{
+class obj:public object{
 public:
-	obworm(object&pt,const int links):object(pt){
+	obj(object&pt,const int links):object(pt){
 		if(links==0)
 			return;
-		object*o=new obworm(*this,links-1);
+		object*o=new obj(*this,links-1);
 		o->transl(0,.4f,0);
+		chs.push_back(o);
 	}
 	void gldraw(){
 		glPushAttrib(GL_ENABLE_BIT);
 		glShadeModel(GL_SMOOTH);
-//		glShadeModel(GL_FLAT);
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
 		glColor3b(0,0x20,0x60);
-		const float dr=.1f*rand()/RAND_MAX;
-//		const float dr=0;
+//		const float dr=.1f*rand()/RAND_MAX;
+		const float dr=0;
 		const float r=.4;
-		glutSolidSphere(r+dr,6,6);
-//		glutSolidCube(r+dr);
+		glutSolidSphere(r+dr,10,10);
 		glPopAttrib();
 	}
 	virtual void tick(){
@@ -244,23 +236,24 @@ class world:public object{
 public:
 	world():object(*this){
 		const bool worms=false;
-		const bool grid=true;
 		if(worms){
-			object*o1=new obworm(*this,1);
+			object*o1=new obj(*this,1);
 			o1->transl(2,2,-10);
+			chs.push_back(o1);
 
-			object*o2=new obworm(*this,3);
+			object*o2=new obj(*this,3);
 			o2->transl(-2,2,-10);
+			chs.push_back(o2);
 
-			object*o3=new obworm(*this,16);
+			object*o3=new obj(*this,16);
 	//		o3->transl(-1.9,.6,-10);
 			o3->transl(0,2,-10);
+			chs.push_back(o3);
 		}
-		if(grid){
-			object*o4=new obgrid(*this);
-			o4->transl(0,-1,-10);
-			o4->agl().transl(-68,0,0);
-		}
+		object*o4=new obgrid(*this);
+		o4->transl(0,-1,-10);
+		o4->agl().transl(80,0,0);
+		chs.push_back(o4);
 //
 //		for(int i=-3;i<3;i++){
 //			teapot*o=new teapot(*this);
@@ -269,9 +262,9 @@ public:
 //			chs.push_back(o);
 //		}
 	}
-//	void gldraw(){}
+	void gldraw(){}
 	virtual void tick(){
-//		cout<<"    tick: "<<endl;
+		cout<<"    tick: "<<endl;
 		object::tick();
 	}
 };
@@ -340,17 +333,15 @@ public:
 	}
 	static void keybd(const unsigned char key,const int x,const int y){
 		cout<<" keydown: "<<key<<" "<<(int)key<<"@"<<x<<","<<y<<endl;
-		if(key==96)// `
-			glutFullScreen();
-		else if(key==126)// ~
-			glutReshapeWindow(w,h);
-		if(key==32)// spc
-			{object*o=new obworm(wld,7);o->transl(0,3,-10);}
 	}
 	static void keybu(const unsigned char key,const int x,const int y){
 		cout<<"   keyup: "<<key<<" "<<(int)key<<"@"<<x<<","<<y<<endl;
 		if(key==27)// esc
 			exit(0);
+		else if(key==96)// `
+			glutReshapeWindow(w,h);
+		else if(key==126)// ~
+			glutFullScreen();
 	}
 	static void mouseclk(const int button,const int state,int x,const int y){cout<<"mouseclk: "<<state<<"  "<<button<<" @ "<<x<<","<<y<<endl;}
 	static void timer(const int value){
