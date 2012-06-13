@@ -544,7 +544,7 @@ int main(){
 }
 ///////////////////////////////////////////////////////////////////////////////
 void gnox(){
-	throw signl(1,"error occurred in gnox");
+//	throw signl(1,"error occurred in gnox");
 }
 #endif
 
