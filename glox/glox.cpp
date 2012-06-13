@@ -65,8 +65,6 @@ public:
 	inline void rw(const int offset,const int len,void(*f)(T&e)){if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinrw");T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
 };
 
-#include<vector>
-
 #ifdef __APPLE__
 #include <gl.h>
 #include <glu.h>
@@ -114,6 +112,9 @@ ostream&operator<<(ostream&os,const bvol&a){
 	os<<a.r<<",["<<a.v<<"]";
     return os;
 }
+
+
+#include<vector>
 
 
 class object:public p3{
