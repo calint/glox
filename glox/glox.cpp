@@ -6,7 +6,7 @@ using namespace std;
 
 namespace glox{
 	namespace clk{
-		const static int dtms=100;
+		const static int dtms=50;
 		const static float dt=dtms/1000.f;
 	}
 	inline float d(const float f){return f*clk::dt;}
@@ -117,7 +117,6 @@ ostream&operator<<(ostream&os,const bvol&a){
 
 
 class object:public p3{
-protected:
 	object&pt;
 	p3 a;
 	vector<object*>chs;
@@ -235,7 +234,7 @@ public:
 	}
 	virtual void tick(){
 		object::tick();
-		a.transl(d(360/60),0,0);
+		agl().transl(d(360/60),0,0);
 	}
 };
 
@@ -266,7 +265,7 @@ public:
 	}
 	virtual void tick(){
 		object::tick();
-		a.transl(d(60),0,d(60));
+		agl().transl(d(60),0,d(60));
 //		a.transl(0,d(60),d(60));
 //		a.transl(d(60),0,0);
 //		a.transl(d(60),d(60),0);
