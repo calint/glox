@@ -550,11 +550,11 @@ int main(){
 	for(int i=0;i<32;i++)//?
 		signal(i,main_sigf);
 
-	volume a=volume(1,p3(1,1,1));
-	volume b=volume(2,p3(2,1,1));
+//	volume a=volume(1,p3(1,1,1));
+//	volume b=volume(2,p3(2,1,1));
 //	bool col=volume::checkcol(p3(),a,p3(),b);
 //	cout<<"collision: "<<col<<endl;
-	cout<<"collision: "<<volume::checkcol(p3(3,0,0),a,p3(),b)<<endl;
+//	cout<<"collision: "<<volume::checkcol(p3(3,0,0),a,p3(),b)<<endl;
 
 
 
