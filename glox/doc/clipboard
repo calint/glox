@@ -1,3 +1,212 @@
+at start or end of frame
+ glBufferSubData, glBufferData, glMapBuffer, glTexSubImage, glCopyTexImage, glCopyTexSubImage, glReadPixels, glBindFramebuffer, glFlush, and glFinish.
+
+
+
+
+Table 3-3  OpenGL ES 1.1 values
+Maximum number of texture units available to the fixed function pipeline
+GL_MAX_TEXTURE_UNITS
+Maximum number of clip planes
+GL_MAX_CLIP_PLANES
+
+
+
+
+Table 3-2  OpenGL ES 2.0 shader values
+Maximum number of vertex attributes
+GL_MAX_VERTEX_ATTRIBS
+Maximum number of uniform vertex vectors
+GL_MAX_VERTEX_UNIFORM_VECTORS
+Maximum number of uniform fragment vectors
+GL_MAX_FRAGMENT_UNIFORM_VECTORS
+Maximum number of varying vectors
+GL_MAX_VARYING_VECTORS
+Maximum number of texture units usable in a vertex shader
+GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS
+Maximum number of texture units usable in a fragment shader
+GL_MAX_TEXTURE_IMAGE_UNITS
+
+
+
+
+
+
+default precision highp; // Default precision declaration is required in fragment shaders.
+uniform lowp sampler2D sampler; // Texture2D() result is lowp.
+varying lowp vec4 color;
+varying vec2 texCoord;   // Uses default highp precision.
+ 
+void main()
+{
+    gl_FragColor = color * texture2D(sampler, texCoord);
+}
+
+
+/** Initialization-time for shader **/
+            GLuint shader, prog;
+            GLchar *shaderText = "... shader text ...";
+
+            // Create ID for shader
+           shader = glCreateShader(GL_VERTEX_SHADER);
+
+           // Define shader text
+           glShaderSource(shaderText);
+
+           // Compile shader
+           glCompileShader(shader);
+
+           // Associate shader with program
+           glAttachShader(prog, shader);
+
+          // Link program
+           glLinkProgram(prog);
+    
+           // Validate program
+           glValidateProgram(prog);
+
+           // Check the status of the compile/link
+           glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &logLen);
+           if(logLen > 0)
+           {
+               // Show any errors as appropriate
+               glGetProgramInfoLog(prog, logLen, &logLen, log);
+               fprintf(stderr, "Prog Info Log: %s\n", log);
+       }
+
+     // Retrieve all uniform locations that are determined during link phase
+           for(i = 0; i < uniformCt; i++)
+           {
+               uniformLoc[i] = glGetUniformLocation(prog, uniformName);
+           }
+
+           // Retrieve all attrib locations that are determined during link phase
+           for(i = 0; i < attribCt; i++)
+           {
+               attribLoc[i] = glGetAttribLocation(prog, attribName);
+           }
+
+    /** Render stage for shaders **/
+    glUseProgram(prog);
+
+
+
+glGenTextures(1, &spriteTexture);
+glBindTexture(GL_TEXTURE_2D, spriteTexture);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, spriteData);
+
+
+glGetIntegerv(GL_MAX_TEXTURE_UNITS)
+
+
+
+
+
+glDisable(GL_DITHER);
+glDisable(GL_ALPHA_TEST);
+glDisable(GL_BLEND);
+glDisable(GL_STENCIL_TEST);
+glDisable(GL_FOG);
+glDisable(GL_TEXTURE_2D);
+glDisable(GL_DEPTH_TEST);
+// Disable other state variables as appropriate.
+
+
+
+
+
+typedef struct _vertexStatic
+{
+    GLfloat position[2];
+} vertexStatic;
+ 
+typedef struct _vertexDynamic
+{
+    GLubyte color[4];
+} vertexDynamic;
+ 
+// Separate buffers for static and dynamic data.
+GLuint    staticBuffer;
+GLuint    dynamicBuffer;
+GLuint    indexBuffer;
+ 
+const vertexStatic staticVertexData[] = {...};
+vertexDynamic dynamicVertexData[] = {...};
+const GLubyte indices[] = {...};
+ 
+void CreateBuffers()
+{
+// Static position data
+    glGenBuffers(1, &staticBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, staticBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(staticVertexData), staticVertexData, GL_STATIC_DRAW);
+ 
+// Dynamic color data
+// While not shown here, the expectation is that the data in this buffer changes between frames.
+    glGenBuffers(1, &dynamicBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, dynamicBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(dynamicVertexData), dynamicVertexData, GL_DYNAMIC_DRAW);
+ 
+// Static index data
+    glGenBuffers(1, &indexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+}
+ 
+void DrawModelUsingMultipleVertexBuffers()
+{
+    glBindBuffer(GL_ARRAY_BUFFER, staticBuffer);
+    glVertexAttribPointer(ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(vertexStruct), (void*)offsetof(vertexStruct,position));
+    glEnableVertexAttribArray(ATTRIB_POSITION);
+ 
+    glBindBuffer(GL_ARRAY_BUFFER, dynamicBuffer);
+    glVertexAttribPointer(ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(vertexStruct), (void*)offsetof(vertexStruct,color);
+    glEnableVertexAttribArray(ATTRIB_COLOR);
+ 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glDrawElements(GL_TRIANGLE_STRIP, sizeof(indices)/sizeof(GLubyte), GL_UNSIGNED_BYTE, (void*)0);
+}
+
+
+
+
+
+GLuint    vertexBuffer;
+GLuint    indexBuffer;
+ 
+void CreateVertexBuffers()
+{
+ 
+    glGenBuffers(1, &vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+ 
+    glGenBuffers(1, &indexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+ 
+}
+
+
+
+GLuint    vertexBuffer;
+GLuint    indexBuffer;
+ 
+void CreateVertexBuffers()
+{
+ 
+    glGenBuffers(1, &vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+ 
+    glGenBuffers(1, &indexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+ 
+}
+
+
 	cout.setf(ios::fixed,ios::floatfield);
 	cout.setf(ios::showpoint);
 	cout.precision(2);

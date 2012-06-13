@@ -43,10 +43,10 @@ class signl{
 public:
 	signl(const int i,const char*s):i(i),s(s){
 		cout<<" ••• signal "<<i<<" · "<<s<<endl;
-		const int na=10;
-		void*va[na];
-		const size_t n=backtrace(va,na);
-		backtrace_symbols_fd(va,n,2);
+        const int nva=5;
+		void*va[nva];
+		int n=backtrace(va,nva);
+		backtrace_symbols_fd(va,n,1);
 	}
 	inline const int num()const{return i;}
 	inline const char* str()const{return s;}
@@ -78,11 +78,11 @@ public:
 #endif
 
 class m3{};
-class volume{
+class bvol{
 	float r;
 	p3 v;
 public:
-	static bool checkcol(const p3&pa,const volume&va,const p3&pb,const volume&vb){
+	static bool checkcol(const p3&pa,const bvol&va,const p3&pb,const bvol&vb){
 		cout<<"a(r,p3)=("<<va<<")"<<endl;
 		cout<<"b(r,p3)=("<<vb<<")"<<endl;
 		if(!spherescollide(pa,va,pb,vb)){
@@ -92,25 +92,25 @@ public:
 		cout<<" * sphere overlap"<<endl;
 		return true;
 	}
-	static bool spherescollide(const p3&pa,const volume&a,const p3&pb,const volume&b){
+	static bool spherescollide(const p3&pa,const bvol&a,const p3&pb,const bvol&b){
 		const p3 vec=p3(pa,pb);
 		const float dst=vec.magn();
 		if(dst>(a.r+b.r))
 			return false;
 		return true;
 	}
-	static bool possibleoverlap(const volume a,const volume b){
+	static bool possibleoverlap(const bvol a,const bvol b){
 		cout<<a<<" "<<b<<endl;
 		return false;
 	}
-	volume(const float sphereradius,const p3 boxcorner):r(sphereradius),v(boxcorner){}
-	bool anyboxdotinboxof(const volume a){
+	bvol(const float sphereradius,const p3 boxcorner):r(sphereradius),v(boxcorner){}
+	bool anyboxdotinboxof(const bvol a){
 		cout<<a<<endl;
 		return false;
 	}
-    friend ostream&operator<<(ostream&os,const volume&a);
+    friend ostream&operator<<(ostream&os,const bvol&a);
 };
-ostream&operator<<(ostream&os,const volume&a){
+ostream&operator<<(ostream&os,const bvol&a){
 	os<<a.r<<",["<<a.v<<"]";
     return os;
 }
