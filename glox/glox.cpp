@@ -1,17 +1,21 @@
 #ifndef __glox__
 #define __glox__
 
+#include<iostream>
+using namespace std;
 
 namespace glox{
-	const char*name="glox";
-	const static int dtms=100;
-	const static float dt=glox::dtms/1000.f;
-	inline float d(const float f){return f*glox::dt;}
+	namespace clk{
+		const static int dtms=100;
+		const static float dt=dtms/1000.f;
+	}
+	inline float d(const float f){return f*clk::dt;}
+	inline float rnd(const float from,const float tonotincluding){
+		return from+(tonotincluding-from)*rand()/RAND_MAX;
+	}
 }
 using namespace glox;
 
-#include<iostream>
-using namespace std;
 #include<math.h>
 
 class p3{
@@ -25,14 +29,14 @@ public:
 	inline const float getz()const{return z;}
 	inline p3&transl(const float dx,const float dy,const float dz){x+=dx;y+=dy;z+=dz;return*this;}
 	inline const float magn()const{return sqrt(x*x+y*y+z*z);}
-	friend ostream&operator<<(ostream&os,const p3&a);
+	friend ostream&operator<<(ostream&,const p3&);
+	friend istream&operator>>(istream&,p3&);
 };
-ostream&operator<<(ostream&os,const p3&a){
-	os<<a.x<<","<<a.y<<","<<a.z;
-	return os;
-}
+ostream&operator<<(ostream&os,const p3&a){os<<a.x<<","<<a.y<<","<<a.z;return os;}
+istream&operator>>(istream&is,p3&p){is>>skipws>>p.x;is.ignore();is>>p.y;is.ignore();is>>p.z;return is;}
 
 #include<execinfo.h>
+
 class signl{
 	const int i;
 	const char*s;
@@ -50,30 +54,15 @@ public:
 
 template<class T>class array{
 private:
-	T*a;
-	int of;
-	int ln;
+	T*ar;
+	int of,ln;
 public:
-	inline array(T ae[],const int offset,const int len):a(ae),of(offset),ln(len){}
-	inline T&operator[](const int i)const{
-		if(i<0||i>=ln)throw signl(1,"indexoutofbounds");
-		return a[of+i];
-	}
-	inline void ro(const int offset,const int len,void(*f)(const T&e)){
-		if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinro");
-		T*p=a+of+offset;
-		int i=len;
-		while(i--)
-			(*f)(*p++);
-	}
-	inline void rw(const int offset,const int len,void(*f)(T&e)){
-		if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinrw");
-		T*p=a+of+offset;
-		int i=len;
-		while(i--)
-			(*f)(*p++);
-	}
+	inline array(T a[],const int offset,const int len):ar(a),of(offset),ln(len){}
+	inline T&operator[](const int i)const{if(i<0||i>=ln)throw signl(1,"indexoutofbounds");return ar[of+i];}
+	inline int ofs()const{return of;}
 	inline int len()const{return ln;}
+	inline void ro(const int offset,const int len,void(*f)(const T&e))const{if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinro");T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
+	inline void rw(const int offset,const int len,void(*f)(T&e)){if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinrw");T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
 };
 
 #include<vector>
@@ -268,7 +257,7 @@ public:
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
 		glColor3b(0,0x20,0x60);
-		const float dr=.1f*rand()/RAND_MAX;
+		const float dr=rnd(0,.1f);
 //		const float dr=0;
 		const float r=.4;
 		glutSolidSphere(r+dr,6,6);
@@ -466,7 +455,7 @@ public:
 		char*ks=new char[2];
 		char s[]={key,0};
 		strncpy(ks,s,2);//? bug leak
-		if(lutkeys[ks]==1){
+		if(lutkeys[ks]==1){//? impl array[]
 			return;
 		}
 		lutkeys.put(ks,1);
@@ -476,7 +465,7 @@ public:
 		else if(key==126)// ~
 			glutReshapeWindow(w,h);
 		if(key==32)// spc
-			{object*o=new obworm(wld,7);o->transl(0,3,-10);}
+			{object*o=new obworm(wld,14);o->transl(0,0,-10);}
 	}
 	static void keybu(const unsigned char key,const int x,const int y){
 		char*ks=new char[2];
@@ -524,7 +513,7 @@ public:
 		glutKeyboardUpFunc(keybu);
 		glutMouseFunc(mouseclk);
 		glutMotionFunc(mousemov);
-		glutTimerFunc(0,timer,glox::dtms);
+		glutTimerFunc(0,timer,glox::clk::dtms);
 //		glutIdleFunc(idle);
 //		glutReportErrors();
 
@@ -542,52 +531,21 @@ p3 window::p=p3(0,0,-.5);
 p3 window::a=p3();
 lut<int>&window::lutkeys=*new lut<int>();
 
-static void main_sigf(const int a){
-	cout<<" ••• terminated with signal "<<a<<endl;
-	exit(a);
-}
+extern void gnox();
+static void main_sigf(const int a){cout<<" ••• terminated with signal "<<a<<endl;exit(a);}
 int main(){
 	for(int i=0;i<32;i++)//?
 		signal(i,main_sigf);
 
-//	volume a=volume(1,p3(1,1,1));
-//	volume b=volume(2,p3(2,1,1));
-//	bool col=volume::checkcol(p3(),a,p3(),b);
-//	cout<<"collision: "<<col<<endl;
-//	cout<<"collision: "<<volume::checkcol(p3(3,0,0),a,p3(),b)<<endl;
+	srand(0);
 
-
-
+	gnox();
 	return window::main(0,NULL);
 }
-
-
-class xser{
-private:
-	FILE*in;
-	FILE*out;
-public:
-	xser(FILE*in,FILE*out):in(in),out(out){}
-	xser&w(const size_t d){fprintf(out,"%lu ",d);return*this;}
-	xser&r(size_t&d){fscanf(in,"%lu ",&d);return*this;}
-	xser&w(const char*b,const size_t size=0){fprintf(out,"%lu %s ",size?size:strlen(b),b);return*this;}
-	xser&r(char**buf,size_t&size){
-		if(*buf)
-			delete *buf;//?
-		fscanf(in,"%lu ",&size);
-		*buf=new char[size];
-		const size_t s=fread(*buf,size,1,in);
-		if(s!=1){
-			perror("rs");
-			throw "error while reading";
-//			exit(101);
-		}
-		return*this;
-	}
-	xser&r(char**buf){size_t size=0;return r(buf,size);}
-	xser&flush(){fflush(out);return*this;}
-};
-
+///////////////////////////////////////////////////////////////////////////////
+void gnox(){
+	throw signl(1,"error occurred in gnox");
+}
 #endif
 
 

@@ -1,3 +1,142 @@
+	cout.setf(ios::fixed,ios::floatfield);
+	cout.setf(ios::showpoint);
+	cout.precision(2);
+
+
+
+void gnox_sandbox(){
+//	cout<<cin.rdbuf();
+	ofstream ofs("p3.cout");
+	if(!ofs.good())throw"fileopenerr";
+	p3 po(1,2,3.33333);
+	cout<<po<<endl;
+	ofs<<po<<endl;
+	if(!ofs.good())throw"filewriteerr";
+	ofs.close();
+	po=p3();
+	ifstream ifs("p3.cout");
+	if(!ifs.good())throw"fileopenerr";
+	ifs>>po;
+	ifs.close();
+	cout<<po<<endl;
+	p3 p=p3();
+	cin>>p;
+	if(!cin.good())throw"cinreaderr";
+	cout<<p<<endl;
+	cin>>p;
+	cout<<p<<endl;
+}
+
+
+
+
+
+	cout<<cin.rdbuf();
+	ofstream ofs("p3.cout");
+	p3 po(1,2,3.33333);
+	cout<<po<<endl;
+	ofs<<po<<endl;
+	ofs.close();;
+	ifstream ifs("p3.cout");
+	ifs>>po;
+	ifs.close();
+	cout<<po<<endl;
+	p3 p=p3();
+	cin>>p;
+	cout<<p<<endl;
+	cin>>p;
+	cout<<p<<endl;
+
+
+
+
+
+
+// redirecting cout's output
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+int main () {
+  streambuf *psbuf, *backup;
+  ofstream filestr;
+  filestr.open ("test.txt");
+
+  backup = cout.rdbuf();     // back up cout's streambuf
+
+  psbuf = filestr.rdbuf();   // get file's streambuf
+  cout.rdbuf(psbuf);         // assign streambuf to cout
+
+  cout << "This is written to the file";
+  
+  cout.rdbuf(backup);        // restore cout's original streambuf
+
+  filestr.close();
+
+  return 0;
+}
+
+
+
+
+
+ cout<<cin.rdbuf();
+
+
+#include <iostream>
+using namespace std;
+int main () {
+  cout.setf ( ios_base::hex, ios_base::basefield );  // set hex as the basefield
+  cout.setf ( ios_base::showbase );                  // activate showbase
+  cout << 100 << endl;
+  cout.unsetf ( ios_base::showbase );                // deactivate showbase
+  cout << 100 << endl;
+  return 0;
+}
+
+
+g++ 	-nostartfiles -nodefaultlibs -nostdlib
+
+////	volume a=volume(1,p3(1,1,1));
+////	volume b=volume(2,p3(2,1,1));
+////	bool col=volume::checkcol(p3(),a,p3(),b);
+////	cout<<"collision: "<<col<<endl;
+////	cout<<"collision: "<<volume::checkcol(p3(3,0,0),a,p3(),b)<<endl;
+
+
+
+class xser{
+private:
+	FILE*in;
+	FILE*out;
+public:
+	xser(FILE*in,FILE*out):in(in),out(out){}
+	xser&w(const size_t d){fprintf(out,"%lu ",d);return*this;}
+	xser&r(size_t&d){fscanf(in,"%lu ",&d);return*this;}
+	xser&w(const char*b,const size_t size=0){fprintf(out,"%lu %s ",size?size:strlen(b),b);return*this;}
+	xser&r(char**buf,size_t&size){
+		if(*buf)
+			delete *buf;//?
+		fscanf(in,"%lu ",&size);
+		*buf=new char[size];
+		const size_t s=fread(*buf,size,1,in);
+		if(s!=1){
+			perror("rs");
+			throw "error while reading";
+//			exit(101);
+		}
+		return*this;
+	}
+	xser&r(char**buf){size_t size=0;return r(buf,size);}
+	xser&flush(){fflush(out);return*this;}
+};
+
+
+
+
+
+
+
 
 g++ -I/System/Library/Frameworks/GLUT.framework/Versions/Current/Headers/ -I/System/Library/Frameworks/OpenGL.framework/Versions/Current/Headers/ -O0 -g3 -pedantic -Wall -Wextra -Werror -c -fmessage-length=0 -o src/glox.o ../src/glox.cpp
 g++ -L/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries -framework Carbon -framework OpenGL -framework GLUT -o glox src/glox.o
