@@ -64,6 +64,23 @@ int main(){
 //		}
 
 
+		lut<bool>lutc=lut<bool>();
+		const unsigned char ch='a';
+		const char ke[]={ch,0};
+		cout<<lutc[ke]<<endl;
+		lutc.put(ke,true);
+		cout<<lutc[ke]<<endl;
+		lutc.put(ke,false);
+		cout<<lutc[ke]<<endl;
+		
+		
+		
+//			cout<<__LINE__<<":: "<<(void*)&lutkeys<<" "<<lutkeys[ks]<<endl;
+//			cout<<" keydown: already have "<<key<<" " <<(int)key<<"@"<<x<<","<<y<<endl;
+
+
+
+		
 
 
 

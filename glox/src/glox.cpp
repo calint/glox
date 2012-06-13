@@ -10,20 +10,27 @@ namespace glox{
 }
 using namespace glox;
 
+#include<iostream>
+using namespace std;
+#include<math.h>
 
 class p3{
 	float x,y,z;
 public:
 	p3():x(0),y(0),z(0){}
 	p3(const float x,const float y,const float z):x(x),y(y),z(z){}
+	p3(const p3&from,const p3&to):x(to.x-from.x),y(to.y-from.y),z(to.z-from.z){}
 	inline const float getx()const{return x;}
 	inline const float gety()const{return y;}
 	inline const float getz()const{return z;}
 	inline p3&transl(const float dx,const float dy,const float dz){x+=dx;y+=dy;z+=dz;return*this;}
+	inline const float magn()const{return sqrt(x*x+y*y+z*z);}
+	friend ostream&operator<<(ostream&os,const p3&a);
 };
-
-#include<iostream>
-using namespace std;
+ostream&operator<<(ostream&os,const p3&a){
+	os<<a.x<<","<<a.y<<","<<a.z;
+	return os;
+}
 
 #include<execinfo.h>
 class signl{
@@ -80,6 +87,44 @@ public:
 #include <GL/glu.h>
 #include <GL/glut.h>
 #endif
+
+class m3{};
+class volume{
+	float r;
+	p3 v;
+public:
+	static bool checkcol(const p3&pa,const volume&va,const p3&pb,const volume&vb){
+		cout<<"a(r,p3)=("<<va<<")"<<endl;
+		cout<<"b(r,p3)=("<<vb<<")"<<endl;
+		if(!spherescollide(pa,va,pb,vb)){
+			cout<<" · no sphere overlap"<<endl;
+			return false;
+		}
+		cout<<" * sphere overlap"<<endl;
+		return true;
+	}
+	static bool spherescollide(const p3&pa,const volume&a,const p3&pb,const volume&b){
+		const p3 vec=p3(pa,pb);
+		const float dst=vec.magn();
+		if(dst>(a.r+b.r))
+			return false;
+		return true;
+	}
+	static bool possibleoverlap(const volume a,const volume b){
+		cout<<a<<" "<<b<<endl;
+		return false;
+	}
+	volume(const float sphereradius,const p3 boxcorner):r(sphereradius),v(boxcorner){}
+	bool anyboxdotinboxof(const volume a){
+		cout<<a<<endl;
+		return false;
+	}
+    friend ostream&operator<<(ostream&os,const volume&a);
+};
+ostream&operator<<(ostream&os,const volume&a){
+	os<<a.r<<",["<<a.v<<"]";
+    return os;
+}
 
 
 class object:public p3{
@@ -139,7 +184,6 @@ public:
 	}
 };
 
-#include<math.h>
 class obgridot:public object{
 	float r;
 	static int n;
@@ -174,10 +218,10 @@ public:
 		glPopAttrib();
 	}
 	virtual void tick(){
-		const float s=1;
-		const float dx=s*((float)rand()/RAND_MAX-.5f);
-		const float dy=0;//s*((float)rand()/RAND_MAX-.5f);
-		const float dz=s*((float)rand()/RAND_MAX-.5f);
+//		const float s=1;
+//		const float dx=s*((float)rand()/RAND_MAX-.5f);
+//		const float dy=0;//s*((float)rand()/RAND_MAX-.5f);
+//		const float dz=s*((float)rand()/RAND_MAX-.5f);
 //		transl(d(dx),d(dy),d(dz));
 //		a+=d(.01*360/60);
 	}
@@ -276,6 +320,84 @@ public:
 	}
 };
 
+template<class T>class lut{
+private:
+        int size;
+        class el{
+        public:
+                const char*key;
+                T data;
+                el*nxt;
+                el(const char*key,T data):key(key),data(data),nxt(NULL){}
+                ~el(){
+                        if(nxt)
+                                delete nxt;
+                }
+        };
+        el**array;
+public:
+        static unsigned int hash(const char*key,const unsigned int roll){
+                unsigned int i=0;
+                const char*p=key;
+                while(*p)
+                        i+=*p++;
+                i%=roll;
+                return i;
+        }
+        lut(const int size=8):size(size){
+                array=(el**)calloc(size,sizeof(el*));
+        }
+        ~lut(){
+                clear();
+                delete array;
+        }
+        T operator[](const char*key)const{
+                const int h=hash(key,size);
+                el*l=array[h];
+                if(!l)
+                        return NULL;
+                while(1){
+                        if(!strcmp(l->key,key)){
+                                return l->data;
+                        }
+                        if(l->nxt){
+                                l=l->nxt;
+                                continue;
+                        }
+                        return NULL;
+                }
+                return NULL;//?
+        }
+        void put(const char*key,T data){
+                const int h=hash(key,size);
+                el*l=array[h];
+                if(!l){
+                        array[h]=new el(key,data);
+                        return;
+                }
+                while(1){
+                        if(!strcmp(l->key,key)){
+                                l->data=data;
+                                return;
+                        }
+                        if(l->nxt){
+                                l=l->nxt;
+                                continue;
+                        }
+                        l->nxt=new el(key,data);
+                        return;
+                }
+        }
+        void clear(){
+                for(int i=0;i<size;i++){
+                        el*e=array[i];
+                        if(!e)
+                                continue;
+                        delete e;
+                        array[i]=NULL;
+                }
+        }
+};
 
 
 class window{
@@ -285,12 +407,14 @@ public:
 	static int h;
 	static p3 p;
 	static p3 a;
+	static lut<int>&lutkeys;
 	static void reshape(const int width,const int height){
 		cout<<" reshape: "<<w<<"x"<<h<<endl;
 		w=width;h=height;
 	}
 	static void draw(){
-		cout<<"    draw: "<<endl;
+		static int frame=0;
+		cout<<"\rframe(#)="<<frame++<<" "<<flush;
 //		glClearColor(0,0,0,1);
 		glClearColor(.5f,.5f,1,1);
 		glClearDepth(1);
@@ -339,6 +463,13 @@ public:
 		glDisable(GL_BLEND);
 	}
 	static void keybd(const unsigned char key,const int x,const int y){
+		char*ks=new char[2];
+		char s[]={key,0};
+		strncpy(ks,s,2);//? bug leak
+		if(lutkeys[ks]==1){
+			return;
+		}
+		lutkeys.put(ks,1);
 		cout<<" keydown: "<<key<<" "<<(int)key<<"@"<<x<<","<<y<<endl;
 		if(key==96)// `
 			glutFullScreen();
@@ -348,13 +479,19 @@ public:
 			{object*o=new obworm(wld,7);o->transl(0,3,-10);}
 	}
 	static void keybu(const unsigned char key,const int x,const int y){
+		char*ks=new char[2];
+		char s[]={key,0};
+		strncpy(ks,s,2);//? bug leak
+//		cout<<ks<<endl;
+		lutkeys.put(ks,0);//? if 1 and not handled
+//		cout<<__LINE__<<":: "<<(void*)&lutkeys<<" "<<lutkeys[ks]<<endl;
 		cout<<"   keyup: "<<key<<" "<<(int)key<<"@"<<x<<","<<y<<endl;
 		if(key==27)// esc
 			exit(0);
 	}
-	static void mouseclk(const int button,const int state,int x,const int y){cout<<"mouseclk: "<<state<<"  "<<button<<" @ "<<x<<","<<y<<endl;}
+	static void mouseclk(const int button,const int state,int x,const int y){cout<<"mouseclk: "<<state<<"  "<<button<<"@"<<x<<","<<y<<endl;}
 	static void timer(const int value){
-		cout<<"   timer: "<<value<<endl;
+//		cout<<"\rtimer: "<<value;
 		wld.tick();
 		glutPostRedisplay();
 //		glutTimerFunc(value,timer,value-1);
@@ -368,7 +505,8 @@ public:
 	static int main(int argc,char**argv){
 		printf("glox ");
 		glutInit(&argc,argv);
-		glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
+		glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
+//		glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
 		glutIgnoreKeyRepeat(true);
 		glutInitDisplayMode(GLUT_DOUBLE|GLUT_DEPTH);
 
@@ -402,7 +540,7 @@ int window::w=512;
 int window::h=512;
 p3 window::p=p3(0,0,-.5);
 p3 window::a=p3();
-
+lut<int>&window::lutkeys=*new lut<int>();
 
 static void main_sigf(const int a){
 	cout<<" ••• terminated with signal "<<a<<endl;
@@ -411,100 +549,17 @@ static void main_sigf(const int a){
 int main(){
 	for(int i=0;i<32;i++)//?
 		signal(i,main_sigf);
+
+	volume a=volume(1,p3(1,1,1));
+	volume b=volume(2,p3(2,1,1));
+//	bool col=volume::checkcol(p3(),a,p3(),b);
+//	cout<<"collision: "<<col<<endl;
+	cout<<"collision: "<<volume::checkcol(p3(3,0,0),a,p3(),b)<<endl;
+
+
+
 	return window::main(0,NULL);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-template<class T>class lut{
-private:
-	int size;
-	class el{
-	public:
-		const char*key;
-		T data;
-		el*nxt;
-		el(const char*key,T data):key(key),data(data),nxt(NULL){}
-		~el(){if(nxt)delete nxt;}
-	};
-	el**array;
-public:
-	static unsigned int hash(const char*key,const unsigned int roll){
-		unsigned int i=0;
-		const char*p=key;
-		while(*p){
-			*p=0;
-			i+=*p++;
-		}
-		i%=roll;
-		return i;
-	}
-	lut(const int size=8):size(size){array=(el**)calloc(size,sizeof(el*));}
-	~lut(){clear();delete array;}
-	T operator[](const char*key)const{
-		const int h=hash(key,size);
-		el*l=array[h];
-		if(!l)
-			return NULL;
-		while(1){
-			if(!strcmp(l->key,key))
-				return l->data;
-			if(l->nxt){
-				l=l->nxt;
-				continue;
-			}
-			return NULL;
-		}
-		return NULL;
-	}
-	void put(const char*key,T data){
-		const int h=hash(key,size);
-		const el*l=array[h];
-		if(!l){
-			array[h]=new el(key,data);
-			return;
-		}
-		while(1){
-			if(!strcmp(l->key,key)){
-				l->data=data;
-				return;
-			}
-			if(l->nxt){
-				l=l->nxt;
-				continue;
-			}
-			l->nxt=new el(key,data);
-			return;
-		}
-	}
-	void clear(){
-		for(int i=0;i<size;i++){
-			const el*e=array[i];
-			if(!e)
-				continue;
-			delete e;
-			array[i]=NULL;
-		}
-	}
-};
-
 
 
 class xser{
