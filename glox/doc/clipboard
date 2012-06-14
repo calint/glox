@@ -1,3 +1,30 @@
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_LIGHTING);
+		glEnable(GL_BLEND);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glBegin(GL_QUADS);
+		glColor3b(0x7f,0,0);
+		glVertex2f(0,0);
+		glVertex2f(.5f,0);
+		glVertex2f(.5f,.5f);
+		glVertex2f(0,.5f);
+		glEnd();
+		glOrtho(0,w,0,h,-1000,1000);
+		glBegin(GL_QUADS);
+		glColor3b(0x7f,0,0);
+		glVertex2f(0,0);
+		glVertex2f(w>>1,0);
+		glVertex2f(w>>1,h>>1);
+		glVertex2f(0,h>>1);
+		glEnd();
+
+
+
+
 		bvol a(1,p3(1,1,1));
 		bvol b(2,p3(2,1,1));
 		ofstream ofs("bvol.cin");
