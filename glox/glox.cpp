@@ -9,7 +9,7 @@ namespace glox{
 		int dtms=50;
 		float dt=dtms/1000.f;
 	}
-	inline float d(const float f){return f*clk::dt;}
+	inline float dt(const float f){return f*clk::dt;}
 	inline float rnd(const float from,const float tonotincluding){
 		return from+(tonotincluding-from)*rand()/RAND_MAX;
 	}
@@ -189,7 +189,7 @@ public:
 	}
 	virtual void tick(){
 		glob::tick();
-		transl(0,d(dy),0);
+		transl(0,dt(dy),0);
 		if(gety()>10||gety()<0)dy=-dy;
 	}
 };
@@ -223,7 +223,7 @@ public:
 		const float dx=rnd(-s,s);
 		const float dy=rnd(-s,s);
 		const float dz=0;
-		transl(d(dx),d(dy),d(dz));
+		transl(dt(dx),dt(dy),dt(dz));
 //		a+=d(.01*360/60);
 		glob::tick();
 	}
@@ -300,7 +300,7 @@ public:
 		glPopMatrix();
 	}
 	virtual void tick(){
-		agl().transl(d(360/60),0,0);
+		agl().transl(dt(360/60),0,0);
 		glob::tick();
 	}
 };
@@ -332,7 +332,7 @@ public:
 	}
 	virtual void tick(){
 		glob::tick();
-		agl().transl(d(60),0,d(60));
+		agl().transl(dt(60),0,dt(60));
 //		a.transl(0,d(60),d(60));
 //		a.transl(d(60),0,0);
 //		a.transl(d(60),d(60),0);
@@ -386,59 +386,45 @@ public:
 		glPopMatrix();
 	}
 	void tick(){
-		agl().transl(-d(ddegx),0,d(ddegz));
+		agl().transl(-dt(ddegx),0,dt(ddegz));
 		glob::tick();
 	}
 };
 
 template<class T>class lut{
 private:
-    int size;
-    class el{
-    public:
-        const char*key;
-        T data;
-        el*nxt;
-        el(const char*key,T data):key(key),data(data),nxt(NULL){}
-        ~el(){
-            if(nxt)
-                delete nxt;
-        }
-    };
-    el**array;
+	int size;
+	class el{
+	public:
+		const char*key;
+		T data;
+		el*nxt;
+		el(const char*key,T data):key(key),data(data),nxt(NULL){}
+		~el(){if(nxt)delete nxt;}
+	};
+	el**array;
+	static int hash(const char*key,const int roll){
+		unsigned int i=0;
+		const char*p=key;
+		while(*p)i+=*p++;
+		i%=roll;
+		return i;
+	}
 public:
-    static unsigned int hash(const char*key,const unsigned int roll){
-        unsigned int i=0;
-        const char*p=key;
-        while(*p)
-            i+=*p++;
-        i%=roll;
-        return i;
-    }
-    lut(const int size=8):size(size){
-        array=(el**)calloc(size,sizeof(el*));
-    }
-    ~lut(){
-        clear();
-        delete array;
-    }
-    T operator[](const char*key)const{
-        const int h=hash(key,size);
-        el*l=array[h];
-        if(!l)
-            return (T)NULL;
-        while(1){
-            if(!strcmp(l->key,key)){
-                return l->data;
-            }
-            if(l->nxt){
-                l=l->nxt;
-                continue;
-            }
-            return (T)NULL;
-        }
-        return (T)NULL;//?
-    }
+	lut(const int size=8):size(size){array=(el**)calloc(size,sizeof(el*));}
+	~lut(){clear();delete array;}
+	T operator[](const char*key)const{
+		const int h=hash(key,size);
+		el*l=array[h];
+		if(!l)
+			return (T)NULL;
+		while(1){
+			if(!strcmp(l->key,key))return l->data;
+			if(l->nxt){l=l->nxt;continue;}
+			return (T)NULL;
+		}
+		return (T)NULL;//?
+	}
     void put(const char*key,T data){
         const int h=hash(key,size);
         el*l=array[h];
@@ -514,7 +500,7 @@ namespace windo{
 		const tm&t=*localtime(&tv.tv_sec);//? leak, delrefatblokxit
 		char ac[256];
 		const p3&a=wld.agl();
-		sprintf(ac,"%02d:%02d:%02d.%03d        keys|w a s d q e f g|          p|%0.0f %0.0f %0.0f|   a|%0.0f %0.0f %0.0f|",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,p.getx(),p.gety(),p.getz(),a.getx(),a.gety(),a.getz());//? ostream
+		sprintf(ac,"%02d:%02d:%02d.%03d        keys|j f e d g h i k ur nv |          p|%0.0f %0.0f %0.0f|   a|%0.0f %0.0f %0.0f|",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,p.getx(),p.gety(),p.getz(),a.getx(),a.gety(),a.getz());//? ostream
 		y-=dy>>2;pl(ac,y,w>>5,1,.1f);
 	}
 	void draw(){
@@ -545,6 +531,18 @@ namespace windo{
 
 		glutSwapBuffers();
 	}
+	void timer(const int value){
+//		cout<<"\rtimer: "<<value;
+		const char r[]={'r',0};const char u[]={'u',0};
+		if(lutkeys[r]&&lutkeys[u]){p.transl(0,dt(1),0);}
+		const char v[]={'v',0};const char n[]={'n',0};
+		if(lutkeys[v]&&lutkeys[n]){p.transl(0,-dt(1),0);}
+
+		wld.tick();
+		glutPostRedisplay();
+//		glutTimerFunc(value,timer,value-1);
+		glutTimerFunc(value,timer,value);
+	}
 	void keydn(const unsigned char key,const int x,const int y){
 		char*ks=new char[2];
 		char s[]={key,0};
@@ -559,17 +557,17 @@ namespace windo{
 		else if(key==126)// ~
 			glutReshapeWindow(w,h);
 
-		if(key==32){glob*o=new obwom(wld,14);o->transl(0,0,-10);}
-		else if(key=='s'){wld.ddegx-=360/60;}
-		else if(key=='w'){wld.ddegx+=360/60;}
-		else if(key=='a'){wld.ddegz-=360/60;}
-		else if(key=='d'){wld.ddegz+=360/60;}
-		else if(key=='e'){p.transl(0,0,1);}
-		else if(key=='q'){p.transl(0,0,-1);}
-		else if(key=='f'){wld.ddegz=wld.ddegx=0;}
-//		else if(key=='g'){wld["obcorp"].pause=true;}
+//		if(key==32){glob*o=new obwom(wld,14);o->transl(0,0,-10);}
+		if(key==0){throw "keyo";}
+		else if(key=='j'){wld.ddegz-=360/60;}
+		else if(key=='f'){wld.ddegz+=360/60;}
+		else if(key=='e'){wld.ddegx-=360/60;}
+		else if(key=='d'){wld.ddegx+=360/60;}
+		else if(key==' '){wld.ddegz=wld.ddegx=0;}
 		else if(key=='g'){wld.ddegz=wld.ddegx=0;wld.agl().set(p3(270,0,0));}
 		else if(key=='h'){wld.ddegz=wld.ddegx=0;wld.agl().set(p3(90.5,0,0));}
+		else if(key=='i'){p.transl(0,0,-1);}
+		else if(key=='k'){p.transl(0,0,1);}
 	}
 	void keyup(const unsigned char key,const int x,const int y){
 		char*ks=new char[2];
@@ -581,13 +579,6 @@ namespace windo{
 			exit(0);
 	}
 	void mouseclk(const int button,const int state,int x,const int y){cout<<"mouseclk: "<<state<<"  "<<button<<"@"<<x<<","<<y<<endl;}
-	void timer(const int value){
-//		cout<<"\rtimer: "<<value;
-		wld.tick();
-		glutPostRedisplay();
-//		glutTimerFunc(value,timer,value-1);
-		glutTimerFunc(value,timer,value);
-	}
 	//void idle(){
 	//	printf("idle\n");
 	//	return;
