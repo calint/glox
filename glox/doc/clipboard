@@ -1,3 +1,25 @@
+
+
+
+
+
+		bvol a(1,p3(1,1,1));
+		bvol b(2,p3(2,1,1));
+		ofstream ofs("bvol.cin");
+		ofs<<a<<endl;
+		ofs.close();
+		ifstream ifs("bvol.cin");
+		ifs>>b;
+		ifs.close();
+		cout<<b<<endl;
+
+
+		bool col=bvol::checkcol(p3(),a,p3(),b);
+		cout<<"collision: "<<col<<endl;
+		cout<<"collision: "<<bvol::checkcol(p3(3,0,0),a,p3(),b)<<endl;
+
+
+
 at start or end of frame
  glBufferSubData, glBufferData, glMapBuffer, glTexSubImage, glCopyTexImage, glCopyTexSubImage, glReadPixels, glBindFramebuffer, glFlush, and glFinish.
 
@@ -305,13 +327,6 @@ int main () {
 
 
 g++ 	-nostartfiles -nodefaultlibs -nostdlib
-
-////	volume a=volume(1,p3(1,1,1));
-////	volume b=volume(2,p3(2,1,1));
-////	bool col=volume::checkcol(p3(),a,p3(),b);
-////	cout<<"collision: "<<col<<endl;
-////	cout<<"collision: "<<volume::checkcol(p3(3,0,0),a,p3(),b)<<endl;
-
 
 
 class xser{

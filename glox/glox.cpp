@@ -116,7 +116,6 @@ ostream&operator<<(ostream&os,const bvol&a){
 
 #include<vector>
 
-
 class object:public p3{
 	object&pt;
 	p3 a;
@@ -194,7 +193,7 @@ public:
 //		glFrontFace(GL_CW);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
-		glEnable(GL_LIGHT1);
+		//glEnable(GL_LIGHT1);
 		glColor4f(0,0,1.f,1.f);
 //		const float dr=rng*rand()/RAND_MAX-rng/2;
 		const float dr=.5*sin(a);
@@ -207,11 +206,11 @@ public:
 		glPopAttrib();
 	}
 	virtual void tick(){
-//		const float s=1;
-//		const float dx=s*((float)rand()/RAND_MAX-.5f);
-//		const float dy=0;//s*((float)rand()/RAND_MAX-.5f);
-//		const float dz=s*((float)rand()/RAND_MAX-.5f);
-//		transl(d(dx),d(dy),d(dz));
+		const float s=.1f;
+		const float dx=rnd(-s,s);
+		const float dy=0;
+		const float dz=rnd(-s,s);;
+		transl(d(dx),d(dy),d(dz));
 //		a+=d(.01*360/60);
 	}
 };
