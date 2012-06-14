@@ -9,7 +9,7 @@ namespace glox{
 		int dtms=50;
 		float dt=dtms/1000.f;
 	}
-	inline float d(const float f){return f*clk::dt;}
+	inline float dt(const float f){return f*clk::dt;}
 	inline float rnd(const float from,const float tonotincluding){
 		return from+(tonotincluding-from)*rand()/RAND_MAX;
 	}
@@ -189,19 +189,18 @@ public:
 	}
 	virtual void tick(){
 		glob::tick();
-		transl(0,d(dy),0);
+		transl(0,dt(dy),0);
 		if(gety()>10||gety()<0)dy=-dy;
 	}
 };
 
 class obcorpqb:public glob{
-	float r;
-	static int n;
-	float a;
 public:
-	obcorpqb(glob&pt,const float r=1):glob(pt),r(r){
+	float r;
+	float scl;
+	float a;
+	obcorpqb(glob&pt,const float r=1,float a=0):glob(pt),r(r),scl(r),a(a){
 //		a=.5f*n++*rand()/RAND_MAX;
-		a=.25*n++;
 	}
 	void gldraw(){
 		glShadeModel(GL_FLAT);
@@ -209,7 +208,7 @@ public:
 		glFrontFace(GL_CCW);
 		glColor3b(0,0,127);
 //		const float dr=rng*rand()/RAND_MAX-rng/2;
-		const float dr=.5*sin(a);
+		const float dr=scl*sin(a);
 		glutSolidSphere(r+dr,4,3);
 //		glutSolidTetrahedron();
 //		glutSolidCube(r+dr);
@@ -219,31 +218,34 @@ public:
 		glPopAttrib();
 	}
 	virtual void tick(){
-		const float s=.1f;
-		const float dx=rnd(-s,s);
-		const float dy=rnd(-s,s);
-		const float dz=0;
-		transl(d(dx),d(dy),d(dz));
+//		const float s=.1f;
+//		const float dx=rnd(-s,s);
+//		const float dy=rnd(-s,s);
+//		const float dz=0;
+//		transl(dt(dx),dt(dy),dt(dz));
 //		a+=d(.01*360/60);
 		glob::tick();
 	}
 };
-int obcorpqb::n=0;
 
 
 class obcorp:public glob{
 public:
-	static const float s;
-	obcorp(glob&pt):glob(pt){
-		const float ds=.1*s;
-		for(float xx=-s;xx<s;xx+=ds)
-			for(float yy=-s;yy<s;yy+=ds){
-				if(sqrt(xx*xx+yy*yy)>s)
-					continue;
-				glob*o=new obcorpqb(*this);
-				o->transl(xx,yy,00);
-				o->agl().transl(90,0,0);
-			}
+	float s;
+	obcorp(glob&pt,const float scale):glob(pt),s(scale){
+		const float ds=s/1;
+		const float dz=s/7;
+		int n=0;
+		for(float xx=-s;xx<=s;xx+=ds)
+			for(float yy=-s;yy<=s;yy+=ds)
+				for(float zz=-s;zz<=s;zz+=dz){
+					if(sqrt(xx*xx+yy*yy+zz*zz)>s)
+						continue;
+					const float a=5*n++;
+					glob*o=new obcorpqb(*this,dz,a);
+					o->transl(xx,yy,zz);
+					o->agl().transl(0,0,0);
+				}
 	}
 	void gldraw(){
 		glFrontFace(GL_CW);
@@ -251,19 +253,12 @@ public:
 		glEnable(GL_LIGHT0);
 //		glEnable(GL_LIGHT1);
 	}
-	virtual void tick(){
-		glob::tick();
-	}
 };
-const float obcorp::s=7;
 
 
 class obquad:public glob{
 public:
-	obquad(glob&g):glob(g){
-		glob*o=new obcorp(*this);
-		o->agl().transl(-90,0,0);
-	}
+	obquad(glob&g):glob(g){}
 	void gldraw(){
 		const float s=15.f;
 
@@ -300,7 +295,7 @@ public:
 		glPopMatrix();
 	}
 	virtual void tick(){
-		agl().transl(d(360/60),0,0);
+		agl().transl(dt(360/60),0,0);
 		glob::tick();
 	}
 };
@@ -332,7 +327,7 @@ public:
 	}
 	virtual void tick(){
 		glob::tick();
-		agl().transl(d(60),0,d(60));
+		agl().transl(dt(60),0,dt(60));
 //		a.transl(0,d(60),d(60));
 //		a.transl(d(60),0,0);
 //		a.transl(d(60),d(60),0);
@@ -343,15 +338,11 @@ public:
 class wold:public glob{
 public:
 	float ddegx,ddegz;
-	wold():glob(*this),ddegx(0){
-		agl().transl(90.1,0,0);
-		transl(0,-.3,0);
-		glob&g=*new obcorp(*this);
-		g.agl().transl(90,0,0);
-		g.transl(0,0,4.2f);
+	wold():glob(*this){
+		new obcorp(*this,10);
 	}
 	void gldraw(){
-		const float s=15.f;
+		const float s=600.f;
 
 		glColor3b(0,0,0x7f);
 		glBegin(GL_QUADS);
@@ -361,6 +352,7 @@ public:
 		glVertex2f(-s, s);
 		glEnd();
 
+		glLineWidth(10.f);
 		glBegin(GL_LINE_STRIP);
 		glVertex3f(s,0,.01f);
 		glColor3b(0,127,127);
@@ -369,15 +361,15 @@ public:
 		glVertex3f(0,s,.02f);
 		glEnd();
 
-		const float r=s;
+		const float r=.75*s;
 		glPushMatrix();
-		glTranslatef(0,0,.01f);
+		glTranslatef(0,0,8);
 		glColor3b(0,0x7f,0);
 		glBegin(GL_TRIANGLE_FAN);
 		glVertex2f(0,0);
 		glVertex2f(r,0);
 		const float dtr=3.14159/180;
-		const int di=360/24;
+		const int di=360/12;
 		for(int i=di;i<=360;i+=di){
 			const float rd=i*dtr;
 			glVertex2f(r*cos(rd),r*sin(rd));
@@ -386,7 +378,7 @@ public:
 		glPopMatrix();
 	}
 	void tick(){
-		agl().transl(-d(ddegx),0,d(ddegz));
+		agl().transl(dt(ddegx),0,dt(ddegz));
 		glob::tick();
 	}
 };
@@ -475,8 +467,8 @@ public:
 namespace windo{
 	int w=512,h=512;
 	wold wld;
-	p3 p(0,0,15);
-	p3 a;
+	p3 p(0,0,100);
+	p3 a(0,0,0);
 	lut<int>lutkeys;
 	void reshape(const int width,const int height){
 		cout<<" reshape: "<<w<<"x"<<h<<endl;
@@ -508,14 +500,13 @@ namespace windo{
 		const int dy=h>>3;
 		int y=dy>>1;
 
-		pl("glox",y);
+		pl("glox",y,0,2);
 
 		timeval tv;gettimeofday(&tv,0);
 		const tm&t=*localtime(&tv.tv_sec);//? leak, delrefatblokxit
-		char ac[256];
-		const p3&a=wld.agl();
-		sprintf(ac,"%02d:%02d:%02d:%03d                   p(%0.1f,%0.1f,%0.1f)  a(%0.0f,%0.0f,%0.0f)",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,p.getx(),p.gety(),p.getz(),a.getx(),a.gety(),a.getz());//? ostream
-		y=y-(dy>>2);pl(ac,y,100,1,.1f);
+		char ac[200];
+		sprintf(ac,"%02d:%02d:%02d:%03d",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000);//? ostream
+		y=y-(dy>>2);pl(ac,y,100,1,.08f);
 	}
 	void draw(){
 		static int frame=0;
@@ -532,18 +523,43 @@ namespace windo{
 		glViewport(0,0,w,h);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		gluPerspective(45,(GLdouble)w / h, .1, 1000);
+		gluPerspective(45,(GLdouble)w/h,.1,5000);
 		glMatrixMode (GL_MODELVIEW);
 		glLoadIdentity();
-		glTranslatef(-p.getx(), -p.gety(), -p.getz());
-//		glRotatef(-a.getz(), 0, 0, 1);
-//		glRotatef(-a.getx(), 1, 0, 0);
+		glRotatef(-a.getx(), 1, 0, 0);
+		glRotatef(-a.getz(), 0, 0, 1);
 //		glRotatef(-a.gety(), 0, 1, 0);
+		glTranslatef(-p.getx(), -p.gety(), -p.getz());
 
 		wld.draw();
 		drawhud();
 
 		glutSwapBuffers();
+	}
+	bool iskeydown(const int i){const char k[]={i,0};return lutkeys[k];}
+	void timer(const int value){
+//		cout<<"\rtimer: "<<value;
+		const int turnrate=90;// deg/s
+//		const int pitchrate=90;// deg/s
+		const float moverate=100;// m/s
+		     if(iskeydown(32)){glob*o=new obwom(wld,100);o->transl(0,0,-10);}
+		else if(iskeydown(105)){wld.ddegx-=dt(60);}//i
+		else if(iskeydown(106)){wld.ddegz-=dt(60);}//j
+		else if(iskeydown(107)){wld.ddegx+=dt(60);}//k
+		else if(iskeydown(108)){wld.ddegz+=dt(60);}//l
+		else if(iskeydown(117)){p.transl(0,0,dt(100));}//u
+		else if(iskeydown(111)){p.transl(0,0,dt(-100));}//o
+		else if(iskeydown(109)){wld.ddegx=wld.ddegz=0;}//m
+
+		else if(iskeydown('a')){}
+		else if(iskeydown('d')){}
+		else if(iskeydown('w')){}
+		else if(iskeydown('s')){}
+
+		wld.tick();
+		glutPostRedisplay();
+//		glutTimerFunc(value,timer,value-1);
+		glutTimerFunc(value,timer,value);
 	}
 	void keybd(const unsigned char key,const int x,const int y){
 		char*ks=new char[2];
@@ -558,16 +574,6 @@ namespace windo{
 			glutFullScreen();
 		else if(key==126)// ~
 			glutReshapeWindow(w,h);
-
-		if(key==32){glob*o=new obwom(wld,14);o->transl(0,0,-10);}
-		else if(key=='s'){wld.ddegx-=360/60;}
-		else if(key=='w'){wld.ddegx+=360/60;}
-		else if(key=='a'){wld.ddegz-=360/60;}
-		else if(key=='d'){wld.ddegz+=360/60;}
-		else if(key=='e'){p.transl(0,0,1);}
-		else if(key=='q'){p.transl(0,0,-1);}
-		else if(key=='f'){wld.ddegz=wld.ddegx=0;}
-
 	}
 	void keybu(const unsigned char key,const int x,const int y){
 		char*ks=new char[2];
@@ -579,13 +585,7 @@ namespace windo{
 			exit(0);
 	}
 	void mouseclk(const int button,const int state,int x,const int y){cout<<"mouseclk: "<<state<<"  "<<button<<"@"<<x<<","<<y<<endl;}
-	void timer(const int value){
-//		cout<<"\rtimer: "<<value;
-		wld.tick();
-		glutPostRedisplay();
-//		glutTimerFunc(value,timer,value-1);
-		glutTimerFunc(value,timer,value);
-	}
+
 	//void idle(){
 	//	printf("idle\n");
 	//	return;
