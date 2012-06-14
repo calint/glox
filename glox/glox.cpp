@@ -29,11 +29,13 @@ public:
 	inline const float getz()const{return z;}
 	inline p3&transl(const float dx,const float dy,const float dz){x+=dx;y+=dy;z+=dz;return*this;}
 	inline const float magn()const{return sqrt(x*x+y*y+z*z);}
+	inline p3&set(const p3&p){x=p.x;y=p.y;z=p.z;return*this;}
+
 	friend ostream&operator<<(ostream&,const p3&);
 	friend istream&operator>>(istream&,p3&);
 };
-ostream&operator<<(ostream&os,const p3&a){os<<a.x<<","<<a.y<<","<<a.z;return os;}
-istream&operator>>(istream&is,p3&p){is>>skipws>>p.x;is.ignore();is>>p.y;is.ignore();is>>p.z;return is;}
+ostream&operator<<(ostream&os,const p3&p){os<<p.x<<","<<p.y<<","<<p.z;return os;}
+istream&operator>>(istream&is,p3&p){is>>p.x;is.ignore();is>>p.y;is.ignore();is>>p.z;return is;}
 
 #include<execinfo.h>
 
@@ -42,8 +44,8 @@ class signl{
 	const char*s;
 public:
 	signl(const int i,const char*s):i(i),s(s){
-		cout<<" ••• signal "<<i<<" · "<<s<<endl;
-        const int nva=5;
+		cout<<" ••• signl "<<i<<" · "<<s<<endl;
+        const int nva=10;
 		void*va[nva];
 		int n=backtrace(va,nva);
 		backtrace_symbols_fd(va,n,1);
@@ -56,13 +58,14 @@ template<class T>class arai{
 private:
 	T*ar;
 	int of,ln;
+	inline void asrt(const int offset,const int len)const{if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinrw");}
 public:
 	inline arai(T a[],const int offset,const int len):ar(a),of(offset),ln(len){}
-	inline T&operator[](const int i)const{if(i<0||i>=ln)throw signl(1,"indexoutofbounds");return ar[of+i];}
+	inline T&operator[](const int i)const{asrt(i,1);return ar[of+i];}
 	inline int ofs()const{return of;}
 	inline int len()const{return ln;}
 	inline void ro(const int offset,const int len,void(*f)(const T&e))const{if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinro");T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
-	inline void rw(const int offset,const int len,void(*f)(T&e)){if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinrw");T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
+	inline void rw(const int offset,const int len,void(*f)(T&e)){asrt(offset,len);T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
 };
 
 #ifdef __APPLE__
@@ -75,19 +78,31 @@ public:
 #include <GL/glut.h>
 #endif
 
-class m3{};
+//#define mhello()cout<<"hello"<<endl;
+#define flf()l("  ",__FILE__,__LINE__,__FUNCTION__);
+static inline ostream&l(const char*s="",const char*file="",int lineno=0,const char*func=""){cerr<<file;if(lineno){cerr<<":"<<lineno;}cerr<<" "<<func<<"  "<<s;return cerr;}
+static inline ostream&ll(const char*s="",const char*file="",int lineno=0,const char*func=""){return l(s,file,lineno,func)<<endl;}
+
+class m3{
+public:
+	float c[16];
+	m3(){}
+	m3(const m3&m){if(&m==0){flf();};}
+};
+ostream&operator<<(ostream&os,const m3&m){m3(m).c[0]=1;return os;}
+istream&operator>>(istream&is,m3&m){m3(m).c[0]=1;return is;}
+
 class bvol{
 	float r;
 	p3 v;
 public:
-	static bool checkcol(const p3&pa,const bvol&va,const p3&pb,const bvol&vb){
-		cout<<"a(r,p3)=("<<va<<")"<<endl;
-		cout<<"b(r,p3)=("<<vb<<")"<<endl;
-		if(!spherescollide(pa,va,pb,vb)){
-			cout<<" · no sphere overlap"<<endl;
+	static bool checkcol(const p3&pa,const m3&ma,const bvol&bva,const p3&pb,const m3&mb,const bvol&bvb){
+		if(!spherescollide(pa,bva,pb,bvb)){
+			flf();ll(" · nosphereoverlap");
 			return false;
 		}
-		cout<<" * sphere overlap"<<endl;
+		flf();ll(" • sphereoverlap");
+		flf();l()<<"a p3("<<pa<<")m3("<<ma<<")"<<"bvol("<<bva<<")    b p3("<<pb<<")m3("<<mb<<")bvol("<<bvb<<")"<<endl;
 		return true;
 	}
 	static bool spherescollide(const p3&pa,const bvol&a,const p3&pb,const bvol&b){
@@ -97,22 +112,35 @@ public:
 			return false;
 		return true;
 	}
-	static bool possibleoverlap(const bvol a,const bvol b){
-		cout<<a<<" "<<b<<endl;
+	static bool possibleoverlap(const p3&pa,const bvol&bva,const p3&pb,const bvol&bvb){
+		flf();l()<<pa<<bva<<pb<<bvb<<endl;
 		return false;
 	}
+///
 	bvol(const float sphereradius,const p3 boxcorner):r(sphereradius),v(boxcorner){}
-	bool anyboxdotinboxof(const bvol a){
-		cout<<a<<endl;
+	bool anyboxdotinboxof(const p3&p,const m3&m,const bvol&bv){
+		flf();l()<<p<<m<<bv<<endl;
 		return false;
 	}
-    friend ostream&operator<<(ostream&os,const bvol&a);
+    friend ostream&operator<<(ostream&,const bvol&);
+    friend istream&operator>>(istream&,bvol&);
 };
-ostream&operator<<(ostream&os,const bvol&a){
-	os<<a.r<<",["<<a.v<<"]";
+ostream&operator<<(ostream&os,const bvol&b){
+	os<<b.r<<",("<<b.v<<")";
     return os;
 }
-
+istream&operator>>(istream&is,bvol&bv){
+	is>>bv.r;is.ignore(2);
+	is>>bv.v;is.ignore();
+	return is;
+}
+///////////////////////////////////////////////////////////////////////////////
+void gnox(){
+	flf();ll();
+	bvol::checkcol(p3(),m3(),bvol(1,p3(1,1,1)),p3(1,0,0),m3(),bvol(1,p3(1,1,1)));
+//	throw signl(1,"gnoxstop");
+}
+///////////////////////////////////////////////////////////////////////////////
 
 #include<vector>
 
@@ -121,7 +149,7 @@ class glob:public p3{
 	p3 a;
 	vector<glob*>chs;
 public:
-	glob(glob&parent):p3(),pt(parent),a(){
+	glob(glob&g):p3(),pt(g),a(){
 		if(&pt==this)
 			return;
 		pt.chs.push_back(this);
@@ -129,6 +157,7 @@ public:
 	virtual ~glob(){}
 //	inline const p3&agl()const{return a;}
 	inline p3&agl(){return a;}
+	inline glob&seta(const p3&a){this->a.set(a);return*this;}
 	void draw(){
 		glTranslatef(getx(),gety(),getz());
 		glRotatef(a.getx(),1,0,0);
@@ -142,7 +171,6 @@ public:
 		}
 	}
 	virtual void gldraw(){};
-	inline glob&rot(const p3&agl){a=agl;return*this;}
 	virtual void tick(){
 		for(unsigned int i=0;i<chs.size();i++){
 			chs[i]->tick();
@@ -492,8 +520,8 @@ public:
 	static int main(int argc,char**argv){
 		printf("glox ");
 		glutInit(&argc,argv);
-		glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
-//		glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
+//		glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
+		glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
 		glutIgnoreKeyRepeat(true);
 		glutInitDisplayMode(GLUT_DOUBLE|GLUT_DEPTH);
 
@@ -530,19 +558,12 @@ p3 windo::a=p3();
 lut<int>&windo::lutkeys=*new lut<int>();
 
 extern void gnox();
-static void main_sigf(const int a){cout<<" ••• terminated with signal "<<a<<endl;exit(a);}
+static void mainsig(const int i){cerr<<" ••• terminated with signal "<<i<<endl;exit(i);}
 int main(){
-	for(int i=0;i<32;i++)//?
-		signal(i,main_sigf);
-
+	for(int i=0;i<32;i++)signal(i,mainsig);//?
 	srand(0);
-
 	gnox();
 	return windo::main(0,NULL);
-}
-///////////////////////////////////////////////////////////////////////////////
-void gnox(){
-//	throw signl(1,"error occurred in gnox");
 }
 #endif
 
