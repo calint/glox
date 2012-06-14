@@ -52,12 +52,12 @@ public:
 	inline const char* str()const{return s;}
 };
 
-template<class T>class array{
+template<class T>class arai{
 private:
 	T*ar;
 	int of,ln;
 public:
-	inline array(T a[],const int offset,const int len):ar(a),of(offset),ln(len){}
+	inline arai(T a[],const int offset,const int len):ar(a),of(offset),ln(len){}
 	inline T&operator[](const int i)const{if(i<0||i>=ln)throw signl(1,"indexoutofbounds");return ar[of+i];}
 	inline int ofs()const{return of;}
 	inline int len()const{return ln;}
@@ -116,17 +116,17 @@ ostream&operator<<(ostream&os,const bvol&a){
 
 #include<vector>
 
-class object:public p3{
-	object&pt;
+class glob:public p3{
+	glob&pt;
 	p3 a;
-	vector<object*>chs;
+	vector<glob*>chs;
 public:
-	object(object&parent):p3(),pt(parent),a(){
+	glob(glob&parent):p3(),pt(parent),a(){
 		if(&pt==this)
 			return;
 		pt.chs.push_back(this);
 	}
-	virtual ~object(){}
+	virtual ~glob(){}
 //	inline const p3&agl()const{return a;}
 	inline p3&agl(){return a;}
 	void draw(){
@@ -142,7 +142,7 @@ public:
 		}
 	}
 	virtual void gldraw(){};
-	inline object&rot(const p3&agl){a=agl;return*this;}
+	inline glob&rot(const p3&agl){a=agl;return*this;}
 	virtual void tick(){
 		for(unsigned int i=0;i<chs.size();i++){
 			chs[i]->tick();
@@ -151,10 +151,10 @@ public:
 };
 
 
-class obteapot:public object{
+class obteapot:public glob{
 	float dy;
 public:
-	obteapot(object&pt):object(pt),dy(.1f){}
+	obteapot(glob&pt):glob(pt),dy(.1f){}
 	void gldraw(){
 		glPushAttrib(GL_ENABLE_BIT);
 		glEnable(GL_CULL_FACE);
@@ -166,18 +166,18 @@ public:
 		glPopAttrib();
 	}
 	virtual void tick(){
-		object::tick();
+		glob::tick();
 		transl(0,d(dy),0);
 		if(gety()>10||gety()<0)dy=-dy;
 	}
 };
 
-class obgridot:public object{
+class obgridot:public glob{
 	float r;
 	static int n;
 	float a;
 public:
-	obgridot(object&pt,const float r=1):object(pt),r(r){
+	obgridot(glob&pt,const float r=1):glob(pt),r(r){
 //		a=.5f*n++*rand()/RAND_MAX;
 		a=.25*n++;
 	}
@@ -216,35 +216,34 @@ public:
 };
 int obgridot::n=0;
 
-#include<math.h>
 
-class obgrid:public object{
+class obgrid:public glob{
 public:
-	obgrid(object&pt):object(pt){
+	obgrid(glob&pt):glob(pt){
 		const float s=7;
 		const float ds=s/10;
 		for(float xx=-s;xx<s;xx+=ds)
 			for(float yy=-s;yy<s;yy+=ds){
 				if(sqrt(xx*xx+yy*yy)>s)
 					continue;
-				object*o=new obgridot(*this);
+				glob*o=new obgridot(*this);
 				o->transl(xx,yy,0);
 				o->agl().transl(90,0,0);
 			}
 	}
 	virtual void tick(){
-		object::tick();
+		glob::tick();
 		agl().transl(d(360/60),0,0);
 	}
 };
 
 
-class obworm:public object{
+class obwom:public glob{
 public:
-	obworm(object&pt,const int links):object(pt){
+	obwom(glob&pt,const int links):glob(pt){
 		if(links==0)
 			return;
-		object*o=new obworm(*this,links-1);
+		glob*o=new obwom(*this,links-1);
 		o->transl(0,.4f,0);
 	}
 	void gldraw(){
@@ -264,7 +263,7 @@ public:
 		glPopAttrib();
 	}
 	virtual void tick(){
-		object::tick();
+		glob::tick();
 		agl().transl(d(60),0,d(60));
 //		a.transl(0,d(60),d(60));
 //		a.transl(d(60),0,0);
@@ -272,24 +271,24 @@ public:
 	}
 };
 
-class world:public object{
+class wold:public glob{
 public:
-	world():object(*this){
+	wold():glob(*this){
 		const bool worms=false;
 		const bool grid=true;
 		if(worms){
-			object*o1=new obworm(*this,1);
+			glob*o1=new obwom(*this,1);
 			o1->transl(2,2,-10);
 
-			object*o2=new obworm(*this,3);
+			glob*o2=new obwom(*this,3);
 			o2->transl(-2,2,-10);
 
-			object*o3=new obworm(*this,16);
+			glob*o3=new obwom(*this,16);
 	//		o3->transl(-1.9,.6,-10);
 			o3->transl(0,2,-10);
 		}
 		if(grid){
-			object*o4=new obgrid(*this);
+			glob*o4=new obgrid(*this);
 			o4->transl(0,-1,-10);
 			o4->agl().transl(-68,0,0);
 		}
@@ -304,7 +303,7 @@ public:
 //	void gldraw(){}
 	virtual void tick(){
 //		cout<<"    tick: "<<endl;
-		object::tick();
+		glob::tick();
 	}
 };
 
@@ -388,9 +387,9 @@ public:
 };
 
 
-class window{
+class windo{
 public:
-	static world&wld;
+	static wold&wld;
 	static int w;
 	static int h;
 	static p3 p;
@@ -464,7 +463,7 @@ public:
 		else if(key==126)// ~
 			glutReshapeWindow(w,h);
 		if(key==32)// spc
-			{object*o=new obworm(wld,14);o->transl(0,0,-10);}
+			{glob*o=new obwom(wld,14);o->transl(0,0,-10);}
 	}
 	static void keybu(const unsigned char key,const int x,const int y){
 		char*ks=new char[2];
@@ -523,12 +522,12 @@ public:
 		return 0;
 	}
 };
-world&window::wld=*new world();
-int window::w=512;
-int window::h=512;
-p3 window::p=p3(0,0,-.5);
-p3 window::a=p3();
-lut<int>&window::lutkeys=*new lut<int>();
+wold&windo::wld=*new wold();
+int windo::w=512;
+int windo::h=512;
+p3 windo::p=p3(0,0,-.5);
+p3 windo::a=p3();
+lut<int>&windo::lutkeys=*new lut<int>();
 
 extern void gnox();
 static void main_sigf(const int a){cout<<" ••• terminated with signal "<<a<<endl;exit(a);}
@@ -539,7 +538,7 @@ int main(){
 	srand(0);
 
 	gnox();
-	return window::main(0,NULL);
+	return windo::main(0,NULL);
 }
 ///////////////////////////////////////////////////////////////////////////////
 void gnox(){

@@ -1,8 +1,3 @@
-
-
-
-
-
 		bvol a(1,p3(1,1,1));
 		bvol b(2,p3(2,1,1));
 		ofstream ofs("bvol.cin");
@@ -132,7 +127,7 @@ glDisable(GL_STENCIL_TEST);
 glDisable(GL_FOG);
 glDisable(GL_TEXTURE_2D);
 glDisable(GL_DEPTH_TEST);
-// Disable other state variables as appropriate.
+
 
 
 
@@ -279,10 +274,6 @@ void gnox_sandbox(){
 	cout<<p<<endl;
 
 
-
-
-
-
 // redirecting cout's output
 #include <iostream>
 #include <fstream>
@@ -292,23 +283,14 @@ int main () {
   streambuf *psbuf, *backup;
   ofstream filestr;
   filestr.open ("test.txt");
-
   backup = cout.rdbuf();     // back up cout's streambuf
-
   psbuf = filestr.rdbuf();   // get file's streambuf
   cout.rdbuf(psbuf);         // assign streambuf to cout
-
   cout << "This is written to the file";
-  
   cout.rdbuf(backup);        // restore cout's original streambuf
-
   filestr.close();
-
   return 0;
 }
-
-
-
 
 
  cout<<cin.rdbuf();
@@ -325,9 +307,7 @@ int main () {
   return 0;
 }
 
-
-g++ 	-nostartfiles -nodefaultlibs -nostdlib
-
+g++ -nostartfiles -nodefaultlibs -nostdlib
 
 class xser{
 private:
@@ -355,36 +335,10 @@ public:
 	xser&flush(){fflush(out);return*this;}
 };
 
-
-
-
-
-
-
-
-g++ -I/System/Library/Frameworks/GLUT.framework/Versions/Current/Headers/ -I/System/Library/Frameworks/OpenGL.framework/Versions/Current/Headers/ -O0 -g3 -pedantic -Wall -Wextra -Werror -c -fmessage-length=0 -o src/glox.o ../src/glox.cpp
-g++ -L/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries -framework Carbon -framework OpenGL -framework GLUT -o glox src/glox.o
-
-
-
-cmd="g++ -o $bbin $srcdir/$src \
-	-framework GLUT \
-	-framework OpenGL \
-	-I/System/Library/Frameworks/OpenGL.framework/Versions/Current/Headers/ \
-	-I/System/Library/Frameworks/GLUT.framework/Versions/Current/Headers/ \
-	-L/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries"&&
-
--framework Carbon
--framework OpenGL -framework GLUT
-
-
-/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries
-
-
 //try{return window::main(0,NULL);}
 //catch(const char*p){cout<<"••• error: "<<p<<endl;stktrace();}
-//catch(void*p){cout<<"•• error: "<<p<<" "<<p<<endl;stktrace();}
-//catch(...){cerr<<"•••• error:"<<endl;stktrace();}
+//catch(const void*p){cout<<"•• error: "<<p<<" "<<p<<endl;stktrace();}
+//catch(...){cerr<<"• error:"<<endl;stktrace();}
 
 
 //inline static void f(const char&c){cout<<c;}
@@ -401,18 +355,17 @@ cmd="g++ -o $bbin $srcdir/$src \
 //	cout<<endl;
 //	puts(s);
 
+// ⦾⦿⧀⧁ ⊕⊖⊗⊘⊙⊚⊛⊜⊝ ℹ⏩⏪⏫⏬⛎✅❎  ㋞㋡
+
 
 static void main_sigf(const int a){
-	cout<<" ••• terminated with signal "<<a<<endl;
+	cout<<" ⦿ terminated with signal "<<a<<endl;
 	exit(a);
 }
 int main(){
-	for(int i=0;i<32;i++)//?
-		signal(i,main_sigf);
+	for(int i=0;i<32;i++)signal(i,main_sigf);
 	return window::main(0,NULL);
 }
-
-
 
 
 //		throw signl(2,"exception");
@@ -435,15 +388,3 @@ int main(){
 		cout<<lutc[ke]<<endl;
 		lutc.put(ke,false);
 		cout<<lutc[ke]<<endl;
-		
-		
-		
-//			cout<<__LINE__<<":: "<<(void*)&lutkeys<<" "<<lutkeys[ks]<<endl;
-//			cout<<" keydown: already have "<<key<<" " <<(int)key<<"@"<<x<<","<<y<<endl;
-
-
-
-		/System/Library/Frameworks/GLUT.framework/Versions/Current/Headers/
-
-
-
