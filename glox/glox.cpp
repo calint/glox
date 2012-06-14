@@ -514,7 +514,7 @@ namespace windo{
 		const tm&t=*localtime(&tv.tv_sec);//? leak, delrefatblokxit
 		char ac[256];
 		const p3&a=wld.agl();
-		sprintf(ac,"%02d:%02d:%02d.%03d        keys|w a s d q e f|          p|%0.0f %0.0f %0.0f|   a|%0.0f %0.0f %0.0f|",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,p.getx(),p.gety(),p.getz(),a.getx(),a.gety(),a.getz());//? ostream
+		sprintf(ac,"%02d:%02d:%02d.%03d        keys|w a s d q e f g|          p|%0.0f %0.0f %0.0f|   a|%0.0f %0.0f %0.0f|",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,p.getx(),p.gety(),p.getz(),a.getx(),a.gety(),a.getz());//? ostream
 		y-=dy>>2;pl(ac,y,w>>5,1,.1f);
 	}
 	void draw(){
@@ -567,7 +567,9 @@ namespace windo{
 		else if(key=='e'){p.transl(0,0,1);}
 		else if(key=='q'){p.transl(0,0,-1);}
 		else if(key=='f'){wld.ddegz=wld.ddegx=0;}
-
+//		else if(key=='g'){wld["obcorp"].pause=true;}
+		else if(key=='g'){wld.ddegz=wld.ddegx=0;wld.agl().set(p3(270,0,0));}
+		else if(key=='h'){wld.ddegz=wld.ddegx=0;wld.agl().set(p3(90.5,0,0));}
 	}
 	void keyup(const unsigned char key,const int x,const int y){
 		char*ks=new char[2];
