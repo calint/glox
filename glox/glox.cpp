@@ -116,18 +116,18 @@ public:
 		flf();l()<<pa<<bva<<pb<<bvb<<endl;
 		return false;
 	}
-///
+	///
 	bvol(const float sphereradius,const p3 boxcorner):r(sphereradius),v(boxcorner){}
 	bool anyboxdotinboxof(const p3&p,const m3&m,const bvol&bv){
 		flf();l()<<p<<m<<bv<<endl;
 		return false;
 	}
-    friend ostream&operator<<(ostream&,const bvol&);
-    friend istream&operator>>(istream&,bvol&);
+	friend ostream&operator<<(ostream&,const bvol&);
+	friend istream&operator>>(istream&,bvol&);
 };
 ostream&operator<<(ostream&os,const bvol&b){
 	os<<b.r<<",("<<b.v<<")";
-    return os;
+	return os;
 }
 istream&operator>>(istream&is,bvol&bv){
 	is>>bv.r;is.ignore(2);
@@ -136,9 +136,9 @@ istream&operator>>(istream&is,bvol&bv){
 }
 ///////////////////////////////////////////////////////////////////////////////
 void gnox(){
-//	flf();ll();
-//	bvol::checkcol(p3(),m3(),bvol(1,p3(1,1,1)),p3(1,0,0),m3(),bvol(1,p3(1,1,1)));
-//	throw signl(1,"gnoxstop");
+	//	flf();ll();
+	//	bvol::checkcol(p3(),m3(),bvol(1,p3(1,1,1)),p3(1,0,0),m3(),bvol(1,p3(1,1,1)));
+	//	throw signl(1,"gnoxstop");
 }
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -155,7 +155,6 @@ public:
 		pt.chs.push_back(this);
 	}
 	virtual ~glob(){}
-//	inline const p3&agl()const{return a;}
 	inline p3&agl(){return a;}
 	inline glob&seta(const p3&a){this->a.set(a);return*this;}
 	void draw(){
@@ -171,11 +170,7 @@ public:
 		}
 	}
 	virtual void gldraw(){};
-	virtual void tick(){
-		for(unsigned int i=0;i<chs.size();i++){
-			chs[i]->tick();
-		}
-	}
+	virtual void tick(){for(size_t i=0;i<chs.size();i++)chs[i]->tick();}
 };
 
 
@@ -189,7 +184,6 @@ public:
 		glFrontFace(GL_CW);
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
-
 		glutSolidTeapot(1);
 		glPopAttrib();
 	}
@@ -200,29 +194,20 @@ public:
 	}
 };
 
-class obgridot:public glob{
+class obcorpqb:public glob{
 	float r;
 	static int n;
 	float a;
 public:
-	obgridot(glob&pt,const float r=1):glob(pt),r(r){
+	obcorpqb(glob&pt,const float r=1):glob(pt),r(r){
 //		a=.5f*n++*rand()/RAND_MAX;
 		a=.25*n++;
 	}
 	void gldraw(){
-		glPushAttrib(GL_ENABLE_BIT);
-//		if(((float)rand()/RAND_MAX)>.001)
-			glShadeModel(GL_FLAT);
-//		else
-//			glShadeModel(GL_SMOOTH);
-
+		glShadeModel(GL_FLAT);
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
-//		glFrontFace(GL_CW);
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
-		//glEnable(GL_LIGHT1);
-		glColor4f(0,0,1.f,1.f);
+		glColor3b(0,0,127);
 //		const float dr=rng*rand()/RAND_MAX-rng/2;
 		const float dr=.5*sin(a);
 		glutSolidSphere(r+dr,4,3);
@@ -236,32 +221,87 @@ public:
 	virtual void tick(){
 		const float s=.1f;
 		const float dx=rnd(-s,s);
-		const float dy=0;
-		const float dz=rnd(-s,s);;
+		const float dy=rnd(-s,s);
+		const float dz=0;
 		transl(d(dx),d(dy),d(dz));
 //		a+=d(.01*360/60);
+		glob::tick();
 	}
 };
-int obgridot::n=0;
+int obcorpqb::n=0;
 
 
-class obgrid:public glob{
+class obcorp:public glob{
 public:
-	obgrid(glob&pt):glob(pt){
-		const float s=7;
-		const float ds=s/10;
+	static const float s;
+	obcorp(glob&pt):glob(pt){
+		const float ds=.1*s;
 		for(float xx=-s;xx<s;xx+=ds)
 			for(float yy=-s;yy<s;yy+=ds){
 				if(sqrt(xx*xx+yy*yy)>s)
 					continue;
-				glob*o=new obgridot(*this);
-				o->transl(xx,yy,0);
+				glob*o=new obcorpqb(*this);
+				o->transl(xx,yy,00);
 				o->agl().transl(90,0,0);
 			}
 	}
+	void gldraw(){
+		glFrontFace(GL_CW);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+//		glEnable(GL_LIGHT1);
+	}
 	virtual void tick(){
 		glob::tick();
+	}
+};
+const float obcorp::s=7;
+
+
+class obquad:public glob{
+public:
+	obquad(glob&g):glob(g){
+		glob*o=new obcorp(*this);
+		o->agl().transl(-90,0,0);
+	}
+	void gldraw(){
+		const float s=15.f;
+
+		glColor3b(0,0,0x7f);
+		glBegin(GL_QUADS);
+		glVertex2f(-s,-s);
+		glVertex2f( s,-s);
+		glVertex2f( s, s);
+		glVertex2f(-s, s);
+		glEnd();
+
+		glColor3b(0,0,127);
+		glBegin(GL_LINE_STRIP);
+		glVertex3f(s,0,.01f);
+		glVertex3f(0,0,.01f);
+		glColor3b(127,127,127);
+		glVertex3f(0,s,.02f);
+		glEnd();
+
+		const float r=.75*s;
+		glPushMatrix();
+		glTranslatef(0,0,.01f);
+		glColor3b(0,0x7f,0);
+		glBegin(GL_TRIANGLE_FAN);
+		glVertex2f(0,0);
+		glVertex2f(r,0);
+		const float dtr=3.14159/180;
+		const int di=360/12;
+		for(int i=di;i<=360;i+=di){
+			const float rd=i*dtr;
+			glVertex2f(r*cos(rd),r*sin(rd));
+		}
+		glEnd();
+		glPopMatrix();
+	}
+	virtual void tick(){
 		agl().transl(d(360/60),0,0);
+		glob::tick();
 	}
 };
 
@@ -299,143 +339,158 @@ public:
 	}
 };
 
+
 class wold:public glob{
 public:
-	wold():glob(*this){
-		const bool worms=false;
-		const bool grid=true;
-		if(worms){
-			glob*o1=new obwom(*this,1);
-			o1->transl(2,2,-10);
-
-			glob*o2=new obwom(*this,3);
-			o2->transl(-2,2,-10);
-
-			glob*o3=new obwom(*this,16);
-	//		o3->transl(-1.9,.6,-10);
-			o3->transl(0,2,-10);
-		}
-		if(grid){
-			glob*o4=new obgrid(*this);
-			o4->transl(0,-1,-10);
-			o4->agl().transl(-68,0,0);
-		}
-//
-//		for(int i=-3;i<3;i++){
-//			teapot*o=new teapot(*this);
-//			o->rot(p3(i*90,0,0));
-//			o->transl(2.f*i,0.f,-10.f);
-//			chs.push_back(o);
-//		}
+	float ddegx,ddegz;
+	wold():glob(*this),ddegx(360/60){
+		glob&g=*new obcorp(*this);
+		g.agl().transl(90,0,0);
+		g.transl(0,0,4.2f);
 	}
-//	void gldraw(){}
-	virtual void tick(){
-//		cout<<"    tick: "<<endl;
+	void gldraw(){
+		const float s=15.f;
+
+		glColor3b(0,0,0x7f);
+		glBegin(GL_QUADS);
+		glVertex2f(-s,-s);
+		glVertex2f( s,-s);
+		glVertex2f( s, s);
+		glVertex2f(-s, s);
+		glEnd();
+
+		glBegin(GL_LINE_STRIP);
+		glVertex3f(s,0,.01f);
+		glColor3b(0,127,127);
+		glVertex3f(0,0,.01f);
+		glColor3b(0,0,127);
+		glVertex3f(0,s,.02f);
+		glEnd();
+
+		const float r=.75*s;
+		glPushMatrix();
+		glTranslatef(0,0,.01f);
+		glColor3b(0,0x7f,0);
+		glBegin(GL_TRIANGLE_FAN);
+		glVertex2f(0,0);
+		glVertex2f(r,0);
+		const float dtr=3.14159/180;
+		const int di=360/12;
+		for(int i=di;i<=360;i+=di){
+			const float rd=i*dtr;
+			glVertex2f(r*cos(rd),r*sin(rd));
+		}
+		glEnd();
+		glPopMatrix();
+	}
+	void tick(){
+		agl().transl(-d(ddegx),0,d(ddegz));
 		glob::tick();
 	}
 };
 
 template<class T>class lut{
 private:
-        int size;
-        class el{
-        public:
-                const char*key;
-                T data;
-                el*nxt;
-                el(const char*key,T data):key(key),data(data),nxt(NULL){}
-                ~el(){
-                        if(nxt)
-                                delete nxt;
-                }
-        };
-        el**array;
+    int size;
+    class el{
+    public:
+        const char*key;
+        T data;
+        el*nxt;
+        el(const char*key,T data):key(key),data(data),nxt(NULL){}
+        ~el(){
+            if(nxt)
+                delete nxt;
+        }
+    };
+    el**array;
 public:
-        static unsigned int hash(const char*key,const unsigned int roll){
-                unsigned int i=0;
-                const char*p=key;
-                while(*p)
-                        i+=*p++;
-                i%=roll;
-                return i;
+    static unsigned int hash(const char*key,const unsigned int roll){
+        unsigned int i=0;
+        const char*p=key;
+        while(*p)
+            i+=*p++;
+        i%=roll;
+        return i;
+    }
+    lut(const int size=8):size(size){
+        array=(el**)calloc(size,sizeof(el*));
+    }
+    ~lut(){
+        clear();
+        delete array;
+    }
+    T operator[](const char*key)const{
+        const int h=hash(key,size);
+        el*l=array[h];
+        if(!l)
+            return (T)NULL;
+        while(1){
+            if(!strcmp(l->key,key)){
+                return l->data;
+            }
+            if(l->nxt){
+                l=l->nxt;
+                continue;
+            }
+            return (T)NULL;
         }
-        lut(const int size=8):size(size){
-                array=(el**)calloc(size,sizeof(el*));
+        return (T)NULL;//?
+    }
+    void put(const char*key,T data){
+        const int h=hash(key,size);
+        el*l=array[h];
+        if(!l){
+            array[h]=new el(key,data);
+            return;
         }
-        ~lut(){
-                clear();
-                delete array;
+        while(1){
+            if(!strcmp(l->key,key)){
+                l->data=data;
+                return;
+            }
+            if(l->nxt){
+                l=l->nxt;
+                continue;
+            }
+            l->nxt=new el(key,data);
+            return;
         }
-        T operator[](const char*key)const{
-                const int h=hash(key,size);
-                el*l=array[h];
-                if(!l)
-                        return (T)NULL;
-                while(1){
-                        if(!strcmp(l->key,key)){
-                                return l->data;
-                        }
-                        if(l->nxt){
-                                l=l->nxt;
-                                continue;
-                        }
-                        return (T)NULL;
-                }
-                return (T)NULL;//?
+    }
+    void clear(){
+        for(int i=0;i<size;i++){
+            el*e=array[i];
+            if(!e)
+                continue;
+            delete e;
+            array[i]=NULL;
         }
-        void put(const char*key,T data){
-                const int h=hash(key,size);
-                el*l=array[h];
-                if(!l){
-                        array[h]=new el(key,data);
-                        return;
-                }
-                while(1){
-                        if(!strcmp(l->key,key)){
-                                l->data=data;
-                                return;
-                        }
-                        if(l->nxt){
-                                l=l->nxt;
-                                continue;
-                        }
-                        l->nxt=new el(key,data);
-                        return;
-                }
-        }
-        void clear(){
-                for(int i=0;i<size;i++){
-                        el*e=array[i];
-                        if(!e)
-                                continue;
-                        delete e;
-                        array[i]=NULL;
-                }
-        }
+    }
 };
 
 #include<sys/time.h>
+
 namespace windo{
 	int w=512,h=512;
 	wold wld;
-	p3 p(0,0,-.5);
+	p3 p(0,0,20.f);
 	p3 a;
 	lut<int>lutkeys;
 	void reshape(const int width,const int height){
 		cout<<" reshape: "<<w<<"x"<<h<<endl;
 		w=width;h=height;
 	}
-    void pl(const char*text,const GLfloat y=0,const GLfloat x=0,const GLfloat linewidth=1,const float scale=1){
-      char*cp=(char*)text;
-      glPushMatrix();
-      glTranslatef(x,y,0);
-      glScalef(scale,scale,0);
-      glLineWidth(linewidth);
-      for(;*cp;cp++)
-        glutStrokeCharacter(GLUT_STROKE_ROMAN,*cp);
-//      glutStrokeString(GLUT_STROKE_MONO_ROMAN,text);
-      glPopMatrix();
-    }
+	void pl(const char*text,const GLfloat y=0,const GLfloat x=0,const GLfloat linewidth=1,const float scale=1){
+		char*cp=(char*)text;
+		glPushMatrix();
+		glTranslatef(x,y,0);
+		glScalef(scale,scale,0);
+		glLineWidth(linewidth);
+		for(;*cp;cp++)
+			glutStrokeCharacter(GLUT_STROKE_ROMAN,*cp);
+//			glutStrokeString(GLUT_STROKE_MONO_ROMAN,text);
+		glPopMatrix();
+	}
 	void drawhud(){
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_CULL_FACE);
@@ -500,16 +555,21 @@ namespace windo{
 			glutFullScreen();
 		else if(key==126)// ~
 			glutReshapeWindow(w,h);
-		if(key==32)// spc
-			{glob*o=new obwom(wld,14);o->transl(0,0,-10);}
+
+		if(key==32){glob*o=new obwom(wld,14);o->transl(0,0,-10);}
+		else if(key==115){wld.ddegx-=360/60;}//s
+		else if(key==119){wld.ddegx+=360/60;}//w
+		else if(key==97){wld.ddegz-=360/60;}//a
+		else if(key==100){wld.ddegz+=360/60;}//d
+		else if(key==101){p.transl(0,0,1);}//e
+		else if(key==113){p.transl(0,0,-1);}//q
+
 	}
 	void keybu(const unsigned char key,const int x,const int y){
 		char*ks=new char[2];
 		char s[]={key,0};
 		strncpy(ks,s,2);//? bug leak
-//		cout<<ks<<endl;
 		lutkeys.put(ks,0);//? if 1 and not handled
-//		cout<<__LINE__<<":: "<<(void*)&lutkeys<<" "<<lutkeys[ks]<<endl;
 		cout<<"   keyup: "<<key<<" "<<(int)key<<"@"<<x<<","<<y<<endl;
 		if(key==27)// esc
 			exit(0);
@@ -531,16 +591,15 @@ namespace windo{
 		printf("glox ");
 		glutInit(&argc,argv);
 //		glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
-		glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
+//		glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
 		glutIgnoreKeyRepeat(true);
 		glutInitDisplayMode(GLUT_DOUBLE|GLUT_DEPTH);
 
-//		glutGameModeString("1024x768:32");
-//		glutEnterGameMode();
+		glutGameModeString("1366x768:32");
+		glutEnterGameMode();
 
-		glutInitWindowSize(w,h);
-		glutCreateWindow("glox");
-
+//		glutInitWindowSize(w,h);
+//		glutCreateWindow("glox");
 //		glutFullScreen();
 
 		glutDisplayFunc(draw);
