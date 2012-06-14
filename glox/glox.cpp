@@ -514,7 +514,7 @@ namespace windo{
 		const tm&t=*localtime(&tv.tv_sec);//? leak, delrefatblokxit
 		char ac[256];
 		const p3&a=wld.agl();
-		sprintf(ac,"%02d:%02d:%02d:%03d                   p(%0.1f,%0.1f,%0.1f)  a(%0.0f,%0.0f,%0.0f)",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,p.getx(),p.gety(),p.getz(),a.getx(),a.gety(),a.getz());//? ostream
+		sprintf(ac,"%02d:%02d:%02d:%03d                   p(%0.1f,%0.1f,%0.1f)  a(%0.0f,%0.0f,%0.0f)        keys(w a s d q e)",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,p.getx(),p.gety(),p.getz(),a.getx(),a.gety(),a.getz());//? ostream
 		y=y-(dy>>2);pl(ac,y,100,1,.1f);
 	}
 	void draw(){
