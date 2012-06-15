@@ -95,9 +95,9 @@ public:
 	float zx,zy,zz,zo;
 	m3(){}
 	m3&ident(){xx=1;xy=0;xz=0;xo=0; yx=0;yy=1;yz=0;yo=0; zx=0;zy=0;zz=1;zo=0; return*this;}
-	const m3&axis_x(p3&p)const{p.set(xx,xy,xz);return*this;}
-	const m3&axis_y(p3&p)const{p.set(yx,yy,yz);return*this;}
-	const m3&axis_z(p3&p)const{p.set(zx,zy,zz);return*this;}
+	const m3&axisx(p3&p)const{p.set(xx,xy,xz);return*this;}
+	const m3&axisy(p3&p)const{p.set(yx,yy,yz);return*this;}
+	const m3&axisz(p3&p)const{p.set(zx,zy,zz);return*this;}
 	m3&rotx(const float a){
 		float c=cos(a),s=sin(a);
 		float nyx=yx*c+zx*s,nyy=yy*c+zy*s,nyz=yz*c+zz*s,nyo=yo*c+zo*s;
@@ -122,15 +122,6 @@ public:
 		yx=nyx;yy=nyy;yz=nyz;yo=nyo;
 		return*this;
 	}
-//	m3&scale(const p3&s){
-//		const float sx=s.getx();
-//		const float sy=s.gety();
-//		const float sz=s.getz();
-//		xx*=sx;xy*=sx;xz*=sx;xo*=sx;
-//		yx*=sy;yy*=sy;yz*=sy;yo*=sy;
-//		zx*=sz;zy*=sz;zz*=sz;zo*=sz;
-//		return*this;
-//	}
 	m3&transl(const p3&p){
 		const float x=p.getx();
 		const float y=p.gety();
@@ -190,7 +181,7 @@ public:
 		return false;
 	}
 	///
-	bvol(const float sphereradius,const p3 boxcorner):r(sphereradius),v(boxcorner){}
+	bvol(const float sphereradius,const p3&boxcorner):r(sphereradius),v(boxcorner){}
 	bool anyboxdotinboxof(const p3&p,const m3&m,const bvol&bv){
 		flf();l()<<p<<m<<bv<<endl;
 		return false;
@@ -213,7 +204,7 @@ extern void gnox(){
 	m.ident();
 	m.transl(p3(1,0,1));
 	p3 z;
-	m.axis_z(z);
+	m.axisz(z);
 	cout<<m<<endl;
 	cout<<z<<endl;
 	p3 p;
@@ -237,8 +228,8 @@ public:
 	static int drawboundingspheresdetail;
 	bvol bv;
 	m3 mw;
-	glob(glob&g):p3(),g(g),a(),bv(0,p3()){
-		if(&g==this)
+	glob(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=0,const p3&pbox=p3()):p3(p),g(g),a(a),bv(r,pbox){
+		if(&g==NULL)
 			return;
 		g.chs.push_back(this);
 		metrics::nglobs++;
@@ -248,6 +239,7 @@ public:
 		metrics::nglobs--;
 		for(unsigned int n=0;n<chs.size();n++)
 			delete chs[n];
+		chs.clear();
 	}
 	inline p3&agl(){return a;}
 	inline glob&seta(const p3&a){this->a.set(a);return*this;}
@@ -323,7 +315,7 @@ int obcorpqb::n=0;
 class obcorp:public glob{
 public:
 	static const float s;
-	obcorp(glob&pt):glob(pt){
+	obcorp(glob&pt,const p3&p,const p3&a):glob(pt,p,a){
 		bv.r=s+1.4;
 		const float ds=.1*s;
 		const float dz=.5*s;
@@ -361,10 +353,7 @@ const float obcorp::s=7;
 
 class obquad:public glob{
 public:
-	obquad(glob&g):glob(g){
-		glob*o=new obcorp(*this);
-		o->agl().transl(-90,0,0);
-	}
+	obquad(glob&g):glob(g){}
 	void gldraw(){
 		const float s=15.f;
 
@@ -443,41 +432,50 @@ public:
 
 class wold:public glob{
 	static wold wd;
+	float s;
 public:
 	inline static wold&get(){return wd;}
 	float ddegx,ddegz;
-
-	wold():glob(*this),ddegx(0),ddegz(.1f){
-		agl().transl(90.1,0,0);
-		transl(0,-.3,0);
-		glob&g=*new obcorp(*this);
-		g.agl().transl(90,0,0);
-		g.transl(0,0,4.2f);
+	wold():glob(*(glob*)NULL),s(15),ddegx(0),ddegz(.1f){
+//		agl().transl(90.1,0,0);
+//		transl(0,-.3,0);
+		bv.r=s;
+		new obcorp(*this,p3(0,0,4.2),p3(90,0,0));
 	}
-	~wold(){ll();}
+	~wold(){
+		ll();
+	}
 	void gldraw(){
-		const float s=15.f;
 		glDisable(GL_LIGHTING);
 
 		glColor3b(0,0,0x7f);
-		glBegin(GL_QUADS);
+		glutWireCube(s);
+		glBegin(GL_LINE_STRIP);
 		glVertex2f(-s,-s);
 		glVertex2f( s,-s);
 		glVertex2f( s, s);
 		glVertex2f(-s, s);
+		glVertex2f(-s,-s);
 		glEnd();
 
 		glBegin(GL_LINE_STRIP);
-		glVertex3f(s,0,.01f);
-		glColor3b(0,127,127);
-		glVertex3f(0,0,.01f);
+		glColor3b(127,127,127);
+		glVertex3f(s,0,0);
+		glVertex3f(0,0,0);
+		glColor3b(127,127,127);
+		glColor3b(0,0,0);
+		glVertex3f(0,s,0);
+		glVertex3f(0,0,0);
+		glColor3b(0,0,0);
 		glColor3b(0,0,127);
-		glVertex3f(0,s,.02f);
+		glVertex3f(0,0,s);
+		glVertex3f(0,0,0);
+		glColor3b(0,0,127);
 		glEnd();
 
 		const float r=s;
 		glPushMatrix();
-		glTranslatef(0,0,.01f);
+//		glTranslatef(0,0,01f);
 		glColor3b(0,0x7f,0);
 		glBegin(GL_TRIANGLE_FAN);
 		glVertex2f(0,0);
@@ -548,6 +546,9 @@ public:
 		}
 		return (T)NULL;//?
 	}
+	void rm(const char*key){
+
+	}
     void put(const char*key,T data){
         const int h=hash(key,size);
         el*l=array[h];
@@ -584,7 +585,7 @@ public:
 class windo:public glob{
 public:
 	int w,h,frame;
-	windo(glob&g,const p3&p):glob(g){set(p);}
+	windo(const p3&p):glob(wold::get()){set(p);bv.r=2;}
 	void pl(const char*text,const GLfloat y=0,const GLfloat x=0,const GLfloat linewidth=1,const float scale=1){
 		char*cp=(char*)text;
 		glPushMatrix();
@@ -652,10 +653,11 @@ public:
 
 namespace glut{
 	int w=512,h=512;
+	int __w=w,__h=h;
 	lut<int>keysdn;
 	bool gamemode=false;
 	bool fullscr=false;
-	windo&wn=*new windo(wold::get(),*new p3(0,0,15));
+	windo&wn=*new windo(p3(0,0,15));
 	void reshape(const int width,const int height){
 		cout<<" reshape: "<<w<<"x"<<h<<endl;
 		w=width;h=height;
@@ -677,21 +679,24 @@ namespace glut{
 		glutPostRedisplay();
 		glutTimerFunc(value,timer,value);
 	}
+	bool iskeydn(const char key,bool setifnot=0){
+		static char k[]={0,0};
+		k[0]=key;
+		const bool b=keysdn[k]==1;
+		if(!b&&setifnot)
+			keysdn.put(strcpy(new char[2],k),1);//? bug leak
+		return b;
+	}
 	void keydn(const unsigned char key,const int x,const int y){
-		char*ks=new char[2];//? bug leak
-		char s[]={key,0};
-		strncpy(ks,s,2);
-		if(keysdn[ks]==1){//? impl array[]
-			return;
-		}
-		keysdn.put(ks,1);
+		if(iskeydn(key,true))return;
 		cout<<"  keydn("<<(int)key<<",["<<x<<","<<y<<"])"<<key<<endl;
 		if(key=='~'){
 			fullscr=!fullscr;
-			if(fullscr)
+			if(fullscr){
+				__w=w;__h=h;
 				glutFullScreen();
-			else
-				glutReshapeWindow(w,h);
+			}else
+				glutReshapeWindow(__w,__h);
 			return;
 		}
 
@@ -709,10 +714,10 @@ namespace glut{
 		else if(key=='1'){glob::drawboundingspheres=!glob::drawboundingspheres;}
 	}
 	void keyup(const unsigned char key,const int x,const int y){
-		char*ks=new char[2];
-		char s[]={key,0};
-		strncpy(ks,s,2);//? bug leak
-		keysdn.put(ks,0);//? if 1 and not handled
+		char*ks=new char[2];//? bug leak
+		ks[0]=key;ks[1]=0;
+		keysdn.put(ks,0);//? whatif 1 and not handled
+//		keysdn.rm(s);
 		cout<<"   keyup("<<(int)key<<",["<<x<<","<<y<<"])"<<key<<endl;
 		if(key==27)// esc
 		{glutReshapeWindow(w,h);exit(0);}
