@@ -12,5 +12,13 @@ cmd="g++ -o $bin $src\
 "&&
 echo $cmd&&
 $cmd&&
+echo&&
 ls -la $bin&&
+cat $bin|wc&&
+gzip  -c $bin|wc&&
+echo&&
+ls -la $src&&
+cat $src|wc&&
+gzip  -c $src|wc&&
+echo&&
 ./$bin

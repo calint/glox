@@ -6,8 +6,11 @@ using namespace std;
 
 namespace glox{
 	namespace clk{
-		int dtms=50;
+		int dtms=10;
 		float dt=dtms/1000.f;
+	}
+	namespace metrics{
+		int nglobs=0;
 	}
 	inline float dt(const float f){return f*clk::dt;}
 	inline float rnd(const float from,const float tonotincluding){
@@ -92,10 +95,22 @@ public:
 ostream&operator<<(ostream&os,const m3&m){m3(m).c[0]=1;return os;}
 istream&operator>>(istream&is,m3&m){m3(m).c[0]=1;return is;}
 
+class glob;
+
+class coll{
+public:
+	const glob&obja;
+	const p3&vtxincol;
+	const glob&objb;
+	const p3&planevtx;
+	const p3&planenml;
+	const float dotpd;
+	const float t;
+};
 class bvol{
+public:
 	float r;
 	p3 v;
-public:
 	static bool checkcol(const p3&pa,const m3&ma,const bvol&bva,const p3&pb,const m3&mb,const bvol&bvb){
 		if(!spherescollide(pa,bva,pb,bvb)){
 			flf();ll(" · nosphereoverlap");
@@ -149,10 +164,12 @@ class glob:public p3{
 	p3 a;
 	vector<glob*>chs;
 public:
-	glob(glob&g):p3(),pt(g),a(){
+	bvol bv;
+	glob(glob&g):p3(),pt(g),a(),bv(0,p3()){
 		if(&pt==this)
 			return;
 		pt.chs.push_back(this);
+		metrics::nglobs++;
 	}
 	virtual ~glob(){}
 	inline p3&agl(){return a;}
@@ -197,20 +214,18 @@ public:
 class obcorpqb:public glob{
 	float r;
 	static int n;
-	float a;
+	float a,rw,dr;
 public:
-	obcorpqb(glob&pt,const float r=1):glob(pt),r(r){
-//		a=.5f*n++*rand()/RAND_MAX;
-		a=.25*n++;
-	}
+	obcorpqb(glob&pt,const float r=1):glob(pt),r(r),a(.25*n++),rw(.5){}
 	void gldraw(){
 		glShadeModel(GL_FLAT);
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
 		glColor3b(0,0,127);
 //		const float dr=rng*rand()/RAND_MAX-rng/2;
-		const float dr=.5*sin(a);
 		glutSolidSphere(r+dr,4,3);
+		glColor3b(127,0,0);
+		glutWireSphere(r+dr,5,5);
 //		glutSolidTetrahedron();
 //		glutSolidCube(r+dr);
 //		glLineWidth(100);
@@ -225,6 +240,8 @@ public:
 		const float dz=0;
 		transl(dt(dx),dt(dy),dt(dz));
 //		a+=d(.01*360/60);
+		dr=rw*sin(a);
+		bv.r=r+dr;
 		glob::tick();
 	}
 };
@@ -252,6 +269,7 @@ public:
 //		glEnable(GL_LIGHT1);
 	}
 	virtual void tick(){
+//		transl(dt(s*.01),0,0);
 		glob::tick();
 	}
 };
@@ -341,8 +359,11 @@ public:
 
 
 class wold:public glob{
+	static wold&wd;
 public:
+	inline static wold&get(){return wd;}
 	float ddegx,ddegz;
+
 	wold():glob(*this),ddegx(0),ddegz(.1f){
 		agl().transl(90.1,0,0);
 		transl(0,-.3,0);
@@ -390,6 +411,8 @@ public:
 		glob::tick();
 	}
 };
+wold&wold::wd=*new wold();
+
 
 template<class T>class lut{
 private:
@@ -460,10 +483,12 @@ public:
 
 namespace windo{
 	int w=512,h=512;
-	wold wld;
 	p3 p(0,0,15);
 	p3 a;
 	lut<int>lutkeys;
+	int frame=0;
+	bool fullscr=true;
+	bool gamemode=true;
 	void reshape(const int width,const int height){
 		cout<<" reshape: "<<w<<"x"<<h<<endl;
 		w=width;h=height;
@@ -499,12 +524,11 @@ namespace windo{
 		timeval tv;gettimeofday(&tv,0);
 		const tm&t=*localtime(&tv.tv_sec);//? leak, delrefatblokxit
 		char ac[256];
-		const p3&a=wld.agl();
-		sprintf(ac,"%02d:%02d:%02d.%03d        keys|j f e d g h i k ur nv |          p|%0.0f %0.0f %0.0f|   a|%0.0f %0.0f %0.0f|",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,p.getx(),p.gety(),p.getz(),a.getx(),a.gety(),a.getz());//? ostream
+		const p3&a=wold::get().agl();
+		sprintf(ac,"%02d:%02d:%02d.%03d   frame(%d) globs(%d) keys(j f e d g h i k ur nv) p(%0.0f %0.0f %0.0f) a(%0.0f %0.0f %0.0f)",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,frame,metrics::nglobs,p.getx(),p.gety(),p.getz(),a.getx(),a.gety(),a.getz());//? ostream
 		y-=dy>>2;pl(ac,y,w>>5,1,.1f);
 	}
 	void draw(){
-		static int frame=0;
 		cout<<"\rframe("<<frame++<<")"<<flush;
 //		glClearColor(0,0,0,1);
 		glClearColor(.5f,.5f,1,1);
@@ -526,7 +550,7 @@ namespace windo{
 //		glRotatef(-a.getx(), 1, 0, 0);
 //		glRotatef(-a.gety(), 0, 1, 0);
 
-		wld.draw();
+		wold::get().draw();
 		drawhud();
 
 		glutSwapBuffers();
@@ -538,7 +562,7 @@ namespace windo{
 		const char v[]={'v',0};const char n[]={'n',0};
 		if(lutkeys[v]&&lutkeys[n]){p.transl(0,-dt(1),0);}
 
-		wld.tick();
+		wold::get().tick();
 		glutPostRedisplay();
 //		glutTimerFunc(value,timer,value-1);
 		glutTimerFunc(value,timer,value);
@@ -551,21 +575,26 @@ namespace windo{
 			return;
 		}
 		lutkeys.put(ks,1);
-		cout<<" keydn("<<(int)key<<",["<<x<<","<<y<<"])"<<key<<endl;
-		if(key==96)// `
-			glutFullScreen();
-		else if(key==126)// ~
-			glutReshapeWindow(w,h);
+		cout<<"  keydn("<<(int)key<<",["<<x<<","<<y<<"])"<<key<<endl;
+		if(key=='~'){
+			fullscr=!fullscr;
+			if(fullscr)
+				glutFullScreen();
+			else if(key==126)
+				glutReshapeWindow(w,h);
+			return;
+		}
 
 //		if(key==32){glob*o=new obwom(wld,14);o->transl(0,0,-10);}
+		wold&wd=wold::get();
 		if(key==0){throw "keyo";}
-		else if(key=='j'){wld.ddegz-=360/60;}
-		else if(key=='f'){wld.ddegz+=360/60;}
-		else if(key=='e'){wld.ddegx-=360/60;}
-		else if(key=='d'){wld.ddegx+=360/60;}
-		else if(key==' '){wld.ddegz=wld.ddegx=0;}
-		else if(key=='g'){wld.ddegz=wld.ddegx=0;wld.agl().set(p3(270,0,0));}
-		else if(key=='h'){wld.ddegz=wld.ddegx=0;wld.agl().set(p3(90.5,0,0));}
+		else if(key=='j'){wd.ddegz-=360/60;}
+		else if(key=='f'){wd.ddegz+=360/60;}
+		else if(key=='e'){wd.ddegx-=360/60;}
+		else if(key=='d'){wd.ddegx+=360/60;}
+		else if(key==' '){wd.ddegz=wd.ddegx=0;}
+		else if(key=='g'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(270,0,0));}
+		else if(key=='h'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(90.5,0,0));}
 		else if(key=='i'){p.transl(0,0,-1);}
 		else if(key=='k'){p.transl(0,0,1);}
 	}
@@ -585,21 +614,24 @@ namespace windo{
 	//}
 	void mousemov(const int x,const int y){cout<<"mousemov: "<<x<<","<<y<<endl;}
 	int main(int argc,char**argv){
-		printf("glox ");
+		cout<<"glox ";
 		glutInit(&argc,argv);
 //		glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
 //		glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
 		glutIgnoreKeyRepeat(true);
 		glutInitDisplayMode(GLUT_DOUBLE|GLUT_DEPTH);
 
-		glutGameModeString("1366x768:32");
-		glutEnterGameMode();
-		glutSetCursor(GLUT_CURSOR_NONE);
-
-//		glutInitWindowSize(w,h);
-//		glutCreateWindow("glox");
-//		glutFullScreen();
-
+		if(gamemode){
+			glutGameModeString("1366x768:32");
+			glutEnterGameMode();
+			glutSetCursor(GLUT_CURSOR_NONE);
+		}else{
+			glutInitWindowSize(w,h);
+			glutCreateWindow("glox");
+			glutFullScreen();
+		}
+//		cout<<glGetString(GL_VENDOR)<<"  "<<glGetString(GL_VERSION)<<"  "<<glGetString(GL_VERSION)<<"  glsl "<<GL_SHADING_LANGUAGE_VERSION<<endl;
+		cout<<"opengl("<<glGetString(GL_VERSION)<<")"<<" glsl("<<GL_SHADING_LANGUAGE_VERSION<<")"<<endl;
 		glutDisplayFunc(draw);
 		glutReshapeFunc(reshape);
 		glutKeyboardFunc(keydn);
