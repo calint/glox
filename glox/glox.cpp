@@ -12,6 +12,7 @@ namespace glox{
 	namespace metrics{
 		int nglobs=0;
 		int bvolchecksphcol=0;
+		int frame=0;
 	}
 	inline float dt(const float f){return f*clk::dt;}
 	inline float rnd(const float from,const float tonotincluding){
@@ -163,7 +164,7 @@ extern void gnox(){
 
 class glob:public p3{
 protected:
-	glob&pt;
+	glob&g;
 	p3 a;
 	vector<glob*>chs;
 public:
@@ -171,13 +172,18 @@ public:
 	static int drawboundingspheresdetail;
 	bvol bv;
 	m3 mw;
-	glob(glob&g):p3(),pt(g),a(),bv(0,p3()){
-		if(&pt==this)
+	glob(glob&g):p3(),g(g),a(),bv(0,p3()){
+		if(&g==this)
 			return;
-		pt.chs.push_back(this);
+		g.chs.push_back(this);
 		metrics::nglobs++;
 	}
-	virtual ~glob(){}
+	virtual ~glob(){
+//		cout<<"\r  globs: "<<metrics::nglobs;
+		metrics::nglobs--;
+		for(unsigned int n=0;n<chs.size();n++)
+			delete chs[n];
+	}
 	inline p3&agl(){return a;}
 	inline glob&seta(const p3&a){this->a.set(a);return*this;}
 	void draw(){
@@ -266,14 +272,17 @@ public:
 	obcorp(glob&pt):glob(pt){
 		bv.r=s+1.4;
 		const float ds=.1*s;
-		for(float xx=-s;xx<s;xx+=ds)
-			for(float yy=-s;yy<s;yy+=ds){
-				if(sqrt(xx*xx+yy*yy)>s)
-					continue;
-				glob*o=new obcorpqb(*this);
-				o->transl(xx,yy,00);
-				o->agl().transl(90,0,0);
-			}
+		const float dz=.5*s;
+//		for(float zz=-s;zz<s;zz+=ds)
+		for(float zz=-s;zz<=s;zz+=dz)
+			for(float xx=-s;xx<=s;xx+=ds)
+				for(float yy=-s;yy<=s;yy+=ds){
+					if(sqrt(xx*xx+yy*yy+zz*zz)>s)
+						continue;
+					glob*o=new obcorpqb(*this);
+					o->transl(xx,yy,zz);
+					o->agl().transl(90,0,0);
+				}
 	}
 	void gldraw(){
 		glFrontFace(GL_CW);
@@ -372,7 +381,7 @@ public:
 
 
 class wold:public glob{
-	static wold&wd;
+	static wold wd;
 public:
 	inline static wold&get(){return wd;}
 	float ddegx,ddegz;
@@ -436,7 +445,7 @@ public:
 		glob::tick();
 	}
 };
-wold&wold::wd=*new wold();
+wold wold::wd;
 
 
 template<class T>class lut{
@@ -506,18 +515,10 @@ public:
 
 #include<sys/time.h>
 
-namespace windo{
-	int w=512,h=512;
-	p3 p(0,0,15);
-	p3 a;
-	lut<int>lutkeys;
-	int frame=0;
-	bool fullscr=false;
-	bool gamemode=false;
-	void reshape(const int width,const int height){
-		cout<<" reshape: "<<w<<"x"<<h<<endl;
-		w=width;h=height;
-	}
+class wind:public glob{
+public:
+	int w,h;
+	wind(glob&g):glob(g){}
 	void pl(const char*text,const GLfloat y=0,const GLfloat x=0,const GLfloat linewidth=1,const float scale=1){
 		char*cp=(char*)text;
 		glPushMatrix();
@@ -549,12 +550,10 @@ namespace windo{
 		timeval tv;gettimeofday(&tv,0);
 		const tm&t=*localtime(&tv.tv_sec);//? leak, delrefatblokxit
 		char ac[256];
-		const p3&a=wold::get().agl();
-		sprintf(ac,"%02d:%02d:%02d.%03d   frame(%d) globs(%d) coldet(%d,%d) keys(j f e d g h i k ur nv 1) p(%0.0f %0.0f %0.0f) a(%0.0f %0.0f %0.0f)",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,frame,metrics::nglobs,metrics::bvolchecksphcol,0,p.getx(),p.gety(),p.getz(),a.getx(),a.gety(),a.getz());//? ostream
+		sprintf(ac,"%02d:%02d:%02d.%03d   frame(%d) globs(%d) coldet(%d,%d) keys(j f e d g h i k ur nv 1) p(%0.0f %0.0f %0.0f) a(%0.0f %0.0f %0.0f)",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,metrics::frame,metrics::nglobs,metrics::bvolchecksphcol,0,getx(),gety(),getz(),agl().getx(),agl().gety(),agl().getz());//? ostream
 		y-=dy>>2;pl(ac,y,w>>5,1,.1f);
 	}
-	void draw(){
-		cout<<"\rframe("<<frame++<<") "<<flush;
+	void drawframe(){
 //		glClearColor(0,0,0,1);
 		glClearColor(.5f,.5f,1,1);
 		glClearDepth(1);
@@ -570,13 +569,88 @@ namespace windo{
 		gluPerspective(45,(GLdouble)w / h, .1, 1000);
 		glMatrixMode (GL_MODELVIEW);
 		glLoadIdentity();
-		glTranslatef(-p.getx(), -p.gety(), -p.getz());
+		glTranslatef(-getx(), -gety(), -getz());
 //		glRotatef(-a.getz(), 0, 0, 1);
 //		glRotatef(-a.getx(), 1, 0, 0);
 //		glRotatef(-a.gety(), 0, 1, 0);
 
 		wold::get().draw();
-		drawhud();
+	}
+};
+
+namespace windo{
+	int w=512,h=512;
+	p3 p(0,0,15);
+	p3 a;
+	lut<int>lutkeys;
+	int frame=0;
+	bool fullscr=false;
+	bool gamemode=false;
+	wind&wn=*new wind(wold::get());
+	void reshape(const int width,const int height){
+		cout<<" reshape: "<<w<<"x"<<h<<endl;
+		w=width;h=height;
+	}
+//	void pl(const char*text,const GLfloat y=0,const GLfloat x=0,const GLfloat linewidth=1,const float scale=1){
+//		char*cp=(char*)text;
+//		glPushMatrix();
+//		glTranslatef(x,y,0);
+//		glScalef(scale,scale,0);
+//		glLineWidth(linewidth);
+//		for(;*cp;cp++)
+//			glutStrokeCharacter(GLUT_STROKE_ROMAN,*cp);
+////			glutStrokeString(GLUT_STROKE_MONO_ROMAN,text);
+//		glPopMatrix();
+//	}
+//	void drawhud(){
+//		glDisable(GL_DEPTH_TEST);
+//		glDisable(GL_CULL_FACE);
+//		glDisable(GL_LIGHTING);
+//		glDisable(GL_BLEND);
+//
+//		glMatrixMode(GL_MODELVIEW);
+//		glLoadIdentity();
+//		glMatrixMode(GL_PROJECTION);
+//		glLoadIdentity();
+//		glOrtho(0,w,0,h,0,1);
+//		glColor3b(0x7f,0x7f,0x7f);
+//		const int dy=h>>3;
+//		int y=dy>>2;
+//
+//		pl("glox",y,0,1,.5f);
+//
+//		timeval tv;gettimeofday(&tv,0);
+//		const tm&t=*localtime(&tv.tv_sec);//? leak, delrefatblokxit
+//		char ac[256];
+//		const p3&a=wold::get().agl();
+//		sprintf(ac,"%02d:%02d:%02d.%03d   frame(%d) globs(%d) coldet(%d,%d) keys(j f e d g h i k ur nv 1) p(%0.0f %0.0f %0.0f) a(%0.0f %0.0f %0.0f)",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,frame,metrics::nglobs,metrics::bvolchecksphcol,0,p.getx(),p.gety(),p.getz(),a.getx(),a.gety(),a.getz());//? ostream
+//		y-=dy>>2;pl(ac,y,w>>5,1,.1f);
+//	}
+	void draw(){
+		cout<<"\rframe("<<frame++<<") "<<flush;
+		wn.w=w;wn.h=h;
+////		glClearColor(0,0,0,1);
+//		glClearColor(.5f,.5f,1,1);
+//		glClearDepth(1);
+//
+//		glEnable(GL_DEPTH_TEST);
+////		glEnable(GL_BLEND);
+//		glDisable(GL_BLEND);
+////		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+//		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+//		glViewport(0,0,w,h);
+//		glMatrixMode(GL_PROJECTION);
+//		glLoadIdentity();
+//		gluPerspective(45,(GLdouble)w / h, .1, 1000);
+//		glMatrixMode (GL_MODELVIEW);
+//		glLoadIdentity();
+//		glTranslatef(-p.getx(), -p.gety(), -p.getz());
+////		glRotatef(-a.getz(), 0, 0, 1);
+////		glRotatef(-a.getx(), 1, 0, 0);
+////		glRotatef(-a.gety(), 0, 1, 0);
+
+		wn.drawframe();
+//		drawhud();
 
 		glutSwapBuffers();
 	}
