@@ -234,22 +234,11 @@ public:
 class obcorpqb:public glob{
 	float r;
 	static int n;
-	float a,rw,dr;
+	float a,drscl,dr;
 public:
-	obcorpqb(glob&pt,const float r=1):glob(pt),r(r),a(.25*n++),rw(.5){}
+	obcorpqb(glob&pt,const float r=1):glob(pt),r(r),a(.25*n++),drscl(.5){}
 	void gldraw(){
-		glShadeModel(GL_FLAT);
-		glEnable(GL_CULL_FACE);
-		glFrontFace(GL_CCW);
-		glColor3b(0,0,127);
-//		const float dr=rng*rand()/RAND_MAX-rng/2;
 		glutSolidSphere(r+dr,4,3);
-//		glutSolidTetrahedron();
-//		glutSolidCube(r+dr);
-//		glLineWidth(100);
-//		glutWireCube(r+dr);
-//		glutWireSphere(r+dr,5,5);
-		glPopAttrib();
 	}
 	virtual void tick(){
 		const float s=.1f;
@@ -257,8 +246,7 @@ public:
 		const float dy=rnd(-s,s);
 		const float dz=0;
 		transl(dt(dx),dt(dy),dt(dz));
-//		a+=d(.01*360/60);
-		dr=rw*sin(a);
+		dr=drscl*sin(a);
 		bv.r=r+dr;
 		glob::tick();
 	}
@@ -284,11 +272,20 @@ public:
 					o->agl().transl(90,0,0);
 				}
 	}
+	GLfloat f,ff;
 	void gldraw(){
-		glFrontFace(GL_CW);
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
-//		glEnable(GL_LIGHT1);
+		glShadeModel(GL_FLAT);
+		glEnable(GL_CULL_FACE);
+		glFrontFace(GL_CCW);
+		GLfloat matspec[]={ff,ff,ff,1};
+		ff+=dt(1/10);
+		if(ff>1)ff=0;
+		glMaterialfv(GL_FRONT,GL_SPECULAR,matspec);
+		GLfloat matshin[]={f};
+//		f+=dt(30);
+		if(f>128)f=0;
+		flf();cout<<f<<endl;
+		glMaterialfv(GL_FRONT,GL_SHININESS,matshin);
 	}
 	virtual void tick(){
 //		transl(dt(s*.01),0,0);
@@ -396,6 +393,7 @@ public:
 	~wold(){ll();}
 	void gldraw(){
 		const float s=15.f;
+		glDisable(GL_LIGHTING);
 
 		glColor3b(0,0,0x7f);
 		glBegin(GL_QUADS);
@@ -428,6 +426,8 @@ public:
 		}
 		glEnd();
 		glPopMatrix();
+
+		glEnable(GL_LIGHTING);
 	}
 	void tick(){
 		agl().transl(-dt(ddegx),0,dt(ddegz));
@@ -531,17 +531,6 @@ public:
 		glPopMatrix();
 	}
 	void drawhud(){
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
-		glDisable(GL_LIGHTING);
-		glDisable(GL_BLEND);
-
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(0,w,0,h,0,1);
-		glColor3b(0x7f,0x7f,0x7f);
 		const int dy=h>>3;
 		int y=dy>>2;
 
@@ -568,13 +557,34 @@ public:
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		gluPerspective(90,(GLdouble)w/h,.01,10000);
-		glMatrixMode (GL_MODELVIEW);
+//		gluLookAt(getx(),gety(),getz(), 0,0,0, 0,1,0);
+
+		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-		glTranslatef(-getx(), -gety(), -getz());
 //		glRotatef(-a.getz(), 0, 0, 1);
-//		glRotatef(-a.getx(), 1, 0, 0);
 //		glRotatef(-a.gety(), 0, 1, 0);
+//		glRotatef(-a.getx(), 1, 0, 0);
+		glTranslatef(-getx(), -gety(), -getz());
+
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		GLfloat lhtpos[]={0,20,10000,1};
+		glLightfv(GL_LIGHT0,GL_POSITION,lhtpos);
+		GLfloat lhtcol[]={1,1,1,1};
+		glLightfv(GL_LIGHT0,GL_AMBIENT_AND_DIFFUSE,lhtcol);
+
 		getglob().draw();
+
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_LIGHTING);
+		glDisable(GL_BLEND);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glOrtho(0,w,0,h,0,1);
+		glColor3b(0x7f,0x7f,0x7f);
 		drawhud();
 	}
 };
