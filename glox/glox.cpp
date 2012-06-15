@@ -652,7 +652,7 @@ public:
 
 namespace glut{
 	int w=512,h=512;
-	lut<int>lutkeys;
+	lut<int>keysdn;
 	bool gamemode=false;
 	bool fullscr=false;
 	windo&wn=*new windo(wold::get(),*new p3(0,0,15));
@@ -668,9 +668,9 @@ namespace glut{
 	}
 	void timer(const int value){
 		const char r[]={'r',0};const char u[]={'u',0};
-		if(lutkeys[r]&&lutkeys[u]){wn.transl(0,dt(1),0);}
+		if(keysdn[r]&&keysdn[u]){wn.transl(0,dt(1),0);}
 		const char v[]={'v',0};const char n[]={'n',0};
-		if(lutkeys[v]&&lutkeys[n]){wn.transl(0,-dt(1),0);}
+		if(keysdn[v]&&keysdn[n]){wn.transl(0,-dt(1),0);}
 
 		wold::get().tick();
 
@@ -678,13 +678,13 @@ namespace glut{
 		glutTimerFunc(value,timer,value);
 	}
 	void keydn(const unsigned char key,const int x,const int y){
-		char*ks=new char[2];
+		char*ks=new char[2];//? bug leak
 		char s[]={key,0};
-		strncpy(ks,s,2);//? bug leak
-		if(lutkeys[ks]==1){//? impl array[]
+		strncpy(ks,s,2);
+		if(keysdn[ks]==1){//? impl array[]
 			return;
 		}
-		lutkeys.put(ks,1);
+		keysdn.put(ks,1);
 		cout<<"  keydn("<<(int)key<<",["<<x<<","<<y<<"])"<<key<<endl;
 		if(key=='~'){
 			fullscr=!fullscr;
@@ -712,10 +712,10 @@ namespace glut{
 		char*ks=new char[2];
 		char s[]={key,0};
 		strncpy(ks,s,2);//? bug leak
-		lutkeys.put(ks,0);//? if 1 and not handled
+		keysdn.put(ks,0);//? if 1 and not handled
 		cout<<"   keyup("<<(int)key<<",["<<x<<","<<y<<"])"<<key<<endl;
 		if(key==27)// esc
-			exit(0);
+		{glutReshapeWindow(w,h);exit(0);}
 	}
 	void mouseclk(const int button,const int state,int x,const int y){cout<<"mouseclk: "<<state<<"  "<<button<<"@"<<x<<","<<y<<endl;}
 	//void idle(){
@@ -762,7 +762,3 @@ int main(){return glut::main(0,NULL);}
 
 extern void gnox();
 #endif
-
-
-
-
