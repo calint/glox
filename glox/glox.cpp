@@ -11,6 +11,7 @@ namespace glox{
 	}
 	namespace metrics{
 		int nglobs=0;
+		int bvolchecksphcol=0;
 	}
 	inline float dt(const float f){return f*clk::dt;}
 	inline float rnd(const float from,const float tonotincluding){
@@ -111,16 +112,17 @@ class bvol{
 public:
 	float r;
 	p3 v;
-	static bool checkcol(const p3&pa,const m3&ma,const bvol&bva,const p3&pb,const m3&mb,const bvol&bvb){
-		if(!spherescollide(pa,bva,pb,bvb)){
+	static bool checkcol(const p3&p1,const m3&m1,const bvol&bv1,const p3&p2,const m3&m2,const bvol&bv2){
+		if(!spherescollide(p1,bv1,p2,bv2)){
 			flf();ll(" · nosphereoverlap");
 			return false;
 		}
 		flf();ll(" • sphereoverlap");
-		flf();l()<<"a p3("<<pa<<")m3("<<ma<<")"<<"bvol("<<bva<<")    b p3("<<pb<<")m3("<<mb<<")bvol("<<bvb<<")"<<endl;
+		flf();l()<<"a p3("<<p1<<")m3("<<m1<<")"<<"bvol("<<bv1<<")    b p3("<<p2<<")m3("<<m2<<")bvol("<<bv2<<")"<<endl;
 		return true;
 	}
 	static bool spherescollide(const p3&pa,const bvol&a,const p3&pb,const bvol&b){
+		metrics::bvolchecksphcol++;
 		const p3 vec=p3(pa,pb);
 		const float dst=vec.magn();
 		if(dst>(a.r+b.r))
@@ -160,11 +162,15 @@ extern void gnox(){
 #include<vector>
 
 class glob:public p3{
+protected:
 	glob&pt;
 	p3 a;
 	vector<glob*>chs;
 public:
+	static bool drawboundingspheres;
+	static int drawboundingspheresdetail;
 	bvol bv;
+	m3 mw;
 	glob(glob&g):p3(),pt(g),a(),bv(0,p3()){
 		if(&pt==this)
 			return;
@@ -180,6 +186,13 @@ public:
 		glRotatef(a.gety(),0,1,0);
 		glRotatef(a.getz(),0,0,1);
 		gldraw();
+		if(drawboundingspheres){
+			const GLbyte i=(GLbyte)rnd(0,32);
+			glColor3b(i,0,0);
+			glDisable(GL_LIGHTING);
+			glutWireSphere(bv.r,drawboundingspheresdetail,drawboundingspheresdetail);
+			glEnable(GL_LIGHTING);
+		}
 		for(unsigned int n=0;n<chs.size();n++){
 			glPushMatrix();
 			chs[n]->draw();
@@ -189,7 +202,8 @@ public:
 	virtual void gldraw(){};
 	virtual void tick(){for(size_t i=0;i<chs.size();i++)chs[i]->tick();}
 };
-
+bool glob::drawboundingspheres;
+int glob::drawboundingspheresdetail=7;
 
 class obteapot:public glob{
 	float dy;
@@ -224,8 +238,6 @@ public:
 		glColor3b(0,0,127);
 //		const float dr=rng*rand()/RAND_MAX-rng/2;
 		glutSolidSphere(r+dr,4,3);
-		glColor3b(127,0,0);
-		glutWireSphere(r+dr,5,5);
 //		glutSolidTetrahedron();
 //		glutSolidCube(r+dr);
 //		glLineWidth(100);
@@ -252,6 +264,7 @@ class obcorp:public glob{
 public:
 	static const float s;
 	obcorp(glob&pt):glob(pt){
+		bv.r=s+1.4;
 		const float ds=.1*s;
 		for(float xx=-s;xx<s;xx+=ds)
 			for(float yy=-s;yy<s;yy+=ds){
@@ -371,6 +384,7 @@ public:
 		g.agl().transl(90,0,0);
 		g.transl(0,0,4.2f);
 	}
+	~wold(){ll();}
 	void gldraw(){
 		const float s=15.f;
 
@@ -408,6 +422,17 @@ public:
 	}
 	void tick(){
 		agl().transl(-dt(ddegx),0,dt(ddegz));
+		const int n=chs.size();
+		const int nn=n-1;
+		for(int i=0;i<nn;i++){
+			glob&g1=*chs[i];
+			for(int k=i+1;k<n;k++){
+				glob&g2=*chs[k];
+				if(bvol::checkcol(g1,g1.mw,g1.bv, g2,g2.mw,g2.bv)){
+//					cout<<"collisioxx:"<<endl<<g1<<endl<<g2<<endl;
+				}
+			}
+		}
 		glob::tick();
 	}
 };
@@ -487,8 +512,8 @@ namespace windo{
 	p3 a;
 	lut<int>lutkeys;
 	int frame=0;
-	bool fullscr=true;
-	bool gamemode=true;
+	bool fullscr=false;
+	bool gamemode=false;
 	void reshape(const int width,const int height){
 		cout<<" reshape: "<<w<<"x"<<h<<endl;
 		w=width;h=height;
@@ -525,11 +550,11 @@ namespace windo{
 		const tm&t=*localtime(&tv.tv_sec);//? leak, delrefatblokxit
 		char ac[256];
 		const p3&a=wold::get().agl();
-		sprintf(ac,"%02d:%02d:%02d.%03d   frame(%d) globs(%d) keys(j f e d g h i k ur nv) p(%0.0f %0.0f %0.0f) a(%0.0f %0.0f %0.0f)",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,frame,metrics::nglobs,p.getx(),p.gety(),p.getz(),a.getx(),a.gety(),a.getz());//? ostream
+		sprintf(ac,"%02d:%02d:%02d.%03d   frame(%d) globs(%d) coldet(%d,%d) keys(j f e d g h i k ur nv 1) p(%0.0f %0.0f %0.0f) a(%0.0f %0.0f %0.0f)",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,frame,metrics::nglobs,metrics::bvolchecksphcol,0,p.getx(),p.gety(),p.getz(),a.getx(),a.gety(),a.getz());//? ostream
 		y-=dy>>2;pl(ac,y,w>>5,1,.1f);
 	}
 	void draw(){
-		cout<<"\rframe("<<frame++<<")"<<flush;
+		cout<<"\rframe("<<frame++<<") "<<flush;
 //		glClearColor(0,0,0,1);
 		glClearColor(.5f,.5f,1,1);
 		glClearDepth(1);
@@ -597,6 +622,7 @@ namespace windo{
 		else if(key=='h'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(90.5,0,0));}
 		else if(key=='i'){p.transl(0,0,-1);}
 		else if(key=='k'){p.transl(0,0,1);}
+		else if(key=='1'){glob::drawboundingspheres=!glob::drawboundingspheres;}
 	}
 	void keyup(const unsigned char key,const int x,const int y){
 		char*ks=new char[2];
@@ -628,10 +654,12 @@ namespace windo{
 		}else{
 			glutInitWindowSize(w,h);
 			glutCreateWindow("glox");
-			glutFullScreen();
+			if(fullscr)
+				glutFullScreen();
 		}
 //		cout<<glGetString(GL_VENDOR)<<"  "<<glGetString(GL_VERSION)<<"  "<<glGetString(GL_VERSION)<<"  glsl "<<GL_SHADING_LANGUAGE_VERSION<<endl;
-		cout<<"opengl("<<glGetString(GL_VERSION)<<")"<<" glsl("<<GL_SHADING_LANGUAGE_VERSION<<")"<<endl;
+//		cout<<"opengl("<<glGetString(GL_VERSION)<<")"<<" glsl("<<GL_SHADING_LANGUAGE_VERSION<<")"<<endl;
+		cout<<"opengl ";
 		glutDisplayFunc(draw);
 		glutReshapeFunc(reshape);
 		glutKeyboardFunc(keydn);
