@@ -98,7 +98,6 @@ ostream&operator<<(ostream&os,const m3&m){m3(m).c[0]=1;return os;}
 istream&operator>>(istream&is,m3&m){m3(m).c[0]=1;return is;}
 
 class glob;
-
 class coll{
 public:
 	const glob&obja;
@@ -207,6 +206,7 @@ public:
 	}
 	virtual void gldraw(){};
 	virtual void tick(){for(size_t i=0;i<chs.size();i++)chs[i]->tick();}
+	inline glob&getglob()const{return g;}
 };
 bool glob::drawboundingspheres;
 int glob::drawboundingspheresdetail=7;
@@ -515,10 +515,10 @@ public:
 
 #include<sys/time.h>
 
-class wind:public glob{
+class windo:public glob{
 public:
-	int w,h;
-	wind(glob&g):glob(g){}
+	int w,h,frame;
+	windo(glob&g,const p3&p):glob(g){set(p);}
 	void pl(const char*text,const GLfloat y=0,const GLfloat x=0,const GLfloat linewidth=1,const float scale=1){
 		char*cp=(char*)text;
 		glPushMatrix();
@@ -554,6 +554,7 @@ public:
 		y-=dy>>2;pl(ac,y,w>>5,1,.1f);
 	}
 	void drawframe(){
+		cout<<"\rframe("<<frame++<<") ";
 //		glClearColor(0,0,0,1);
 		glClearColor(.5f,.5f,1,1);
 		glClearDepth(1);
@@ -566,104 +567,43 @@ public:
 		glViewport(0,0,w,h);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		gluPerspective(45,(GLdouble)w / h, .1, 1000);
+		gluPerspective(90,(GLdouble)w/h,.01,10000);
 		glMatrixMode (GL_MODELVIEW);
 		glLoadIdentity();
 		glTranslatef(-getx(), -gety(), -getz());
 //		glRotatef(-a.getz(), 0, 0, 1);
 //		glRotatef(-a.getx(), 1, 0, 0);
 //		glRotatef(-a.gety(), 0, 1, 0);
-
-		wold::get().draw();
+		getglob().draw();
+		drawhud();
 	}
 };
 
-namespace windo{
+namespace glut{
 	int w=512,h=512;
-	p3 p(0,0,15);
-	p3 a;
 	lut<int>lutkeys;
-	int frame=0;
-	bool fullscr=false;
 	bool gamemode=false;
-	wind&wn=*new wind(wold::get());
+	bool fullscr=false;
+	windo&wn=*new windo(wold::get(),*new p3(0,0,15));
 	void reshape(const int width,const int height){
 		cout<<" reshape: "<<w<<"x"<<h<<endl;
 		w=width;h=height;
 	}
-//	void pl(const char*text,const GLfloat y=0,const GLfloat x=0,const GLfloat linewidth=1,const float scale=1){
-//		char*cp=(char*)text;
-//		glPushMatrix();
-//		glTranslatef(x,y,0);
-//		glScalef(scale,scale,0);
-//		glLineWidth(linewidth);
-//		for(;*cp;cp++)
-//			glutStrokeCharacter(GLUT_STROKE_ROMAN,*cp);
-////			glutStrokeString(GLUT_STROKE_MONO_ROMAN,text);
-//		glPopMatrix();
-//	}
-//	void drawhud(){
-//		glDisable(GL_DEPTH_TEST);
-//		glDisable(GL_CULL_FACE);
-//		glDisable(GL_LIGHTING);
-//		glDisable(GL_BLEND);
-//
-//		glMatrixMode(GL_MODELVIEW);
-//		glLoadIdentity();
-//		glMatrixMode(GL_PROJECTION);
-//		glLoadIdentity();
-//		glOrtho(0,w,0,h,0,1);
-//		glColor3b(0x7f,0x7f,0x7f);
-//		const int dy=h>>3;
-//		int y=dy>>2;
-//
-//		pl("glox",y,0,1,.5f);
-//
-//		timeval tv;gettimeofday(&tv,0);
-//		const tm&t=*localtime(&tv.tv_sec);//? leak, delrefatblokxit
-//		char ac[256];
-//		const p3&a=wold::get().agl();
-//		sprintf(ac,"%02d:%02d:%02d.%03d   frame(%d) globs(%d) coldet(%d,%d) keys(j f e d g h i k ur nv 1) p(%0.0f %0.0f %0.0f) a(%0.0f %0.0f %0.0f)",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,frame,metrics::nglobs,metrics::bvolchecksphcol,0,p.getx(),p.gety(),p.getz(),a.getx(),a.gety(),a.getz());//? ostream
-//		y-=dy>>2;pl(ac,y,w>>5,1,.1f);
-//	}
 	void draw(){
-		cout<<"\rframe("<<frame++<<") "<<flush;
 		wn.w=w;wn.h=h;
-////		glClearColor(0,0,0,1);
-//		glClearColor(.5f,.5f,1,1);
-//		glClearDepth(1);
-//
-//		glEnable(GL_DEPTH_TEST);
-////		glEnable(GL_BLEND);
-//		glDisable(GL_BLEND);
-////		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-//		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-//		glViewport(0,0,w,h);
-//		glMatrixMode(GL_PROJECTION);
-//		glLoadIdentity();
-//		gluPerspective(45,(GLdouble)w / h, .1, 1000);
-//		glMatrixMode (GL_MODELVIEW);
-//		glLoadIdentity();
-//		glTranslatef(-p.getx(), -p.gety(), -p.getz());
-////		glRotatef(-a.getz(), 0, 0, 1);
-////		glRotatef(-a.getx(), 1, 0, 0);
-////		glRotatef(-a.gety(), 0, 1, 0);
-
 		wn.drawframe();
-//		drawhud();
-
+		metrics::bvolchecksphcol=0;
 		glutSwapBuffers();
 	}
 	void timer(const int value){
-//		cout<<"\rtimer: "<<value;
 		const char r[]={'r',0};const char u[]={'u',0};
-		if(lutkeys[r]&&lutkeys[u]){p.transl(0,dt(1),0);}
+		if(lutkeys[r]&&lutkeys[u]){wn.transl(0,dt(1),0);}
 		const char v[]={'v',0};const char n[]={'n',0};
-		if(lutkeys[v]&&lutkeys[n]){p.transl(0,-dt(1),0);}
+		if(lutkeys[v]&&lutkeys[n]){wn.transl(0,-dt(1),0);}
 
 		wold::get().tick();
+
 		glutPostRedisplay();
-//		glutTimerFunc(value,timer,value-1);
 		glutTimerFunc(value,timer,value);
 	}
 	void keydn(const unsigned char key,const int x,const int y){
@@ -679,13 +619,13 @@ namespace windo{
 			fullscr=!fullscr;
 			if(fullscr)
 				glutFullScreen();
-			else if(key==126)
+			else
 				glutReshapeWindow(w,h);
 			return;
 		}
 
 //		if(key==32){glob*o=new obwom(wld,14);o->transl(0,0,-10);}
-		wold&wd=wold::get();
+		wold&wd=wold::get();//? wn.getglob();
 		if(key==0){throw "keyo";}
 		else if(key=='j'){wd.ddegz-=360/60;}
 		else if(key=='f'){wd.ddegz+=360/60;}
@@ -694,8 +634,8 @@ namespace windo{
 		else if(key==' '){wd.ddegz=wd.ddegx=0;}
 		else if(key=='g'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(270,0,0));}
 		else if(key=='h'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(90.5,0,0));}
-		else if(key=='i'){p.transl(0,0,-1);}
-		else if(key=='k'){p.transl(0,0,1);}
+		else if(key=='i'){wn.transl(0,0,-1);}
+		else if(key=='k'){wn.transl(0,0,1);}
 		else if(key=='1'){glob::drawboundingspheres=!glob::drawboundingspheres;}
 	}
 	void keyup(const unsigned char key,const int x,const int y){
@@ -758,7 +698,7 @@ int main(){
 	for(int i=0;i<32;i++)signal(i,mainsig);//?
 	srand(0);
 	gnox();
-	return windo::main(0,NULL);
+	return glut::main(0,NULL);
 }
 #endif
 
