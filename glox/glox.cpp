@@ -35,7 +35,7 @@ public:
 	inline p3&transl(const float dx,const float dy,const float dz){x+=dx;y+=dy;z+=dz;return*this;}
 	inline const float magn()const{return sqrt(x*x+y*y+z*z);}
 	inline p3&set(const p3&p){x=p.x;y=p.y;z=p.z;return*this;}
-
+	inline p3&set(const float x,const float y,const float z){this->x=x;this->y=y;this->z=z;return*this;}
 	friend ostream&operator<<(ostream&,const p3&);
 	friend istream&operator>>(istream&,p3&);
 };
@@ -90,12 +90,68 @@ static inline ostream&ll(const char*s="",const char*file="",int lineno=0,const c
 
 class m3{
 public:
-	float c[16];
+	float xx,xy,xz,xo;
+	float yx,yy,yz,yo;
+	float zx,zy,zz,zo;
 	m3(){}
-	m3(const m3&m){if(&m==0){flf();};}
+	m3&ident(){xx=1;xy=0;xz=0;xo=0; yx=0;yy=1;yz=0;yo=0; zx=0;zy=0;zz=1;zo=0; return*this;}
+	const m3&axis_x(p3&p)const{p.set(xx,xy,xz);return*this;}
+	const m3&axis_y(p3&p)const{p.set(yx,yy,yz);return*this;}
+	const m3&axis_z(p3&p)const{p.set(zx,zy,zz);return*this;}
+	m3&rotx(const float a){
+		float c=cos(a),s=sin(a);
+		float nyx=yx*c+zx*s,nyy=yy*c+zy*s,nyz=yz*c+zz*s,nyo=yo*c+zo*s;
+		float nzx=zx*c-yx*s,nzy=zy*c-yy*s,nzz=zz*c-yz*s,nzo=zo*c-yo*s;
+		yx=nyx;yy=nyy;yz=nyz;yo=nyo;
+		zx=nzx;zy=nzy;zz=nzz;zo=nzo;
+		return*this;
+	}
+	m3&roty(const float a){
+		float c=cos(a),s=sin(a);
+		float nxx=xx*c+zx*s,nxy=xy*c+zy*s,nxz=xz*c+zz*s,nxo=xo*c+zo*s;
+		float nzx=zx*c-xx*s,nzy=zy*c-xy*s,nzz=zz*c-xz*s,nzo=zo*c-xo*s;
+		xx=nxx;xy=nxy;xz=nxz;xo=nxo;
+		zx=nzx;zy=nzy;zz=nzz;zo=nzo;
+		return*this;
+	}
+	m3&rotz(const float a){
+		float c=cos(a),s=sin(a);
+		float nyx=yx*c+xx*s,nyy=yy*c+xy*s,nyz=yz*c+xz*s,nyo=yo*c+xo*s;
+		float nxx=xx*c-yx*s,nxy=xy*c-yy*s,nxz=xz*c-yz*s,nxo=xo*c-yo*s;
+		xx=nxx;xy=nxy;xz=nxz;xo=nxo;
+		yx=nyx;yy=nyy;yz=nyz;yo=nyo;
+		return*this;
+	}
+//	m3&scale(const p3&s){
+//		const float sx=s.getx();
+//		const float sy=s.gety();
+//		const float sz=s.getz();
+//		xx*=sx;xy*=sx;xz*=sx;xo*=sx;
+//		yx*=sy;yy*=sy;yz*=sy;yo*=sy;
+//		zx*=sz;zy*=sz;zz*=sz;zo*=sz;
+//		return*this;
+//	}
+	m3&transl(const p3&p){
+		const float x=p.getx();
+		const float y=p.gety();
+		const float z=p.getz();
+		xo=xx*x+xy*y+xz*z+xo;
+		yo=yx*x+yy*y+yz*z+yo;
+		zo=zx*x+zy*y+zz*z+zo;
+		return*this;
+	}
+	void mult(const p3&src,p3&dst)const{
+		const float x=src.getx();
+		const float y=src.gety();
+		const float z=src.getz();
+		float rx=x*xx+y*xy+z*xz+xo;
+		float ry=x*yx+y*yy+z*yz+yo;
+		float rz=x*zx+y*zy+z*zz+zo;
+		dst.set(rx,ry,rz);
+	}
 };
-ostream&operator<<(ostream&os,const m3&m){m3(m).c[0]=1;return os;}
-istream&operator>>(istream&is,m3&m){m3(m).c[0]=1;return is;}
+ostream&operator<<(ostream&os,const m3&m){cout<<"["<<p3(m.xx,m.xy,m.xz)<<","<<m.xo<<"],["<<p3(m.yx,m.yy,m.yz)<<","<<m.yo<<"],["<<p3(m.zx,m.zy,m.zz)<<","<<m.zo<<"]";return os;}
+istream&operator>>(istream&is,m3&m){m.ident();throw "notimpl";return is;}
 
 class glob;
 class coll{
@@ -114,7 +170,7 @@ public:
 	p3 v;
 	static bool checkcol(const p3&p1,const m3&m1,const bvol&bv1,const p3&p2,const m3&m2,const bvol&bv2){
 		if(!spherescollide(p1,bv1,p2,bv2)){
-			flf();ll(" · nosphereoverlap");
+			flf();ll(" · nosphereoverlap ");
 			return false;
 		}
 		flf();ll(" • sphereoverlap");
@@ -153,6 +209,16 @@ istream&operator>>(istream&is,bvol&bv){
 }
 ///////////////////////////////////////////////////////////////////////////////
 extern void gnox(){
+	m3 m;
+	m.ident();
+	m.transl(p3(1,0,1));
+	p3 z;
+	m.axis_z(z);
+	cout<<m<<endl;
+	cout<<z<<endl;
+	p3 p;
+	m.mult(p3(1,0,0),p);
+	cout<<p<<endl;
 	//	flf();ll();
 	//	bvol::checkcol(p3(),m3(),bvol(1,p3(1,1,1)),p3(1,0,0),m3(),bvol(1,p3(1,1,1)));
 	//	throw signl(1,"gnoxstop");
@@ -278,12 +344,10 @@ public:
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
 		GLfloat matspec[]={ff,ff,ff,1};
-		ff+=dt(1/10);
-		if(ff>1)ff=0;
+		ff+=dt(1/10);if(ff>1)ff=0;
 		glMaterialfv(GL_FRONT,GL_SPECULAR,matspec);
 		GLfloat matshin[]={f};
-//		f+=dt(30);
-		if(f>128)f=0;
+		f++;if(f>128)f=0;
 		flf();cout<<f<<endl;
 		glMaterialfv(GL_FRONT,GL_SHININESS,matshin);
 	}
@@ -438,6 +502,8 @@ public:
 			for(int k=i+1;k<n;k++){
 				glob&g2=*chs[k];
 				if(bvol::checkcol(g1,g1.mw,g1.bv, g2,g2.mw,g2.bv)){
+					flf();ll(" • sphereoverlap ")<<typeid(g1).name()<<" "<<typeid(g2).name()<<endl;
+
 //					cout<<"collisioxx:"<<endl<<g1<<endl<<g2<<endl;
 				}
 			}
@@ -547,34 +613,29 @@ public:
 //		glClearColor(0,0,0,1);
 		glClearColor(.5f,.5f,1,1);
 		glClearDepth(1);
-
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 //		glEnable(GL_BLEND);
 		glDisable(GL_BLEND);
 //		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 		glViewport(0,0,w,h);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		gluPerspective(90,(GLdouble)w/h,.01,10000);
+		gluPerspective(45,(GLdouble)w/h,.01,10000);
 //		gluLookAt(getx(),gety(),getz(), 0,0,0, 0,1,0);
-
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 //		glRotatef(-a.getz(), 0, 0, 1);
 //		glRotatef(-a.gety(), 0, 1, 0);
 //		glRotatef(-a.getx(), 1, 0, 0);
 		glTranslatef(-getx(), -gety(), -getz());
-
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
 		GLfloat lhtpos[]={0,20,10000,1};
 		glLightfv(GL_LIGHT0,GL_POSITION,lhtpos);
 		GLfloat lhtcol[]={1,1,1,1};
 		glLightfv(GL_LIGHT0,GL_AMBIENT_AND_DIFFUSE,lhtcol);
-
 		getglob().draw();
-
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_CULL_FACE);
 		glDisable(GL_LIGHTING);
@@ -634,8 +695,7 @@ namespace glut{
 			return;
 		}
 
-//		if(key==32){glob*o=new obwom(wld,14);o->transl(0,0,-10);}
-		wold&wd=wold::get();//? wn.getglob();
+		wold&wd=(wold&)wn.getglob();
 		if(key==0){throw "keyo";}
 		else if(key=='j'){wd.ddegz-=360/60;}
 		else if(key=='f'){wd.ddegz+=360/60;}
@@ -663,14 +723,15 @@ namespace glut{
 	//	return;
 	//}
 	void mousemov(const int x,const int y){cout<<"mousemov: "<<x<<","<<y<<endl;}
+	static void mainsig(const int i){cerr<<" ••• terminated with signal "<<i<<endl;exit(i);}
 	int main(int argc,char**argv){
 		cout<<"glox ";
+		for(int i=0;i<32;i++)signal(i,mainsig);//?
+		srand(0);
+		gnox();
 		glutInit(&argc,argv);
-//		glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
-//		glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
 		glutIgnoreKeyRepeat(true);
 		glutInitDisplayMode(GLUT_DOUBLE|GLUT_DEPTH);
-
 		if(gamemode){
 			glutGameModeString("1366x768:32");
 			glutEnterGameMode();
@@ -681,8 +742,6 @@ namespace glut{
 			if(fullscr)
 				glutFullScreen();
 		}
-//		cout<<glGetString(GL_VENDOR)<<"  "<<glGetString(GL_VERSION)<<"  "<<glGetString(GL_VERSION)<<"  glsl "<<GL_SHADING_LANGUAGE_VERSION<<endl;
-//		cout<<"opengl("<<glGetString(GL_VERSION)<<")"<<" glsl("<<GL_SHADING_LANGUAGE_VERSION<<")"<<endl;
 		cout<<"opengl ";
 		glutDisplayFunc(draw);
 		glutReshapeFunc(reshape);
@@ -695,21 +754,13 @@ namespace glut{
 //		glutReportErrors();
 
 		glutMainLoop();
-
-		glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
-
 		return 0;
 	}
 }
 
+int main(){return glut::main(0,NULL);}
+
 extern void gnox();
-static void mainsig(const int i){cerr<<" ••• terminated with signal "<<i<<endl;exit(i);}
-int main(){
-	for(int i=0;i<32;i++)signal(i,mainsig);//?
-	srand(0);
-	gnox();
-	return glut::main(0,NULL);
-}
 #endif
 
 

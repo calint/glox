@@ -1,3 +1,15 @@
+
+
+
+//		glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
+//		glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
+
+
+//		cout<<glGetString(GL_VENDOR)<<"  "<<glGetString(GL_VERSION)<<"  "<<glGetString(GL_VERSION)<<"  glsl "<<GL_SHADING_LANGUAGE_VERSION<<endl;
+//		cout<<"opengl("<<glGetString(GL_VERSION)<<")"<<" glsl("<<GL_SHADING_LANGUAGE_VERSION<<")"<<endl;
+
+
+
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_CULL_FACE);
 		glDisable(GL_LIGHTING);
