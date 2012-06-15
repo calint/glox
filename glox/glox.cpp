@@ -141,9 +141,34 @@ public:
 		dst.set(rx,ry,rz);
 	}
 	friend ostream&operator<<(ostream&,const m3&);
+	friend istream&operator>>(istream&,m3&);
 };
-ostream&operator<<(ostream&os,const m3&m){cout<<"["<<p3(m.xx,m.xy,m.xz)<<","<<m.xo<<"],["<<p3(m.yx,m.yy,m.yz)<<","<<m.yo<<"],["<<p3(m.zx,m.zy,m.zz)<<","<<m.zo<<"]";return os;}
-istream&operator>>(istream&is,m3&m){m.ident();throw "notimpl";return is;}
+ostream&operator<<(ostream&os,const m3&m){
+	cout<<"["<<p3(m.xx,m.xy,m.xz)<<","<<m.xo<<"],[";
+	cout<<p3(m.yx,m.yy,m.yz)<<","<<m.yo<<"],[";
+	cout<<p3(m.zx,m.zy,m.zz)<<","<<m.zo<<"]";
+	return os;
+}
+istream&operator>>(istream&is,m3&m){
+	p3 p;
+	is.ignore();
+	is>>p;
+	m.xx=p.getx();m.xy=p.gety();m.xz=p.getz();
+	is.ignore();
+	is>>m.xo;
+	is.ignore(3);
+	is>>p;
+	m.yx=p.getx();m.yy=p.gety();m.yz=p.getz();
+	is.ignore();
+	is>>m.yo;
+	is.ignore(3);
+	is>>p;
+	m.zx=p.getx();m.zy=p.gety();m.zz=p.getz();
+	is.ignore();
+	is>>m.zo;
+	is.ignore();
+	return is;
+}
 
 class glob;
 class coll{
@@ -192,23 +217,6 @@ public:
 };
 ostream&operator<<(ostream&os,const bvol&b){os<<b.r<<",("<<b.v<<")";return os;}
 istream&operator>>(istream&is,bvol&bv){is>>bv.r;is.ignore(2);is>>bv.v;is.ignore();return is;}
-///////////////////////////////////////////////////////////////////////////////
-extern void gnox(){
-//	m3 m;
-//	m.ident();
-//	m.transl(p3(1,0,1));
-//	p3 z;
-//	m.axisz(z);
-//	cout<<m<<endl;
-//	cout<<z<<endl;
-//	p3 p;
-//	m.mult(p3(1,0,0),p);
-//	cout<<p<<endl;
-	//	flf();ll();
-	//	bvol::checkcol(p3(),m3(),bvol(1,p3(1,1,1)),p3(1,0,0),m3(),bvol(1,p3(1,1,1)));
-	//	throw signl(1,"gnoxstop");
-}
-///////////////////////////////////////////////////////////////////////////////
 
 #include<vector>
 
@@ -229,14 +237,14 @@ public:
 		metrics::nglobs++;
 	}
 	virtual ~glob(){
-//		cout<<"\r  globs: "<<metrics::nglobs;
 		metrics::nglobs--;
 		for(unsigned int n=0;n<chs.size();n++)
 			delete chs[n];
 		chs.clear();
 	}
+	inline void rm(){throw "notimpl";}
 	inline p3&agl(){return a;}
-	inline glob&seta(const p3&a){this->a.set(a);return*this;}
+//	inline glob&seta(const p3&a){this->a.set(a);return*this;}
 	void draw(){
 		glTranslatef(getx(),gety(),getz());
 		glRotatef(a.getx(),1,0,0);
@@ -263,25 +271,25 @@ public:
 bool glob::drawboundingspheres;
 int glob::drawboundingspheresdetail=7;
 
-class obteapot:public glob{
-	float dy;
-public:
-	obteapot(glob&pt):glob(pt),dy(.1f){}
-	void gldraw(){
-		glPushAttrib(GL_ENABLE_BIT);
-		glEnable(GL_CULL_FACE);
-		glFrontFace(GL_CW);
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
-		glutSolidTeapot(1);
-		glPopAttrib();
-	}
-	virtual void tick(){
-		glob::tick();
-		transl(0,dt(dy),0);
-		if(gety()>10||gety()<0)dy=-dy;
-	}
-};
+//class obteapot:public glob{
+//	float dy;
+//public:
+//	obteapot(glob&pt):glob(pt),dy(.1f){}
+//	void gldraw(){
+//		glPushAttrib(GL_ENABLE_BIT);
+//		glEnable(GL_CULL_FACE);
+//		glFrontFace(GL_CW);
+//		glEnable(GL_LIGHTING);
+//		glEnable(GL_LIGHT0);
+//		glutSolidTeapot(1);
+//		glPopAttrib();
+//	}
+//	virtual void tick(){
+//		glob::tick();
+//		transl(0,dt(dy),0);
+//		if(gety()>10||gety()<0)dy=-dy;
+//	}
+//};
 
 class obcorpqb:public glob{
 	float r;
@@ -337,92 +345,88 @@ public:
 		flf();cout<<f<<endl;
 		glMaterialfv(GL_FRONT,GL_SHININESS,matshin);
 	}
-	virtual void tick(){
-//		transl(dt(s*.01),0,0);
-		glob::tick();
-	}
 };
 const float obcorp::s=7;
 
-
-class obquad:public glob{
-public:
-	obquad(glob&g):glob(g){}
-	void gldraw(){
-		const float s=15.f;
-
-		glColor3b(0,0,0x7f);
-		glBegin(GL_QUADS);
-		glVertex2f(-s,-s);
-		glVertex2f( s,-s);
-		glVertex2f( s, s);
-		glVertex2f(-s, s);
-		glEnd();
-
-		glColor3b(0,0,127);
-		glBegin(GL_LINE_STRIP);
-		glVertex3f(s,0,.01f);
-		glVertex3f(0,0,.01f);
-		glColor3b(127,127,127);
-		glVertex3f(0,s,.02f);
-		glEnd();
-
-		const float r=.75*s;
-		glPushMatrix();
-		glTranslatef(0,0,.01f);
-		glColor3b(0,0x7f,0);
-		glBegin(GL_TRIANGLE_FAN);
-		glVertex2f(0,0);
-		glVertex2f(r,0);
-		const float dtr=3.14159/180;
-		const int di=360/12;
-		for(int i=di;i<=360;i+=di){
-			const float rd=i*dtr;
-			glVertex2f(r*cos(rd),r*sin(rd));
-		}
-		glEnd();
-		glPopMatrix();
-	}
-	virtual void tick(){
-		agl().transl(dt(360/60),0,0);
-		glob::tick();
-	}
-};
-
-
-class obwom:public glob{
-public:
-	obwom(glob&pt,const int links):glob(pt){
-		if(links==0)
-			return;
-		glob*o=new obwom(*this,links-1);
-		o->transl(0,.4f,0);
-	}
-	void gldraw(){
-		glPushAttrib(GL_ENABLE_BIT);
-		glShadeModel(GL_SMOOTH);
-//		glShadeModel(GL_FLAT);
-		glEnable(GL_CULL_FACE);
-		glFrontFace(GL_CCW);
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
-		glColor3b(0,0x20,0x60);
-		const float dr=rnd(0,.1f);
-//		const float dr=0;
-		const float r=.4;
-		glutSolidSphere(r+dr,6,6);
-//		glutSolidCube(r+dr);
-		glPopAttrib();
-	}
-	virtual void tick(){
-		glob::tick();
-		agl().transl(dt(60),0,dt(60));
-//		a.transl(0,d(60),d(60));
-//		a.transl(d(60),0,0);
-//		a.transl(d(60),d(60),0);
-	}
-};
-
+//
+//class obquad:public glob{
+//public:
+//	obquad(glob&g):glob(g){}
+//	void gldraw(){
+//		const float s=15.f;
+//
+//		glColor3b(0,0,0x7f);
+//		glBegin(GL_QUADS);
+//		glVertex2f(-s,-s);
+//		glVertex2f( s,-s);
+//		glVertex2f( s, s);
+//		glVertex2f(-s, s);
+//		glEnd();
+//
+//		glColor3b(0,0,127);
+//		glBegin(GL_LINE_STRIP);
+//		glVertex3f(s,0,.01f);
+//		glVertex3f(0,0,.01f);
+//		glColor3b(127,127,127);
+//		glVertex3f(0,s,.02f);
+//		glEnd();
+//
+//		const float r=.75*s;
+//		glPushMatrix();
+//		glTranslatef(0,0,.01f);
+//		glColor3b(0,0x7f,0);
+//		glBegin(GL_TRIANGLE_FAN);
+//		glVertex2f(0,0);
+//		glVertex2f(r,0);
+//		const float dtr=3.14159/180;
+//		const int di=360/12;
+//		for(int i=di;i<=360;i+=di){
+//			const float rd=i*dtr;
+//			glVertex2f(r*cos(rd),r*sin(rd));
+//		}
+//		glEnd();
+//		glPopMatrix();
+//	}
+//	virtual void tick(){
+//		agl().transl(dt(360/60),0,0);
+//		glob::tick();
+//	}
+//};
+//
+//
+//class obwom:public glob{
+//public:
+//	obwom(glob&pt,const int links):glob(pt){
+//		if(links==0)
+//			return;
+//		glob*o=new obwom(*this,links-1);
+//		o->transl(0,.4f,0);
+//	}
+//	void gldraw(){
+//		glPushAttrib(GL_ENABLE_BIT);
+//		glShadeModel(GL_SMOOTH);
+////		glShadeModel(GL_FLAT);
+//		glEnable(GL_CULL_FACE);
+//		glFrontFace(GL_CCW);
+//		glEnable(GL_LIGHTING);
+//		glEnable(GL_LIGHT0);
+//		glColor3b(0,0x20,0x60);
+//		const float dr=rnd(0,.1f);
+////		const float dr=0;
+//		const float r=.4;
+//		glutSolidSphere(r+dr,6,6);
+////		glutSolidCube(r+dr);
+//		glPopAttrib();
+//	}
+//	virtual void tick(){
+//		glob::tick();
+//		agl().transl(dt(60),0,dt(60));
+////		a.transl(0,d(60),d(60));
+////		a.transl(d(60),0,0);
+////		a.transl(d(60),d(60),0);
+//	}
+//};
+//
 
 class wold:public glob{
 	static wold wd;
@@ -436,9 +440,7 @@ public:
 		bv.r=s;
 		new obcorp(*this,p3(0,0,4.2),p3(90,0,0));
 	}
-	~wold(){
-		ll();
-	}
+//	~wold(){}
 	void gldraw(){
 		glDisable(GL_LIGHTING);
 
@@ -645,6 +647,8 @@ public:
 	}
 };
 
+extern void gnox();
+
 namespace glut{
 	int w=512,h=512;
 	int __w=w,__h=h;
@@ -759,5 +763,5 @@ namespace glut{
 
 int main(){return glut::main(0,NULL);}
 
-extern void gnox();
+extern void gnox(){}
 #endif

@@ -1,4 +1,19 @@
-
+//	m3 m;
+//	cin>>m;
+//	cout<<m;
+//	m3 m;
+//	m.ident();
+//	m.transl(p3(1,0,1));
+//	p3 z;
+//	m.axisz(z);
+//	cout<<m<<endl;
+//	cout<<z<<endl;
+//	p3 p;
+//	m.mult(p3(1,0,0),p);
+//	cout<<p<<endl;
+	//	flf();ll();
+	//	bvol::checkcol(p3(),m3(),bvol(1,p3(1,1,1)),p3(1,0,0),m3(),bvol(1,p3(1,1,1)));
+	//	throw signl(1,"gnoxstop");
 
 
 //		glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
