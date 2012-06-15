@@ -26,9 +26,9 @@ using namespace glox;
 class p3{
 	float x,y,z;
 public:
-	p3():x(0),y(0),z(0){}
-	p3(const float x,const float y,const float z):x(x),y(y),z(z){}
-	p3(const p3&from,const p3&to):x(to.x-from.x),y(to.y-from.y),z(to.z-from.z){}
+	inline p3():x(0),y(0),z(0){}
+	inline p3(const float x,const float y,const float z):x(x),y(y),z(z){}
+	inline p3(const p3&from,const p3&to):x(to.x-from.x),y(to.y-from.y),z(to.z-from.z){}
 	inline const float getx()const{return x;}
 	inline const float gety()const{return y;}
 	inline const float getz()const{return z;}
@@ -39,8 +39,8 @@ public:
 	friend ostream&operator<<(ostream&,const p3&);
 	friend istream&operator>>(istream&,p3&);
 };
-ostream&operator<<(ostream&os,const p3&p){os<<p.x<<","<<p.y<<","<<p.z;return os;}
-istream&operator>>(istream&is,p3&p){is>>p.x;is.ignore();is>>p.y;is.ignore();is>>p.z;return is;}
+inline ostream&operator<<(ostream&os,const p3&p){os<<p.x<<","<<p.y<<","<<p.z;return os;}
+inline istream&operator>>(istream&is,p3&p){is>>p.x;is.ignore();is>>p.y;is.ignore();is>>p.z;return is;}
 
 #include<execinfo.h>
 
@@ -89,10 +89,10 @@ static inline ostream&l(const char*s="",const char*file="",int lineno=0,const ch
 static inline ostream&ll(const char*s="",const char*file="",int lineno=0,const char*func=""){return l(s,file,lineno,func)<<endl;}
 
 class m3{
-public:
 	float xx,xy,xz,xo;
 	float yx,yy,yz,yo;
 	float zx,zy,zz,zo;
+public:
 	m3(){}
 	m3&ident(){xx=1;xy=0;xz=0;xo=0; yx=0;yy=1;yz=0;yo=0; zx=0;zy=0;zz=1;zo=0; return*this;}
 	const m3&axisx(p3&p)const{p.set(xx,xy,xz);return*this;}
@@ -140,6 +140,7 @@ public:
 		float rz=x*zx+y*zy+z*zz+zo;
 		dst.set(rx,ry,rz);
 	}
+	friend ostream&operator<<(ostream&,const m3&);
 };
 ostream&operator<<(ostream&os,const m3&m){cout<<"["<<p3(m.xx,m.xy,m.xz)<<","<<m.xo<<"],["<<p3(m.yx,m.yy,m.yz)<<","<<m.yo<<"],["<<p3(m.zx,m.zy,m.zz)<<","<<m.zo<<"]";return os;}
 istream&operator>>(istream&is,m3&m){m.ident();throw "notimpl";return is;}
@@ -189,27 +190,20 @@ public:
 	friend ostream&operator<<(ostream&,const bvol&);
 	friend istream&operator>>(istream&,bvol&);
 };
-ostream&operator<<(ostream&os,const bvol&b){
-	os<<b.r<<",("<<b.v<<")";
-	return os;
-}
-istream&operator>>(istream&is,bvol&bv){
-	is>>bv.r;is.ignore(2);
-	is>>bv.v;is.ignore();
-	return is;
-}
+ostream&operator<<(ostream&os,const bvol&b){os<<b.r<<",("<<b.v<<")";return os;}
+istream&operator>>(istream&is,bvol&bv){is>>bv.r;is.ignore(2);is>>bv.v;is.ignore();return is;}
 ///////////////////////////////////////////////////////////////////////////////
 extern void gnox(){
-	m3 m;
-	m.ident();
-	m.transl(p3(1,0,1));
-	p3 z;
-	m.axisz(z);
-	cout<<m<<endl;
-	cout<<z<<endl;
-	p3 p;
-	m.mult(p3(1,0,0),p);
-	cout<<p<<endl;
+//	m3 m;
+//	m.ident();
+//	m.transl(p3(1,0,1));
+//	p3 z;
+//	m.axisz(z);
+//	cout<<m<<endl;
+//	cout<<z<<endl;
+//	p3 p;
+//	m.mult(p3(1,0,0),p);
+//	cout<<p<<endl;
 	//	flf();ll();
 	//	bvol::checkcol(p3(),m3(),bvol(1,p3(1,1,1)),p3(1,0,0),m3(),bvol(1,p3(1,1,1)));
 	//	throw signl(1,"gnoxstop");
