@@ -187,7 +187,7 @@ public:
 	p3 v;
 	static bool checkcol(const p3&p1,const m3&m1,const bvol&bv1,const p3&p2,const m3&m2,const bvol&bv2){
 		if(!spherescollide(p1,bv1,p2,bv2)){
-			flf();ll(" · nosphereoverlap ");
+//			flf();ll(" · nosphereoverlap ");
 			return false;
 		}
 		flf();ll(" • sphereoverlap");
@@ -226,21 +226,22 @@ protected:
 	p3 a;
 	vector<glob*>chs;
 public:
-	static bool drawboundingspheres;
-	static int drawboundingspheresdetail;
 	bvol bv;
 	m3 mw;
+	static bool drawboundingspheres;
+	static int drawboundingspheresdetail;
 	glob(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=0,const p3&pbox=p3()):p3(p),g(g),a(a),bv(r,pbox){
+		metrics::nglobs++;
 		if(&g==NULL)
 			return;
 		g.chs.push_back(this);
-		metrics::nglobs++;
 	}
 	virtual ~glob(){
 		metrics::nglobs--;
 		for(unsigned int n=0;n<chs.size();n++)
 			delete chs[n];
 		chs.clear();
+//		cout<<metrics::nglobs<<endl;
 	}
 	inline void rm(){throw "notimpl";}
 	inline p3&agl(){return a;}
@@ -342,7 +343,7 @@ public:
 		glMaterialfv(GL_FRONT,GL_SPECULAR,matspec);
 		GLfloat matshin[]={f};
 		f++;if(f>128)f=0;
-		flf();cout<<f<<endl;
+//		flf();cout<<f<<endl;
 		glMaterialfv(GL_FRONT,GL_SHININESS,matshin);
 	}
 };
@@ -445,7 +446,7 @@ public:
 		glDisable(GL_LIGHTING);
 
 		glColor3b(0,0,0x7f);
-		glutWireCube(s);
+		//glutWireCube(s);
 		glBegin(GL_LINE_STRIP);
 		glVertex2f(-s,-s);
 		glVertex2f( s,-s);
@@ -543,44 +544,65 @@ public:
 		return (T)NULL;//?
 	}
 	void rm(const char*key){
-
+		const int h=hash(key,size);
+		el*l=array[h];
+		if(!l)
+			return;
+		el*lp=NULL;
+		while(1){
+			if(!strcmp(l->key,key)){
+				if(lp)
+					lp->nxt=l->nxt;
+				else
+					array[h]=NULL;
+				l->nxt=NULL;
+				delete l;
+				return;
+			}
+			lp=l;
+			if(l->nxt){
+				l=l->nxt;
+				continue;
+			}
+			return;
+		}
 	}
-    void put(const char*key,T data){
-        const int h=hash(key,size);
-        el*l=array[h];
-        if(!l){
-            array[h]=new el(key,data);
-            return;
-        }
-        while(1){
-            if(!strcmp(l->key,key)){
-                l->data=data;
-                return;
-            }
-            if(l->nxt){
-                l=l->nxt;
-                continue;
-            }
-            l->nxt=new el(key,data);
-            return;
-        }
-    }
-    void clear(){
-        for(int i=0;i<size;i++){
-            el*e=array[i];
-            if(!e)
-                continue;
-            delete e;
-            array[i]=NULL;
-        }
-    }
+	void put(const char*key,T data){
+		const int h=hash(key,size);
+		el*l=array[h];
+		if(!l){
+			array[h]=new el(key,data);
+			return;
+		}
+		while(1){
+			if(!strcmp(l->key,key)){
+				l->data=data;
+				return;
+			}
+			if(l->nxt){
+				l=l->nxt;
+				continue;
+			}
+			l->nxt=new el(key,data);
+			return;
+		}
+	}
+	void clear(){
+		for(int i=0;i<size;i++){
+			el*e=array[i];
+			if(!e)
+				continue;
+			delete e;
+			array[i]=NULL;
+		}
+	}
 };
 
 #include<sys/time.h>
 
 class windo:public glob{
 public:
-	int w,h,frame;
+	int w,h;
 	windo(const p3&p):glob(wold::get()){set(p);bv.r=2;}
 	void pl(const char*text,const GLfloat y=0,const GLfloat x=0,const GLfloat linewidth=1,const float scale=1){
 		char*cp=(char*)text;
@@ -597,7 +619,7 @@ public:
 		const int dy=h>>3;
 		int y=dy>>2;
 
-		pl("glox",y,0,1,.5f);
+		pl("glox",y,0,1,.2f);
 
 		timeval tv;gettimeofday(&tv,0);
 		const tm&t=*localtime(&tv.tv_sec);//? leak, delrefatblokxit
@@ -606,7 +628,7 @@ public:
 		y-=dy>>2;pl(ac,y,w>>5,1,.1f);
 	}
 	void drawframe(){
-		cout<<"\rframe("<<frame++<<") ";
+		cout<<"\rframe("<<metrics::frame++<<") ";
 //		glClearColor(0,0,0,1);
 		glClearColor(.5f,.5f,1,1);
 		glClearDepth(1);
@@ -644,6 +666,7 @@ public:
 		glOrtho(0,w,0,h,0,1);
 		glColor3b(0x7f,0x7f,0x7f);
 		drawhud();
+		cout<<flush;
 	}
 };
 
@@ -687,7 +710,7 @@ namespace glut{
 	}
 	void keydn(const unsigned char key,const int x,const int y){
 		if(iskeydn(key,true))return;
-		cout<<"  keydn("<<(int)key<<",["<<x<<","<<y<<"])"<<key<<endl;
+		cout<<"   keydn("<<(int)key<<",["<<x<<","<<y<<"])"<<key<<endl;
 		if(key=='~'){
 			fullscr=!fullscr;
 			if(fullscr){
@@ -698,7 +721,7 @@ namespace glut{
 			return;
 		}
 
-		wold&wd=(wold&)wn.getglob();
+		wold&wd=wold::get();
 		if(key==0){throw "keyo";}
 		else if(key=='j'){wd.ddegz-=360/60;}
 		else if(key=='f'){wd.ddegz+=360/60;}
@@ -712,10 +735,8 @@ namespace glut{
 		else if(key=='1'){glob::drawboundingspheres=!glob::drawboundingspheres;}
 	}
 	void keyup(const unsigned char key,const int x,const int y){
-		char*ks=new char[2];//? bug leak
-		ks[0]=key;ks[1]=0;
-		keysdn.put(ks,0);//? whatif 1 and not handled
-//		keysdn.rm(s);
+		const char k[]={key,0};
+		keysdn.rm(k);//? whatif 1 and not handled
 		cout<<"   keyup("<<(int)key<<",["<<x<<","<<y<<"])"<<key<<endl;
 		if(key==27)// esc
 		{glutReshapeWindow(w,h);exit(0);}
@@ -727,7 +748,15 @@ namespace glut{
 	//}
 	void mousemov(const int x,const int y){cout<<"mousemov: "<<x<<","<<y<<endl;}
 	static void mainsig(const int i){cerr<<" ••• terminated with signal "<<i<<endl;exit(i);}
+//	static void mainxit(){
+//		if(metrics::nglobs==0){
+//			cout<<" globs recycled"<<endl;
+//			return;
+//		}
+//		cout<<" !¡! globsdealloc  "<<metrics::nglobs<<" "<<endl;
+//	}
 	int main(int argc,char**argv){
+//		atexit(mainxit);
 		cout<<"glox ";
 		for(int i=0;i<32;i++)signal(i,mainsig);//?
 		srand(0);
@@ -745,7 +774,6 @@ namespace glut{
 			if(fullscr)
 				glutFullScreen();
 		}
-		cout<<"opengl ";
 		glutDisplayFunc(draw);
 		glutReshapeFunc(reshape);
 		glutKeyboardFunc(keydn);

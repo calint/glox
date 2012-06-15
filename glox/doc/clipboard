@@ -1,3 +1,10 @@
+
+
+
+
+glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION)
+
+
 //	m3 m;
 //	cin>>m;
 //	cout<<m;
