@@ -445,15 +445,15 @@ public:
 	void gldraw(){
 		glDisable(GL_LIGHTING);
 
-		glColor3b(0,0,0x7f);
-		//glutWireCube(s);
-		glBegin(GL_LINE_STRIP);
-		glVertex2f(-s,-s);
-		glVertex2f( s,-s);
-		glVertex2f( s, s);
-		glVertex2f(-s, s);
-		glVertex2f(-s,-s);
-		glEnd();
+//		glColor3b(0,0,0x7f);
+//		//glutWireCube(s);
+//		glBegin(GL_LINE_STRIP);
+//		glVertex2f(-s,-s);
+//		glVertex2f( s,-s);
+//		glVertex2f( s, s);
+//		glVertex2f(-s, s);
+//		glVertex2f(-s,-s);
+//		glEnd();
 
 		glBegin(GL_LINE_STRIP);
 		glColor3b(127,127,127);
@@ -716,8 +716,11 @@ namespace glut{
 			if(fullscr){
 				__w=w;__h=h;
 				glutFullScreen();
-			}else
+				glutSetCursor(GLUT_CURSOR_NONE);
+			}else{
 				glutReshapeWindow(__w,__h);
+				glutSetCursor(GLUT_CURSOR_INHERIT);
+			}
 			return;
 		}
 
@@ -771,8 +774,10 @@ namespace glut{
 		}else{
 			glutInitWindowSize(w,h);
 			glutCreateWindow("glox");
-			if(fullscr)
+			if(fullscr){
 				glutFullScreen();
+				glutSetCursor(GLUT_CURSOR_NONE);
+			}
 		}
 		glutDisplayFunc(draw);
 		glutReshapeFunc(reshape);
