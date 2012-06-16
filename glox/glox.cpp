@@ -10,9 +10,9 @@ namespace glox{
 		float dt=dtms/1000.f;
 	}
 	namespace metrics{
-		int nglobs=0;
-		int bvolchecksphcol=0;
-		int frame=0;
+		int globs=0;
+		int coldetsph=0;
+		int frames=0;
 	}
 	inline float dt(const float f){return f*clk::dt;}
 	inline float rnd(const float from,const float tonotincluding){
@@ -58,21 +58,21 @@ public:
 	inline int num()const{return i;}
 	inline const char* str()const{return s;}
 };
-
-template<class T>class arai{
-private:
-	T*ar;
-	int of,ln;
-	inline void asrt(const int offset,const int len)const{if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinrw");}
-public:
-	inline arai(T a[],const int offset,const int len):ar(a),of(offset),ln(len){}
-	inline T&operator[](const int i)const{asrt(i,1);return ar[of+i];}
-	inline int ofs()const{return of;}
-	inline int len()const{return ln;}
-	inline void ro(const int offset,const int len,void(*f)(const T&e))const{if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinro");T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
-	inline void rw(const int offset,const int len,void(*f)(T&e)){asrt(offset,len);T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
-};
-
+//
+//template<class T>class arai{
+//private:
+//	T*ar;
+//	int of,ln;
+//	inline void asrt(const int offset,const int len)const{if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinrw");}
+//public:
+//	inline arai(T a[],const int offset,const int len):ar(a),of(offset),ln(len){}
+//	inline T&operator[](const int i)const{asrt(i,1);return ar[of+i];}
+//	inline int ofs()const{return of;}
+//	inline int len()const{return ln;}
+//	inline void ro(const int offset,const int len,void(*f)(const T&e))const{if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinro");T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
+//	inline void rw(const int offset,const int len,void(*f)(T&e)){asrt(offset,len);T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
+//};
+//
 #ifdef __APPLE__
 #include <gl.h>
 #include <glu.h>
@@ -195,7 +195,7 @@ public:
 		return true;
 	}
 	static bool spherescollide(const p3&pa,const bvol&a,const p3&pb,const bvol&b){
-		metrics::bvolchecksphcol++;
+		metrics::coldetsph++;
 		const p3 vec=p3(pa,pb);
 		const float dst=vec.magn();
 		if(dst>(a.r+b.r))
@@ -231,13 +231,13 @@ public:
 	static bool drawboundingspheres;
 	static int drawboundingspheresdetail;
 	glob(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=0,const p3&pbox=p3()):p3(p),g(g),a(a),bv(r,pbox){
-		metrics::nglobs++;
+		metrics::globs++;
 		if(&g==NULL)
 			return;
 		g.chs.push_back(this);
 	}
 	virtual ~glob(){
-		metrics::nglobs--;
+		metrics::globs--;
 		for(unsigned int n=0;n<chs.size();n++)
 			delete chs[n];
 		chs.clear();
@@ -437,17 +437,17 @@ const float obcorp::s=7;
 class wold:public glob{
 	static wold wd;
 	float s;
-public:
-	bool drawaxis;
-	inline static wold&get(){return wd;}
-	float ddegx,ddegz;
 	wold():glob(*(glob*)NULL),s(15),ddegx(0),ddegz(.1f){
 //		agl().transl(90.1,0,0);
 //		transl(0,-.3,0);
 		bv.r=s;
 		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
 	}
-//	~wold(){}
+public:
+	inline static wold&get(){return wd;}
+
+	bool drawaxis;
+	float ddegx,ddegz;
 	void gldraw(){
 		glDisable(GL_LIGHTING);
 
@@ -609,9 +609,6 @@ public:
 #include<sstream>
 
 class windo:public glob{
-public:
-	int w,h;
-	windo(const p3&p):glob(wold::get()){set(p);bv.r=2;}
 	void pl(const char*text,const GLfloat y=0,const GLfloat x=0,const GLfloat linewidth=1,const float scale=1){
 		char*cp=(char*)text;
 		glPushMatrix();
@@ -632,15 +629,18 @@ public:
 		timeval tv;gettimeofday(&tv,0);
 //		const tm&t=*localtime(&tv.tv_sec);
 		ostringstream oss;
-		oss<<"frame("<<metrics::frame<<")";
+		oss<<"frame("<<metrics::frames<<")";
 		y-=dy>>2;pl(oss.str().c_str(),y,w>>5,1,.1f);
 
 //		char ac[256];
 //		sprintf(ac,"%02d:%02d:%02d.%03d   frame(%d) globs(%d) coldet(%d,%d) keys(j f e d g h i k ur nv 1) p(%0.0f %0.0f %0.0f) a(%0.0f %0.0f %0.0f)",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,metrics::frame,metrics::nglobs,metrics::bvolchecksphcol,0,getx(),gety(),getz(),agl().getx(),agl().gety(),agl().getz());//? ostream
 //		y-=dy>>2;pl(ac,y,w>>5,1,.1f);
 	}
+public:
+	int w,h;
+	windo(const p3&p):glob(wold::get()){set(p);bv.r=2;}
 	void drawframe(){
-		cout<<"\rframe("<<metrics::frame++<<")";
+		cout<<"\rframe("<<metrics::frames++<<")";
 //		glClearColor(0,0,0,1);
 		glClearColor(.5f,.5f,1,1);
 		glClearDepth(1);
@@ -699,7 +699,7 @@ namespace glut{
 	void draw(){
 		wn.w=w;wn.h=h;
 		wn.drawframe();
-		metrics::bvolchecksphcol=0;
+		metrics::coldetsph=0;
 		glutSwapBuffers();
 		if(nl){
 			cout<<endl;
@@ -802,7 +802,7 @@ namespace glut{
 		glutKeyboardUpFunc(keyup);
 		glutMouseFunc(mouseclk);
 		glutMotionFunc(mousemov);
-		glutTimerFunc(0,timer,glox::clk::dtms);
+		glutTimerFunc(0,timer,clk::dtms);
 //		glutIdleFunc(idle);
 //		glutReportErrors();
 

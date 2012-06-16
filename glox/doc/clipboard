@@ -1,4 +1,19 @@
 
+template<class T>class arai{
+private:
+	T*ar;
+	int of,ln;
+	inline void asrt(const int offset,const int len)const{if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinrw");}
+public:
+	inline arai(T a[],const int offset,const int len):ar(a),of(offset),ln(len){}
+	inline T&operator[](const int i)const{asrt(i,1);return ar[of+i];}
+	inline int ofs()const{return of;}
+	inline int len()const{return ln;}
+	inline void ro(const int offset,const int len,void(*f)(const T&e))const{if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinro");T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
+	inline void rw(const int offset,const int len,void(*f)(T&e)){asrt(offset,len);T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
+};
+
+
 
 
 

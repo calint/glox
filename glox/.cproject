@@ -28,7 +28,7 @@
 							<tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.debug.171811085" name="MacOS X C++ Linker" superClass="cdt.managedbuild.tool.macosx.cpp.linker.macosx.exe.debug">
 								<option id="macosx.cpp.link.option.flags.1324859707" name="Linker flags" superClass="macosx.cpp.link.option.flags" value="-framework OpenGL -framework GLUT" valueType="string"/>
 								<option id="macosx.cpp.link.option.libs.1277408676" name="Libraries (-l)" superClass="macosx.cpp.link.option.libs"/>
-								<option id="macosx.cpp.link.option.paths.1982028968" name="Library search path (-L)" superClass="macosx.cpp.link.option.paths" valueType="libPaths"/>
+								<option id="macosx.cpp.link.option.paths.1982028968" name="Library search path (-L)" superClass="macosx.cpp.link.option.paths"/>
 								<option id="macosx.cpp.link.option.strip.1386273838" name="Omit all symbol information (-s)" superClass="macosx.cpp.link.option.strip" value="false" valueType="boolean"/>
 								<option id="macosx.cpp.link.option.nostart.1764717934" name="Do not use standard start files (-nostartfiles)" superClass="macosx.cpp.link.option.nostart" value="false" valueType="boolean"/>
 								<option id="macosx.cpp.link.option.nodeflibs.1719526425" name="Do not use default libraries (-nodefaultlibs)" superClass="macosx.cpp.link.option.nodeflibs" value="false" valueType="boolean"/>
