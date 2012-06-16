@@ -39,7 +39,7 @@ public:
 	friend ostream&operator<<(ostream&,const p3&);
 	friend istream&operator>>(istream&,p3&);
 };
-inline ostream&operator<<(ostream&os,const p3&p){os<<p.x<<","<<p.y<<","<<p.z;return os;}
+inline ostream&operator<<(ostream&os,const p3&p){os<<p.x<<" "<<p.y<<" "<<p.z;return os;}
 inline istream&operator>>(istream&is,p3&p){is>>p.x;is.ignore();is>>p.y;is.ignore();is>>p.z;return is;}
 
 #include<execinfo.h>
@@ -144,8 +144,8 @@ public:
 	friend istream&operator>>(istream&,m3&);
 };
 ostream&operator<<(ostream&os,const m3&m){
-	cout<<"["<<p3(m.xx,m.xy,m.xz)<<","<<m.xo<<"],[";
-	cout<<p3(m.yx,m.yy,m.yz)<<","<<m.yo<<"],[";
+	cout<<"["<<p3(m.xx,m.xy,m.xz)<<","<<m.xo<<"] [";
+	cout<<p3(m.yx,m.yy,m.yz)<<","<<m.yo<<"] [";
 	cout<<p3(m.zx,m.zy,m.zz)<<","<<m.zo<<"]";
 	return os;
 }
@@ -232,7 +232,7 @@ public:
 	static int drawboundingspheresdetail;
 	glob(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=0,const p3&pbox=p3()):p3(p),g(g),a(a),bv(r,pbox){
 		metrics::globs++;
-		if(&g==NULL)
+		if(&g==0)
 			return;
 		g.chs.push_back(this);
 	}
@@ -437,8 +437,8 @@ const float obcorp::s=7;
 class wold:public glob{
 	static wold wd;
 	float s;
-	wold():glob(*(glob*)NULL),s(15),ddegx(0),ddegz(.1f){
-//		agl().transl(90.1,0,0);
+	wold():glob(*(glob*)0),s(15),ddegx(0),ddegz(.1f){
+		agl().transl(-111,0,0);
 //		transl(0,-.3,0);
 		bv.r=s;
 		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
@@ -461,6 +461,7 @@ public:
 //		glVertex2f(-s,-s);
 //		glEnd();
 		if(drawaxis){
+			//glPolygonOffset
 			glBegin(GL_LINE_STRIP);
 			glColor3b(127,127,127);
 			glVertex3f(s,0,0);
@@ -515,19 +516,11 @@ public:
 };
 wold wold::wd;
 
-
-template<class T>class lut{
+template<typename T>class lut;
+template<typename T>ostream&operator<<(ostream&,const lut<T>&);
+template<typename T>class lut{
 private:
 	size_t size;
-	class el{
-	public:
-		const char*key;
-		T data;
-		el*nxt;
-		el(const char*key,T data):key(key),data(data),nxt(NULL){}
-		~el(){if(nxt)delete nxt;}
-	};
-	el**array;
 	static int hash(const char*key,const size_t roll){
 		int i=0;
 		const char*p=key;
@@ -535,6 +528,16 @@ private:
 		i%=roll;
 		return i;
 	}
+	class el{
+	public:
+		const char*key;
+		T data;
+		el*nxt;
+		el(const char*key,T data):key(key),data(data),nxt(NULL){}
+		~el(){if(nxt)delete nxt;}
+		friend ostream&operator<< <T>(ostream&,const lut<T>&);
+	};
+	el**array;
 public:
 	lut(const size_t size=8):size(size){array=(el**)calloc(size,sizeof(el*));}
 	~lut(){clear();delete array;}
@@ -603,14 +606,28 @@ public:
 			array[i]=NULL;
 		}
 	}
+	friend ostream&operator<< <T>(ostream&,const lut<T>&);
 };
+//template<typename T>ostream&operator<<(ostream&os,const lut<T>&lt){
+//	for(size_t i=0;i<lt.size;i++){
+//		lut<T>::el&l=*lt.array[i];
+//		if(!l)continue;
+//		while(l){
+////			os<<(l.key)<<"("<<l.data<<")";
+//			l=l->nxt;
+////		}
+//	}
+//	return os;
+//}
+
 
 #include<sys/time.h>
 #include<sstream>
+#include <iomanip>
 
 class windo:public glob{
 	void pl(const char*text,const GLfloat y=0,const GLfloat x=0,const GLfloat linewidth=1,const float scale=1){
-		char*cp=(char*)text;
+		const char*cp=text;
 		glPushMatrix();
 		glTranslatef(x,y,0);
 		glScalef(scale,scale,0);
@@ -621,21 +638,25 @@ class windo:public glob{
 		glPopMatrix();
 	}
 	void drawhud(){
-		const int dy=h>>3;
+		const int dy=h>>5;
 		int y=dy>>2;
 
 		pl("glox",y,0,1,.2f);
 
-		timeval tv;gettimeofday(&tv,0);
-//		const tm&t=*localtime(&tv.tv_sec);
+		const p3&a=wold::get().agl();
 		ostringstream oss;
-		oss<<"frame("<<metrics::frames<<")";
-		y-=dy>>2;pl(oss.str().c_str(),y,w>>5,1,.1f);
+		oss<<setprecision(2)<<fixed;
+		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs<<") sphdet("<<metrics::coldetsph<<") xz("<<a.getx()<<" "<<a.getz()<<") p("<<*this<<")";
+//		oss<<"keys("<<glut::keysdn<<")";
+		y-=dy>>2;pl(oss.str().c_str(),y,0,1,.1f);
 
-//		char ac[256];
-//		sprintf(ac,"%02d:%02d:%02d.%03d   frame(%d) globs(%d) coldet(%d,%d) keys(j f e d g h i k ur nv 1) p(%0.0f %0.0f %0.0f) a(%0.0f %0.0f %0.0f)",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,metrics::frame,metrics::nglobs,metrics::bvolchecksphcol,0,getx(),gety(),getz(),agl().getx(),agl().gety(),agl().getz());//? ostream
-//		y-=dy>>2;pl(ac,y,w>>5,1,.1f);
+		oss.str("");
+		timeval tv;gettimeofday(&tv,0);
+		const tm&t=*localtime(&tv.tv_sec);
+		oss<<t.tm_hour<<":"<<":"<<t.tm_min<<":"<<t.tm_sec<<"."<<tv.tv_usec/1000;
+		y=h-dy;pl(oss.str().c_str(),y,0,1,.1f);
 	}
+	char ccounter;
 public:
 	int w,h;
 	windo(const p3&p):glob(wold::get()){set(p);bv.r=2;}
@@ -685,8 +706,7 @@ public:
 extern void gnox();
 
 namespace glut{
-	int w=512,h=512;
-	int __w=w,__h=h;
+	int w=512,h=512,__w=w,__h=h;
 	lut<int>keysdn;
 	bool gamemode=false;
 	bool fullscr=false;
@@ -755,7 +775,7 @@ namespace glut{
 		else if(key=='1'){glob::drawboundingspheres=!glob::drawboundingspheres;}
 	}
 	void keyup(const unsigned char key,const int x,const int y){
-		const char k[]={(signed char)key,0};
+		const char k[]={(char)key,0};
 		keysdn.rm(k);//? whatif 1 and not handled
 		cout<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";nl=true;
 		if(key==27)// esc
