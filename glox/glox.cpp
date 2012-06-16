@@ -21,7 +21,7 @@ namespace glox{
 }
 using namespace glox;
 
-#include<math.h>
+#include<cmath>
 
 class p3{
 	float x,y,z;
@@ -524,7 +524,7 @@ private:
 	};
 	el**array;
 	static int hash(const char*key,const int roll){
-		unsigned int i=0;
+		int i=0;
 		const char*p=key;
 		while(*p)i+=*p++;
 		i%=roll;
@@ -630,7 +630,7 @@ public:
 		y-=dy>>2;pl(ac,y,w>>5,1,.1f);
 	}
 	void drawframe(){
-		cout<<"\rframe("<<metrics::frame++<<") ";
+		cout<<"\rframe("<<metrics::frame++<<")";
 //		glClearColor(0,0,0,1);
 		glClearColor(.5f,.5f,1,1);
 		glClearDepth(1);
@@ -681,8 +681,9 @@ namespace glut{
 	bool gamemode=false;
 	bool fullscr=false;
 	windo&wn=*new windo(p3(0,6,15));
+	bool nl;
 	void reshape(const int width,const int height){
-		cout<<" reshape: "<<w<<"x"<<h<<endl;
+		cout<<" reshape("<<w<<"x"<<h<<")";nl=true;
 		w=width;h=height;
 	}
 	void draw(){
@@ -690,6 +691,10 @@ namespace glut{
 		wn.drawframe();
 		metrics::bvolchecksphcol=0;
 		glutSwapBuffers();
+		if(nl){
+			cout<<endl;
+			nl=false;
+		}
 	}
 	void timer(const int value){
 		const char r[]={'r',0};const char u[]={'u',0};
@@ -702,7 +707,7 @@ namespace glut{
 		glutPostRedisplay();
 		glutTimerFunc(value,timer,value);
 	}
-	bool iskeydn(const char key,bool setifnot=0){
+	bool iskeydn(const unsigned char key,const bool setifnot=0){
 		static char k[]={0,0};
 		k[0]=key;
 		const bool b=keysdn[k]==1;
@@ -712,7 +717,7 @@ namespace glut{
 	}
 	void keydn(const unsigned char key,const int x,const int y){
 		if(iskeydn(key,true))return;
-		cout<<"   keydn("<<(int)key<<",["<<x<<","<<y<<"])"<<key<<endl;
+		cout<<"keydn("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";nl=true;
 		if(key=='~'){
 			fullscr=!fullscr;
 			if(fullscr){
@@ -742,16 +747,16 @@ namespace glut{
 	void keyup(const unsigned char key,const int x,const int y){
 		const char k[]={key,0};
 		keysdn.rm(k);//? whatif 1 and not handled
-		cout<<"   keyup("<<(int)key<<",["<<x<<","<<y<<"])"<<key<<endl;
+		cout<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";nl=true;
 		if(key==27)// esc
 		{glutReshapeWindow(w,h);exit(0);}
 	}
-	void mouseclk(const int button,const int state,int x,const int y){cout<<"mouseclk: "<<state<<"  "<<button<<"@"<<x<<","<<y<<endl;}
+	void mouseclk(const int button,const int state,int x,const int y){cout<<"mousclk("<<state<<","<<button<<",["<<x<<","<<y<<",0])"<<endl;}
 	//void idle(){
 	//	printf("idle\n");
 	//	return;
 	//}
-	void mousemov(const int x,const int y){cout<<"mousemov: "<<x<<","<<y<<endl;}
+	void mousemov(const int x,const int y){cout<<"mousmov("<<x<<","<<y<<")"<<endl;}
 	static void mainsig(const int i){cerr<<" ••• terminated with signal "<<i<<endl;exit(i);}
 //	static void mainxit(){
 //		if(metrics::nglobs==0){
