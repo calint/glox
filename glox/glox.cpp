@@ -433,6 +433,7 @@ class wold:public glob{
 	static wold wd;
 	float s;
 public:
+	bool drawaxis;
 	inline static wold&get(){return wd;}
 	float ddegx,ddegz;
 	wold():glob(*(glob*)NULL),s(15),ddegx(0),ddegz(.1f){
@@ -454,21 +455,22 @@ public:
 //		glVertex2f(-s, s);
 //		glVertex2f(-s,-s);
 //		glEnd();
-
-		glBegin(GL_LINE_STRIP);
-		glColor3b(127,127,127);
-		glVertex3f(s,0,0);
-		glVertex3f(0,0,0);
-		glColor3b(127,127,127);
-		glColor3b(0,0,0);
-		glVertex3f(0,s,0);
-		glVertex3f(0,0,0);
-		glColor3b(0,0,0);
-		glColor3b(0,0,127);
-		glVertex3f(0,0,s);
-		glVertex3f(0,0,0);
-		glColor3b(0,0,127);
-		glEnd();
+		if(drawaxis){
+			glBegin(GL_LINE_STRIP);
+			glColor3b(127,127,127);
+			glVertex3f(s,0,0);
+			glVertex3f(0,0,0);
+			glColor3b(127,127,127);
+			glColor3b(0,0,0);
+			glVertex3f(0,s,0);
+			glVertex3f(0,0,0);
+			glColor3b(0,0,0);
+			glColor3b(0,0,127);
+			glVertex3f(0,0,s);
+			glVertex3f(0,0,0);
+			glColor3b(0,0,127);
+			glEnd();
+		}
 
 		const float r=s;
 		glPushMatrix();
@@ -478,7 +480,7 @@ public:
 		glVertex2f(0,0);
 		glVertex2f(r,0);
 		const float dtr=3.14159/180;
-		const int di=360/24;
+		const int di=360/24/2/2;
 		for(int i=di;i<=360;i+=di){
 			const float rd=i*dtr;
 			glVertex2f(r*cos(rd),r*sin(rd));
@@ -678,7 +680,7 @@ namespace glut{
 	lut<int>keysdn;
 	bool gamemode=false;
 	bool fullscr=false;
-	windo&wn=*new windo(p3(0,0,15));
+	windo&wn=*new windo(p3(0,6,15));
 	void reshape(const int width,const int height){
 		cout<<" reshape: "<<w<<"x"<<h<<endl;
 		w=width;h=height;
