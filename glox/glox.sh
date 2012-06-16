@@ -2,7 +2,8 @@ srcdir=.
 bindir=.
 src=$srcdir/glox.cpp
 bin=$bindir/glox
-cmd="g++ -o $bin $src\
+cc=g++
+cmd="$cc -o $bin $src\
 	-Wfatal-errors -Wall -Wextra -Werror -Wconversion -pedantic -pedantic-errors\
 	-framework OpenGL\
 	-framework GLUT\

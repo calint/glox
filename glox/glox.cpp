@@ -29,11 +29,11 @@ public:
 	inline p3():x(0),y(0),z(0){}
 	inline p3(const float x,const float y,const float z):x(x),y(y),z(z){}
 	inline p3(const p3&from,const p3&to):x(to.x-from.x),y(to.y-from.y),z(to.z-from.z){}
-	inline const float getx()const{return x;}
-	inline const float gety()const{return y;}
-	inline const float getz()const{return z;}
+	inline float getx()const{return x;}
+	inline float gety()const{return y;}
+	inline float getz()const{return z;}
 	inline p3&transl(const float dx,const float dy,const float dz){x+=dx;y+=dy;z+=dz;return*this;}
-	inline const float magn()const{return sqrt(x*x+y*y+z*z);}
+	inline float magn()const{return sqrt(x*x+y*y+z*z);}
 	inline p3&set(const p3&p){x=p.x;y=p.y;z=p.z;return*this;}
 	inline p3&set(const float x,const float y,const float z){this->x=x;this->y=y;this->z=z;return*this;}
 	friend ostream&operator<<(ostream&,const p3&);
@@ -55,7 +55,7 @@ public:
 		int n=backtrace(va,nva);
 		backtrace_symbols_fd(va,n,1);
 	}
-	inline const int num()const{return i;}
+	inline int num()const{return i;}
 	inline const char* str()const{return s;}
 };
 
@@ -259,6 +259,11 @@ public:
 			glutWireSphere(bv.r,drawboundingspheresdetail,drawboundingspheresdetail);
 			glEnable(GL_LIGHTING);
 		}
+//		for(auto g:chs){
+//			glPushMatrix();
+//			g->draw();
+//			glPopMatrix();
+//		}
 		for(unsigned int n=0;n<chs.size();n++){
 			glPushMatrix();
 			chs[n]->draw();
@@ -297,7 +302,7 @@ class obcorpqb:public glob{
 	static int n;
 	float a,drscl,dr;
 public:
-	obcorpqb(glob&pt,const float r=1):glob(pt),r(r),a(.25*n++),drscl(.5){}
+	obcorpqb(glob&pt,const float r=1):glob(pt),r(r),a(.25f*n++),drscl(.5){}
 	void gldraw(){
 		glutSolidSphere(r+dr,4,3);
 	}
@@ -319,9 +324,9 @@ class obcorp:public glob{
 public:
 	static const float s;
 	obcorp(glob&pt,const p3&p,const p3&a):glob(pt,p,a){
-		bv.r=s+1.4;
-		const float ds=.1*s;
-		const float dz=.5*s;
+		bv.r=s+1.4f;
+		const float ds=.1f*s;
+		const float dz=.5f*s;
 //		for(float zz=-s;zz<s;zz+=ds)
 		for(float zz=-s;zz<=s;zz+=dz)
 			for(float xx=-s;xx<=s;xx+=ds)
@@ -440,7 +445,7 @@ public:
 //		agl().transl(90.1,0,0);
 //		transl(0,-.3,0);
 		bv.r=s;
-		new obcorp(*this,p3(0,0,4.2),p3(90,0,0));
+		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
 	}
 //	~wold(){}
 	void gldraw(){
@@ -479,7 +484,7 @@ public:
 		glBegin(GL_TRIANGLE_FAN);
 		glVertex2f(0,0);
 		glVertex2f(r,0);
-		const float dtr=3.14159/180;
+		const float dtr=3.14159f/180;
 		const int di=360/24/2/2;
 		for(int i=di;i<=360;i+=di){
 			const float rd=i*dtr;
@@ -492,11 +497,11 @@ public:
 	}
 	void tick(){
 		agl().transl(-dt(ddegx),0,dt(ddegz));
-		const int n=chs.size();
-		const int nn=n-1;
-		for(int i=0;i<nn;i++){
+		const unsigned long n=chs.size();
+		const unsigned long nn=n-1;
+		for(unsigned long i=0;i<nn;i++){
 			glob&g1=*chs[i];
-			for(int k=i+1;k<n;k++){
+			for(unsigned long k=i+1;k<n;k++){
 				glob&g2=*chs[k];
 				if(bvol::checkcol(g1,g1.mw,g1.bv, g2,g2.mw,g2.bv)){
 					flf();ll(" • sphereoverlap ")<<typeid(g1).name()<<" "<<typeid(g2).name()<<endl;
@@ -513,7 +518,7 @@ wold wold::wd;
 
 template<class T>class lut{
 private:
-	int size;
+	size_t size;
 	class el{
 	public:
 		const char*key;
@@ -523,7 +528,7 @@ private:
 		~el(){if(nxt)delete nxt;}
 	};
 	el**array;
-	static int hash(const char*key,const int roll){
+	static int hash(const char*key,const size_t roll){
 		int i=0;
 		const char*p=key;
 		while(*p)i+=*p++;
@@ -531,7 +536,7 @@ private:
 		return i;
 	}
 public:
-	lut(const int size=8):size(size){array=(el**)calloc(size,sizeof(el*));}
+	lut(const size_t size=8):size(size){array=(el**)calloc(size,sizeof(el*));}
 	~lut(){clear();delete array;}
 	T operator[](const char*key)const{
 		const int h=hash(key,size);
@@ -539,7 +544,7 @@ public:
 		if(!l)
 			return (T)NULL;
 		while(1){
-			if(!strcmp(l->key,key))return l->data;
+			if(!strcmp(l->key,(char*)key))return l->data;
 			if(l->nxt){l=l->nxt;continue;}
 			return (T)NULL;
 		}
@@ -590,7 +595,7 @@ public:
 		}
 	}
 	void clear(){
-		for(int i=0;i<size;i++){
+		for(size_t i=0;i<size;i++){
 			el*e=array[i];
 			if(!e)
 				continue;
@@ -601,6 +606,7 @@ public:
 };
 
 #include<sys/time.h>
+#include<sstream>
 
 class windo:public glob{
 public:
@@ -624,10 +630,14 @@ public:
 		pl("glox",y,0,1,.2f);
 
 		timeval tv;gettimeofday(&tv,0);
-		const tm&t=*localtime(&tv.tv_sec);//? leak, delrefatblokxit
-		char ac[256];
-		sprintf(ac,"%02d:%02d:%02d.%03d   frame(%d) globs(%d) coldet(%d,%d) keys(j f e d g h i k ur nv 1) p(%0.0f %0.0f %0.0f) a(%0.0f %0.0f %0.0f)",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,metrics::frame,metrics::nglobs,metrics::bvolchecksphcol,0,getx(),gety(),getz(),agl().getx(),agl().gety(),agl().getz());//? ostream
-		y-=dy>>2;pl(ac,y,w>>5,1,.1f);
+//		const tm&t=*localtime(&tv.tv_sec);
+		ostringstream oss;
+		oss<<"frame("<<metrics::frame<<")";
+		y-=dy>>2;pl(oss.str().c_str(),y,w>>5,1,.1f);
+
+//		char ac[256];
+//		sprintf(ac,"%02d:%02d:%02d.%03d   frame(%d) globs(%d) coldet(%d,%d) keys(j f e d g h i k ur nv 1) p(%0.0f %0.0f %0.0f) a(%0.0f %0.0f %0.0f)",t.tm_hour,t.tm_min,t.tm_sec,tv.tv_usec/1000,metrics::frame,metrics::nglobs,metrics::bvolchecksphcol,0,getx(),gety(),getz(),agl().getx(),agl().gety(),agl().getz());//? ostream
+//		y-=dy>>2;pl(ac,y,w>>5,1,.1f);
 	}
 	void drawframe(){
 		cout<<"\rframe("<<metrics::frame++<<")";
@@ -705,11 +715,11 @@ namespace glut{
 		wold::get().tick();
 
 		glutPostRedisplay();
-		glutTimerFunc(value,timer,value);
+		glutTimerFunc((unsigned)value,timer,value);
 	}
 	bool iskeydn(const unsigned char key,const bool setifnot=0){
 		static char k[]={0,0};
-		k[0]=key;
+		k[0]=(char)key;
 		const bool b=keysdn[k]==1;
 		if(!b&&setifnot)
 			keysdn.put(strcpy(new char[2],k),1);//? bug leak
@@ -745,7 +755,7 @@ namespace glut{
 		else if(key=='1'){glob::drawboundingspheres=!glob::drawboundingspheres;}
 	}
 	void keyup(const unsigned char key,const int x,const int y){
-		const char k[]={key,0};
+		const char k[]={(signed char)key,0};
 		keysdn.rm(k);//? whatif 1 and not handled
 		cout<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";nl=true;
 		if(key==27)// esc
@@ -803,5 +813,7 @@ namespace glut{
 
 int main(){return glut::main(0,NULL);}
 
-extern void gnox(){}
+extern void gnox(){
+
+}
 #endif
