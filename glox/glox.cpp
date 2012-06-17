@@ -576,6 +576,19 @@ public:
 		glPopMatrix();
 
 		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		static float lha;
+		static float dlha=60*3.1415f/180;
+		lha+=dt(dlha);
+		static float lht=10000;
+		static float dlht=0;
+		const float lhx=lht*cos(lha);
+		const float lhy=lht*sin(lha);
+		const GLfloat lhtpos[]={lhx,0,lhy,1};
+		lht+=dt(dlht);
+		glLightfv(GL_LIGHT0,GL_POSITION,lhtpos);
+//		const GLfloat lhtcol[]={0,0,0,1};
+//		glLightfv(GL_LIGHT0,GL_AMBIENT_AND_DIFFUSE,lhtcol);
 	}
 	void tick(){
 		agl().transl(-dt(ddegx),0,dt(ddegz));
@@ -765,12 +778,20 @@ public:
 //		glEnable(GL_BLEND);
 //		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
-		const GLfloat lhtpos[]={0,10000,10000,1};
-		glLightfv(GL_LIGHT0,GL_POSITION,lhtpos);
-		const GLfloat lhtcol[]={0,0,0,1};
-		glLightfv(GL_LIGHT0,GL_AMBIENT_AND_DIFFUSE,lhtcol);
+//		glEnable(GL_LIGHTING);
+//		glEnable(GL_LIGHT0);
+//		static float lht;
+//		static float dlht=1;
+//		static float lha;
+//		static float dlha=60*3.1415f/180;
+//		const float lhx=lht*cos(lha);
+//		const float lhy=lht*sin(lha);
+//		const GLfloat lhtpos[]={lhx,lhy,0,1};
+//		lht+=dt(dlht);
+//		lha+=dt(dlha);
+//		glLightfv(GL_LIGHT0,GL_POSITION,lhtpos);
+//		const GLfloat lhtcol[]={0,0,0,1};
+//		glLightfv(GL_LIGHT0,GL_AMBIENT_AND_DIFFUSE,lhtcol);
 
 
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
