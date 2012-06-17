@@ -8,11 +8,18 @@ namespace glox{
 	namespace clk{
 		int dtms=10;
 		float dt=dtms/1000.f;
+		clock_t t0=clock();
+		clock_t t1=t0;
+		inline void timerrestart(){t1=clock();}
+		inline clock_t timerdclk(){return clock()-t1;}
+		inline float timerdt(){return (float)(clock()-t1)/CLOCKS_PER_SEC;}
 	}
 	namespace metrics{
 		int globs=0;
 		int coldetsph=0;
 		int frames=0;
+		float dtupd=0;
+		float dtrend=0;
 	}
 	inline float dt(const float f){return f*clk::dt;}
 	inline float rnd(const float from,const float tonotincluding){
@@ -37,8 +44,9 @@ public:
 	inline float magn()const{return sqrt(x*x+y*y+z*z);}
 	inline p3&set(const p3&p){x=p.x;y=p.y;z=p.z;return*this;}
 	inline p3&set(const float x,const float y,const float z){this->x=x;this->y=y;this->z=z;return*this;}
-	inline p3&neg(){x=-1;y=-y;z=-z;return*this;}
+	inline p3&neg(){x=-x;y=-y;z=-z;return*this;}
 	inline p3&scale(const float s){x*=s;y*=s;z*=s;return*this;}
+	inline p3&scale(const float sx,const float sy,const float sz){x*=sx;y*=sy;z*=sz;return*this;}
 	friend ostream&operator<<(ostream&,const p3&);
 	friend istream&operator>>(istream&,p3&);
 };
@@ -89,7 +97,7 @@ public:
 //#define mhello()cout<<"hello"<<endl;
 #define flf()l("  ",__FILE__,__LINE__,__FUNCTION__);
 static inline ostream&l(const char*s="",const char*file="",int lineno=0,const char*func=""){cerr<<file;if(lineno){cerr<<":"<<lineno;}cerr<<" "<<func<<"  "<<s;return cerr;}
-static inline ostream&ll(const char*s="",const char*file="",int lineno=0,const char*func=""){return l(s,file,lineno,func)<<endl;}
+//static inline ostream&ll(const char*s="",const char*file="",int lineno=0,const char*func=""){return l(s,file,lineno,func)<<endl;}
 
 class m3{
 	float xx,xy,xz,xo;
@@ -234,6 +242,7 @@ istream&operator>>(istream&is,bvol&bv){is>>bv.r;is.ignore(2);is>>bv.v;is.ignore(
 
 class glob:public p3{
 protected:
+	const int id;
 	glob&g;
 	p3 a;
 	list<glob*>chs;
@@ -242,13 +251,13 @@ public:
 	m3 mw;
 	static bool drawboundingspheres;
 	static int drawboundingspheresdetail;
-	glob(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=0,const p3&pbox=p3()):p3(p),g(g),a(a),bv(r,pbox){
-		metrics::globs++;
+	glob(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=0,const p3&pbox=p3()):p3(p),id(metrics::globs++),g(g),a(a),bv(r,pbox){
 		if(&g==0)
 			return;
 		g.chs.push_back(this);
 	}
 	virtual ~glob(){
+		cout<<"~glob("<<id<<")";
 		metrics::globs--;
 		for(list<glob*>::iterator i=chs.begin();i!=chs.end();i++){
 			delete*i;
@@ -461,20 +470,20 @@ const float obcorp::s=7;
 class obball:public glob{
 	p3 dp;
 public:
-	obball(glob&g,const p3&p,const float r=.2f):glob(g,p,p3(),r),dp(p3()){}
+	obball(glob&g,const p3&p,const float r=.05f):glob(g,p,p3(),r),dp(p3()){}
 	inline p3&getdp(){return dp;}
 	virtual void gldraw(){
 		glutSolidSphere(bv.r,5,5);
-		flf();ll()<<"gldraw"<<endl;
+//		flf();ll()<<"gldraw"<<endl;
 	}
 	virtual void tick(){
 //		flf();ll()<<"tick "<<dp<<endl;
-		dp.transl(0,0,dt(-9.f));
+		dp.transl(0,dt(-5),dt(-9.f));
 		transl(dt(dp.getx()),dt(dp.gety()),dt(dp.getz()));
 		if(getz()<bv.r){
 //			rm();
 //			return;
-			dp.neg().scale(.5f);
+			dp.scale(0,0,-.5f);
 			transl(0,0,bv.r-getz());
 		}
 		glob::tick();
@@ -495,6 +504,9 @@ class wold:public glob{
 //		transl(0,-.3,0);
 		bv.r=s;
 		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
+	}
+	~wold(){
+		cout<<endl<<" ~wold() ";
 	}
 public:
 	inline static wold&get(){return wd;}
@@ -706,16 +718,19 @@ class windo:public glob{
 
 		const p3&a=wold::get().agl();
 		ostringstream oss;
-		oss<<setprecision(2)<<fixed;
-		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs<<") sphdet("<<metrics::coldetsph<<") xz("<<a.getx()<<" "<<a.getz()<<") p("<<*this<<")";
-//		oss<<"keys("<<glut::keysdn<<")";
-		y-=dy>>2;pl(oss.str().c_str(),y,0,1,.1f);
-
-		oss.str("");
 		timeval tv;gettimeofday(&tv,0);
 		const tm&t=*localtime(&tv.tv_sec);
 		oss<<t.tm_hour<<":"<<":"<<t.tm_min<<":"<<t.tm_sec<<"."<<tv.tv_usec/1000;
+		oss<<setprecision(3);
+		oss<<"   rend.dt("<<metrics::dtrend<<")s    upd.dt("<<metrics::dtupd<<")s";
 		y=h-dy;pl(oss.str().c_str(),y,0,1,.1f);
+
+
+		oss.str("");
+		oss<<setprecision(2)<<fixed;
+		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs<<") sphdet("<<metrics::coldetsph<<") xz("<<a.getx()<<" "<<a.getz()<<") p("<<*this<<")";
+//		oss<<"keys("<<glut::keysdn<<")";
+		y-=dy;pl(oss.str().c_str(),y,0,1,.1f);
 	}
 	char ccounter;
 public:
@@ -779,24 +794,15 @@ namespace glut{
 	}
 	void draw(){
 		wn.w=w;wn.h=h;
+		clk::timerrestart();
 		wn.drawframe();
+		metrics::dtrend=clk::timerdt();
 		metrics::coldetsph=0;
 		glutSwapBuffers();
 		if(nl){
 			cout<<endl;
 			nl=false;
 		}
-	}
-	void timer(const int value){
-		const char r[]={'r',0};const char u[]={'u',0};
-		if(keysdn[r]&&keysdn[u]){wn.transl(0,dt(1),0);}
-		const char v[]={'v',0};const char n[]={'n',0};
-		if(keysdn[v]&&keysdn[n]){wn.transl(0,-dt(1),0);}
-
-		wold::get().tick();
-
-		glutPostRedisplay();
-		glutTimerFunc((unsigned)value,timer,value);
 	}
 	bool iskeydn(const unsigned char key,const bool setifnot=0){
 		static char k[]={0,0};
@@ -806,10 +812,22 @@ namespace glut{
 			keysdn.put(strcpy(new char[2],k),1);//? bug leak
 		return b;
 	}
+	void timer(const int value){
+		if(iskeydn('r')&&iskeydn('u')){wn.transl(0,dt(1),0);}
+		if(iskeydn('v')&&iskeydn('n')){wn.transl(0,-dt(1),0);}
+		if(iskeydn('a')){new obball(wold::get(),p3(rnd(-1,1),-4+rnd(-1,1),10+rnd(-1,1)));}
+
+		clk::timerrestart();
+		wold::get().tick();
+		metrics::dtupd=clk::timerdt();
+
+		glutPostRedisplay();
+		glutTimerFunc((unsigned)value,timer,value);
+	}
 	void keydn(const unsigned char key,const int x,const int y){
 		if(iskeydn(key,true))return;
 		cout<<"keydn("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";nl=true;
-		if(key=='~'){
+		if(key=='0'){
 			fullscr=!fullscr;
 			if(fullscr){
 				__w=w;__h=h;
@@ -826,15 +844,14 @@ namespace glut{
 		if(key==0){throw "keyo";}
 		else if(key=='j'){wd.ddegz-=360/60;}
 		else if(key=='f'){wd.ddegz+=360/60;}
-		else if(key=='e'){wd.ddegx-=360/60;}
-		else if(key=='d'){wd.ddegx+=360/60;}
+		else if(key=='t'){wd.ddegx-=360/60;}
+		else if(key=='g'){wd.ddegx+=360/60;}
 		else if(key==' '){wd.ddegz=wd.ddegx=0;}
-		else if(key=='g'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(270,0,0));}
+		else if(key=='y'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(270,0,0));}
 		else if(key=='h'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(90.5,0,0));}
 		else if(key=='i'){wn.transl(0,0,-1);}
 		else if(key=='k'){wn.transl(0,0,1);}
 		else if(key=='1'){glob::drawboundingspheres=!glob::drawboundingspheres;}
-		else if(key=='a'){new obball(wold::get(),p3(0,-5,15));}
 	}
 	void keyup(const unsigned char key,const int x,const int y){
 		const char k[]={(char)key,0};
