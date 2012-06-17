@@ -23,6 +23,7 @@ namespace glox{
 		int p3s;
 		int m3s;
 		int bvols;
+		int collisions;
 	}
 	inline float dt(const float f){return f*clk::dt;}
 	inline float rnd(const float from,const float tonotincluding){
@@ -297,8 +298,9 @@ public:
 	}
 	inline glob&getglob()const{return g;}
 	virtual bool oncol(glob&o){
-		cout<<this<<" collision "<<&o<<endl;
-		return true;
+		metrics::collisions++;
+//		cerr<<" collision "<<typeid(*this).name()<<"["<<this->id<<"] "<<typeid(o).name()<<"["<<o.id<<"]"<<endl;
+		return &o!=0;
 	}
 	void rm(){
 //		g.chs.remove(this);
@@ -358,15 +360,14 @@ public:
 		bv.r=s+1.4f;
 		const float ds=.1f*s;
 		const float dz=.5f*s;
-//		for(float zz=-s;zz<s;zz+=ds)
 		for(float zz=-s;zz<=s;zz+=dz)
 			for(float xx=-s;xx<=s;xx+=ds)
 				for(float yy=-s;yy<=s;yy+=ds){
 					if(sqrt(xx*xx+yy*yy+zz*zz)>s)
 						continue;
-					glob*o=new obcorpqb(*this);
-					o->transl(xx,yy,zz);
-					o->agl().transl(90,0,0);
+					glob&o=*new obcorpqb(*this);
+					o.transl(xx,yy,zz);
+					o.agl().transl(90,0,0);
 				}
 	}
 	GLfloat f,ff;
@@ -379,7 +380,6 @@ public:
 		glMaterialfv(GL_FRONT,GL_SPECULAR,matspec);
 		GLfloat matshin[]={f};
 		f++;if(f>128)f=0;
-//		flf();cout<<f<<endl;
 		glMaterialfv(GL_FRONT,GL_SHININESS,matshin);
 		glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE) ;
 		glEnable(GL_COLOR_MATERIAL) ;
@@ -491,10 +491,8 @@ public:
 //		glColor3b(0,0,127);
 
 		glutSolidSphere(bv.r,3,7);
-//		flf();ll()<<"gldraw"<<endl;
 	}
 	virtual void tick(){
-//		flf();ll()<<"tick "<<dp<<endl;
 		lft+=dt(1);
 		if(lft>10){
 			rm();
@@ -504,17 +502,19 @@ public:
 		agl().transl(0,0,dt(720));
 		transl(dt(dp.getx()),dt(dp.gety()),dt(dp.getz()));
 		if(getz()<bv.r){
-//			rm();
-//			return;
 			dp.scale(0,0,-.5f);
 			transl(0,0,bv.r-getz());
 		}
 		glob::tick();
 	}
-//	virtual bool oncol(glob&o){
-//		delete this;
-//		return false;
-//	}
+	virtual bool oncol(glob&o){
+		const float dx=rnd(-1,1)*dt(bv.r);
+		const float dy=rnd(-1,1)*dt(bv.r);
+		const float dz=rnd(-1,1)*dt(bv.r);
+		if(&o)
+		transl(dx,dy,dz);
+		return true;
+	}
 };
 
 #include<typeinfo>
@@ -528,6 +528,7 @@ class wold:public glob{
 		bv.r=s;
 		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
 //		new obball(*this,p3(0,0,10));
+//		new obball(*this,p3(.1f,0,10));
 	}
 //	~wold(){cout<<endl<<" ~wold() ";}
 public:
@@ -603,24 +604,22 @@ public:
 	}
 	void tick(){
 		agl().transl(-dt(ddegx),0,dt(ddegz));
-//		list<glob*>::iterator i1=chs.begin();
-//		while(true){
-//			list<glob*>::reverse_iterator i2=chs.rbegin();
-//			if(*i1==*i2)
-//				break;
-//			glob&g1=*(*i1);
-//			do{
-//				glob&g2=*(*i2);
-//				if(g1.bv.spheresoverlap(g1,g2,g2.bv)){
-//					g1.oncol(g2);
-//					g2.oncol(g1);
-//	//					flf();ll(" • sphereoverlap ")<<typeid(g1).name()<<" "<<typeid(g2).name()<<endl;
-//	//					cout<<"collisioxx:"<<endl<<g1<<endl<<g2<<endl;
-//				}
-//				i2++;
-//			}while(*i1!=*i2);
-//			i1++;
-//		}
+		list<glob*>::iterator i1=chs.begin();
+		while(true){
+			list<glob*>::reverse_iterator i2=chs.rbegin();
+			if(*i1==*i2)
+				break;
+			glob&g1=*(*i1);
+			do{
+				glob&g2=*(*i2);
+				if(g1.bv.spheresoverlap(g1,g2,g2.bv)){
+					g1.oncol(g2);
+					g2.oncol(g1);
+				}
+				i2++;
+			}while(*i1!=*i2);
+			i1++;
+		}
 		glob::tick();
 	}
 };
@@ -769,7 +768,7 @@ class windo:public glob{
 
 		oss.str("");
 		oss<<setprecision(2);
-		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs<<") p3s("<<metrics::p3s<<") m3s("<<metrics::m3s<<") bvols("<<metrics::bvols<<") sphdet("<<metrics::coldetsph<<") xz("<<a.getx()<<" "<<a.getz()<<") p("<<*this<<")";
+		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs<<") p3s("<<metrics::p3s<<") m3s("<<metrics::m3s<<") bvols("<<metrics::bvols<<") sphdet("<<metrics::coldetsph<<") sphcols("<<metrics::collisions<<") xz("<<a.getx()<<" "<<a.getz()<<") p("<<*this<<")";
 //		oss<<"keys("<<glut::keysdn<<")";
 		y-=dy;pl(oss.str().c_str(),y,0,1,.1f);
 	}
@@ -854,7 +853,7 @@ namespace glut{
 		clk::timerrestart();
 		wn.drawframe();
 		metrics::dtrend=clk::timerdt();
-		metrics::coldetsph=0;
+		metrics::coldetsph=metrics::collisions=0;
 		glutSwapBuffers();
 		if(nl){
 			cout<<endl;
@@ -970,7 +969,17 @@ namespace glut{
 		glutTimerFunc(0,timer,clk::dtms);
 //		glutIdleFunc(idle);
 //		glutReportErrors();
-
+		const bool sizeofs=false;
+		if(sizeofs){
+			cout<<endl;
+			cout<<"           type :   size : "<<endl;
+			cout<<"----------------:--------: "<<endl;
+			cout<<setw(16)<<"p3"<<setw(8)<<sizeof(p3)<<endl;
+			cout<<setw(16)<<"m3"<<setw(8)<<sizeof(m3)<<endl;
+			cout<<setw(16)<<"glob"<<setw(8)<<sizeof(glob)<<endl;
+			cout<<setw(16)<<"bvol"<<setw(8)<<sizeof(bvol)<<endl;
+		}
+		cout<<endl;
 		glutMainLoop();
 		return 0;
 	}
