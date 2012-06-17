@@ -33,9 +33,12 @@ public:
 	inline float gety()const{return y;}
 	inline float getz()const{return z;}
 	inline p3&transl(const float dx,const float dy,const float dz){x+=dx;y+=dy;z+=dz;return*this;}
+	inline p3&transl(const p3&dp){x+=dp.x;y+=dp.y;z+=dp.z;return*this;}
 	inline float magn()const{return sqrt(x*x+y*y+z*z);}
 	inline p3&set(const p3&p){x=p.x;y=p.y;z=p.z;return*this;}
 	inline p3&set(const float x,const float y,const float z){this->x=x;this->y=y;this->z=z;return*this;}
+	inline p3&neg(){x=-1;y=-y;z=-z;return*this;}
+	inline p3&scale(const float s){x*=s;y*=s;z*=s;return*this;}
 	friend ostream&operator<<(ostream&,const p3&);
 	friend istream&operator>>(istream&,p3&);
 };
@@ -185,29 +188,37 @@ class bvol{
 public:
 	float r;
 	p3 v;
-	static bool checkcol(const p3&p1,const m3&m1,const bvol&bv1,const p3&p2,const m3&m2,const bvol&bv2){
-		if(!spherescollide(p1,bv1,p2,bv2)){
-//			flf();ll(" · nosphereoverlap ");
-			return false;
-		}
-		flf();ll(" • sphereoverlap");
-		flf();l()<<"a p3("<<p1<<")m3("<<m1<<")"<<"bvol("<<bv1<<")    b p3("<<p2<<")m3("<<m2<<")bvol("<<bv2<<")"<<endl;
-		return true;
-	}
-	static bool spherescollide(const p3&pa,const bvol&a,const p3&pb,const bvol&b){
-		metrics::coldetsph++;
-		const p3 vec=p3(pa,pb);
-		const float dst=vec.magn();
-		if(dst>(a.r+b.r))
-			return false;
-		return true;
-	}
-	static bool possibleoverlap(const p3&pa,const bvol&bva,const p3&pb,const bvol&bvb){
-		flf();l()<<pa<<bva<<pb<<bvb<<endl;
-		return false;
-	}
+//	static bool checkcol(const p3&p1,const m3&m1,const bvol&bv1,const p3&p2,const m3&m2,const bvol&bv2){
+//		if(!spherescollide(p1,bv1,p2,bv2)){
+////			flf();ll(" · nosphereoverlap ");
+//			return false;
+//		}
+//		flf();ll(" • sphereoverlap");
+//		flf();l()<<"a p3("<<p1<<")m3("<<m1<<")"<<"bvol("<<bv1<<")    b p3("<<p2<<")m3("<<m2<<")bvol("<<bv2<<")"<<endl;
+//		return true;
+//	}
+//	static bool spherescollide(const p3&pa,const bvol&a,const p3&pb,const bvol&b){
+//		metrics::coldetsph++;
+//		const p3 vec=p3(pa,pb);
+//		const float dst=vec.magn();
+//		if(dst>(a.r+b.r))
+//			return false;
+//		return true;
+//	}
+//	static bool possibleoverlap(const p3&pa,const bvol&bva,const p3&pb,const bvol&bvb){
+//		flf();l()<<pa<<bva<<pb<<bvb<<endl;
+//		return false;
+//	}
 	///
 	bvol(const float sphereradius,const p3&boxcorner):r(sphereradius),v(boxcorner){}
+	bool spheresoverlap(const p3&p,const p3&pb,const bvol&b){
+		metrics::coldetsph++;
+		const p3 vec=p3(p,pb);
+		const float dst=vec.magn();
+		if(dst>(r+b.r))
+			return false;
+		return true;
+	}
 	bool anyboxdotinboxof(const p3&p,const m3&m,const bvol&bv){
 		flf();l()<<p<<m<<bv<<endl;
 		return false;
@@ -218,13 +229,14 @@ public:
 ostream&operator<<(ostream&os,const bvol&b){os<<b.r<<",("<<b.v<<")";return os;}
 istream&operator>>(istream&is,bvol&bv){is>>bv.r;is.ignore(2);is>>bv.v;is.ignore();return is;}
 
-#include<vector>
+//#include<vector>
+#include <list>
 
 class glob:public p3{
 protected:
 	glob&g;
 	p3 a;
-	vector<glob*>chs;
+	list<glob*>chs;
 public:
 	bvol bv;
 	m3 mw;
@@ -238,12 +250,11 @@ public:
 	}
 	virtual ~glob(){
 		metrics::globs--;
-		for(unsigned int n=0;n<chs.size();n++)
-			delete chs[n];
+		for(list<glob*>::iterator i=chs.begin();i!=chs.end();i++){
+			delete*i;
+		}
 		chs.clear();
-//		cout<<metrics::nglobs<<endl;
 	}
-	inline void rm(){throw "notimpl";}
 	inline p3&agl(){return a;}
 //	inline glob&seta(const p3&a){this->a.set(a);return*this;}
 	void draw(){
@@ -264,15 +275,27 @@ public:
 //			g->draw();
 //			glPopMatrix();
 //		}
-		for(unsigned int n=0;n<chs.size();n++){
+		for(list<glob*>::iterator i=chs.begin();i!=chs.end();i++){
 			glPushMatrix();
-			chs[n]->draw();
+			(*i)->draw();
 			glPopMatrix();
 		}
 	}
 	virtual void gldraw(){};
-	virtual void tick(){for(size_t i=0;i<chs.size();i++)chs[i]->tick();}
+	virtual void tick(){
+		for(list<glob*>::iterator i=chs.begin();i!=chs.end();i++){
+			(*i)->tick();
+		}
+	}
 	inline glob&getglob()const{return g;}
+	virtual bool oncol(glob&o){
+		cout<<this<<" collision "<<&o<<endl;
+		return true;
+	}
+	void rm(){
+		g.chs.remove(this);
+		delete this;
+	}
 };
 bool glob::drawboundingspheres;
 int glob::drawboundingspheresdetail=7;
@@ -434,6 +457,36 @@ const float obcorp::s=7;
 //};
 //
 
+
+class obball:public glob{
+	p3 dp;
+public:
+	obball(glob&g,const p3&p,const float r=.2f):glob(g,p,p3(),r),dp(p3()){}
+	inline p3&getdp(){return dp;}
+	virtual void gldraw(){
+		glutSolidSphere(bv.r,5,5);
+		flf();ll()<<"gldraw"<<endl;
+	}
+	virtual void tick(){
+//		flf();ll()<<"tick "<<dp<<endl;
+		dp.transl(0,0,dt(-9.f));
+		transl(dt(dp.getx()),dt(dp.gety()),dt(dp.getz()));
+		if(getz()<bv.r){
+//			rm();
+//			return;
+			dp.neg().scale(.5f);
+			transl(0,0,bv.r-getz());
+		}
+		glob::tick();
+	}
+//	virtual bool oncol(glob&o){
+//		delete this;
+//		return false;
+//	}
+};
+
+#include<typeinfo>
+
 class wold:public glob{
 	static wold wd;
 	float s;
@@ -498,26 +551,31 @@ public:
 	}
 	void tick(){
 		agl().transl(-dt(ddegx),0,dt(ddegz));
-		const unsigned long n=chs.size();
-		const unsigned long nn=n-1;
-		for(unsigned long i=0;i<nn;i++){
-			glob&g1=*chs[i];
-			for(unsigned long k=i+1;k<n;k++){
-				glob&g2=*chs[k];
-				if(bvol::checkcol(g1,g1.mw,g1.bv, g2,g2.mw,g2.bv)){
-					flf();ll(" • sphereoverlap ")<<typeid(g1).name()<<" "<<typeid(g2).name()<<endl;
-
-//					cout<<"collisioxx:"<<endl<<g1<<endl<<g2<<endl;
-				}
-			}
-		}
+//		list<glob*>::iterator i1=chs.begin();
+//		while(true){
+//			list<glob*>::reverse_iterator i2=chs.rbegin();
+//			if(*i1==*i2)
+//				break;
+//			glob&g1=*(*i1);
+//			do{
+//				glob&g2=*(*i2);
+//				if(g1.bv.spheresoverlap(g1,g2,g2.bv)){
+//					g1.oncol(g2);
+//					g2.oncol(g1);
+//	//					flf();ll(" • sphereoverlap ")<<typeid(g1).name()<<" "<<typeid(g2).name()<<endl;
+//	//					cout<<"collisioxx:"<<endl<<g1<<endl<<g2<<endl;
+//				}
+//				i2++;
+//			}while(*i1!=*i2);
+//			i1++;
+//		}
 		glob::tick();
 	}
 };
 wold wold::wd;
 
-template<typename T>class lut;
-template<typename T>ostream&operator<<(ostream&,const lut<T>&);
+//template<typename T>class lut;
+//template<typename T>ostream&operator<<(ostream&,const lut<T>&);
 template<typename T>class lut{
 private:
 	size_t size;
@@ -535,7 +593,7 @@ private:
 		el*nxt;
 		el(const char*key,T data):key(key),data(data),nxt(NULL){}
 		~el(){if(nxt)delete nxt;}
-		friend ostream&operator<< <T>(ostream&,const lut<T>&);
+//		friend ostream&operator<< <T>(ostream&,const lut<T>&);
 	};
 	el**array;
 public:
@@ -606,11 +664,14 @@ public:
 			array[i]=NULL;
 		}
 	}
-	friend ostream&operator<< <T>(ostream&,const lut<T>&);
+//	friend ostream&operator<< <T>(ostream&,const lut<T>&);
 };
+//template<typename T>ostream&operator<< <T>(ostream&,const lut<T>&){
+//
+//}
 //template<typename T>ostream&operator<<(ostream&os,const lut<T>&lt){
 //	for(size_t i=0;i<lt.size;i++){
-//		lut<T>::el&l=*lt.array[i];
+//		lut<T>::el*l=lt.array[i];
 //		if(!l)continue;
 //		while(l){
 ////			os<<(l.key)<<"("<<l.data<<")";
@@ -773,6 +834,7 @@ namespace glut{
 		else if(key=='i'){wn.transl(0,0,-1);}
 		else if(key=='k'){wn.transl(0,0,1);}
 		else if(key=='1'){glob::drawboundingspheres=!glob::drawboundingspheres;}
+		else if(key=='a'){new obball(wold::get(),p3(0,-5,15));}
 	}
 	void keyup(const unsigned char key,const int x,const int y){
 		const char k[]={(char)key,0};
@@ -833,7 +895,5 @@ namespace glut{
 
 int main(){return glut::main(0,NULL);}
 
-extern void gnox(){
-
-}
+extern void gnox(){}
 #endif
