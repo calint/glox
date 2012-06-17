@@ -209,17 +209,9 @@ glDisable(GL_DEPTH_TEST);
 
 
 
-typedef struct _vertexStatic
-{
-    GLfloat position[2];
-} vertexStatic;
+typedef struct _vertexStatic{GLfloat position[2];}vertexStatic;
+typedef struct _vertexDynamic{GLubyte color[4];}vertexDynamic;
  
-typedef struct _vertexDynamic
-{
-    GLubyte color[4];
-} vertexDynamic;
- 
-// Separate buffers for static and dynamic data.
 GLuint    staticBuffer;
 GLuint    dynamicBuffer;
 GLuint    indexBuffer;
@@ -228,58 +220,30 @@ const vertexStatic staticVertexData[] = {...};
 vertexDynamic dynamicVertexData[] = {...};
 const GLubyte indices[] = {...};
  
-void CreateBuffers()
-{
-// Static position data
+void CreateBuffers(){
     glGenBuffers(1, &staticBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, staticBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(staticVertexData), staticVertexData, GL_STATIC_DRAW);
- 
-// Dynamic color data
-// While not shown here, the expectation is that the data in this buffer changes between frames.
     glGenBuffers(1, &dynamicBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, dynamicBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(dynamicVertexData), dynamicVertexData, GL_DYNAMIC_DRAW);
- 
-// Static index data
     glGenBuffers(1, &indexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 }
  
-void DrawModelUsingMultipleVertexBuffers()
-{
+void DrawModelUsingMultipleVertexBuffers(){
     glBindBuffer(GL_ARRAY_BUFFER, staticBuffer);
     glVertexAttribPointer(ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(vertexStruct), (void*)offsetof(vertexStruct,position));
     glEnableVertexAttribArray(ATTRIB_POSITION);
- 
     glBindBuffer(GL_ARRAY_BUFFER, dynamicBuffer);
     glVertexAttribPointer(ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(vertexStruct), (void*)offsetof(vertexStruct,color);
     glEnableVertexAttribArray(ATTRIB_COLOR);
- 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
     glDrawElements(GL_TRIANGLE_STRIP, sizeof(indices)/sizeof(GLubyte), GL_UNSIGNED_BYTE, (void*)0);
 }
 
 
-
-
-
-GLuint    vertexBuffer;
-GLuint    indexBuffer;
- 
-void CreateVertexBuffers()
-{
- 
-    glGenBuffers(1, &vertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
- 
-    glGenBuffers(1, &indexBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
- 
-}
 
 
 

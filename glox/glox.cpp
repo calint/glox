@@ -24,6 +24,7 @@ namespace glox{
 		int m3s;
 		int bvols;
 		int collisions;
+		int globos;
 	}
 	inline float dt(const float f){return f*clk::dt;}
 	inline float rnd(const float from,const float tonotincluding){
@@ -517,6 +518,42 @@ public:
 	}
 };
 
+class globo:public glob{
+	GLuint glpt;
+	GLuint glix;
+public:
+	globo(glob&g,const p3&p):glob(g,p){
+		metrics::globos++;
+		GLfloat pt[4*2];
+		pt[0]=0;pt[1]=0;
+		pt[2]=1;pt[3]=0;
+		pt[4]=1;pt[5]=1;
+		pt[6]=0;pt[7]=1;
+
+		GLubyte ix[5];
+		ix[0]=0;ix[1]=1;ix[2]=2;ix[3]=3;ix[4]=0;
+		glGenBuffers(1,&glpt);
+		glBindBuffer(GL_ARRAY_BUFFER,glpt);
+		glBufferData(GL_ARRAY_BUFFER,sizeof(pt),pt,GL_STATIC_DRAW);
+		glGenBuffers(1,&glix);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,glix);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(ix),ix,GL_STATIC_DRAW);
+	}
+	~globo(){
+		glDeleteBuffers(1,&glpt);
+		glDeleteBuffers(1,&glix);
+		metrics::globos--;
+	}
+	virtual void gldraw(){
+		glBindBuffer(GL_ARRAY_BUFFER, glpt);
+		glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,0,0);
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,glix);
+		glDrawElements(GL_TRIANGLE_STRIP,5,GL_UNSIGNED_BYTE,0);
+	}
+};
+
+
 #include<typeinfo>
 
 class wold:public glob{
@@ -526,7 +563,7 @@ class wold:public glob{
 		agl().transl(-111,0,0);
 //		transl(0,-.3,0);
 		bv.r=s;
-		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
+//		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
 //		new obball(*this,p3(0,0,10));
 //		new obball(*this,p3(.1f,0,10));
 	}
@@ -536,6 +573,9 @@ public:
 
 	bool drawaxis,drawgrid,hidezplane;
 	float ddegx,ddegz;
+	void initvbo(){
+		new globo(*this,p3(0,0,1));
+	}
 	void gldraw(){
 		glDisable(GL_LIGHTING);
 
@@ -960,6 +1000,9 @@ namespace glut{
 				glutSetCursor(GLUT_CURSOR_NONE);
 			}
 		}
+
+		wold::get().initvbo();
+
 		glutDisplayFunc(draw);
 		glutReshapeFunc(reshape);
 		glutKeyboardFunc(keydn);
