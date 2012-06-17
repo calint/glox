@@ -257,7 +257,7 @@ public:
 		g.chs.push_back(this);
 	}
 	virtual ~glob(){
-		cout<<"~glob("<<id<<")";
+//		cout<<"~glob("<<id<<")";
 		metrics::globs--;
 		for(list<glob*>::iterator i=chs.begin();i!=chs.end();i++){
 			delete*i;
@@ -479,6 +479,7 @@ public:
 	virtual void tick(){
 //		flf();ll()<<"tick "<<dp<<endl;
 		dp.transl(0,dt(-5),dt(-9.f));
+		agl().transl(0,dt(360/6),0);
 		transl(dt(dp.getx()),dt(dp.gety()),dt(dp.getz()));
 		if(getz()<bv.r){
 //			rm();
@@ -505,9 +506,7 @@ class wold:public glob{
 		bv.r=s;
 		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
 	}
-	~wold(){
-		cout<<endl<<" ~wold() ";
-	}
+//	~wold(){cout<<endl<<" ~wold() ";}
 public:
 	inline static wold&get(){return wd;}
 
@@ -721,13 +720,13 @@ class windo:public glob{
 		timeval tv;gettimeofday(&tv,0);
 		const tm&t=*localtime(&tv.tv_sec);
 		oss<<t.tm_hour<<":"<<":"<<t.tm_min<<":"<<t.tm_sec<<"."<<tv.tv_usec/1000;
-		oss<<setprecision(3);
-		oss<<"   rend.dt("<<metrics::dtrend<<")s    upd.dt("<<metrics::dtupd<<")s";
+		oss<<setprecision(3)<<fixed;
+		oss<<"          rend.dt("<<metrics::dtrend<<")s   upd.dt("<<metrics::dtupd<<")s     "<<((int)(metrics::globs/metrics::dtrend)>>10)<<"Kglobs/s    rendonly "<<(1/metrics::dtrend)<<"fps";
 		y=h-dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 
 		oss.str("");
-		oss<<setprecision(2)<<fixed;
+		oss<<setprecision(2);
 		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs<<") sphdet("<<metrics::coldetsph<<") xz("<<a.getx()<<" "<<a.getz()<<") p("<<*this<<")";
 //		oss<<"keys("<<glut::keysdn<<")";
 		y-=dy;pl(oss.str().c_str(),y,0,1,.1f);
@@ -740,12 +739,23 @@ public:
 		cout<<"\rframe("<<metrics::frames++<<")";
 //		glClearColor(0,0,0,1);
 		glClearColor(.5f,.5f,1,1);
-		glClearDepth(1);
-		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
 		glEnable(GL_DEPTH_TEST);
+		glClearDepth(1);
+
 //		glEnable(GL_BLEND);
-		glDisable(GL_BLEND);
 //		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		const GLfloat lhtpos[]={0,20,10000,1};
+		glLightfv(GL_LIGHT0,GL_POSITION,lhtpos);
+		const GLfloat lhtcol[]={1,1,1,1};
+		glLightfv(GL_LIGHT0,GL_AMBIENT_AND_DIFFUSE,lhtcol);
+
+
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+//		glClear(GL_COLOR_BUFFER_BIT);
 		glViewport(0,0,w,h);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
@@ -757,12 +767,6 @@ public:
 //		glRotatef(-a.getz(), 0, 0, 1);
 //		glRotatef(-a.gety(), 0, 1, 0);
 //		glRotatef(-a.getx(), 1, 0, 0);
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
-		const GLfloat lhtpos[]={0,20,10000,1};
-		glLightfv(GL_LIGHT0,GL_POSITION,lhtpos);
-		const GLfloat lhtcol[]={1,1,1,1};
-		glLightfv(GL_LIGHT0,GL_AMBIENT_AND_DIFFUSE,lhtcol);
 		getglob().draw();
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_CULL_FACE);
@@ -815,7 +819,7 @@ namespace glut{
 	void timer(const int value){
 		if(iskeydn('r')&&iskeydn('u')){wn.transl(0,dt(1),0);}
 		if(iskeydn('v')&&iskeydn('n')){wn.transl(0,-dt(1),0);}
-		if(iskeydn('a')){new obball(wold::get(),p3(rnd(-1,1),-4+rnd(-1,1),10+rnd(-1,1)));}
+		if(iskeydn('a')){for(int i=0;i<11;i++)new obball(wold::get(),p3(rnd(-5,5),rnd(-5,5),20+rnd(-1,1)));}
 
 		clk::timerrestart();
 		wold::get().tick();
