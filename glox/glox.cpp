@@ -518,26 +518,43 @@ public:
 	}
 };
 
+namespace db{
+	const int sq_pt_dim=2;
+	const GLfloat sq_pt[]={0,0, 1,0, 1,1, 0,1};
+	const int sq_pt_nbytes=sizeof(sq_pt);
+	const GLubyte sq_ix[]={0,1,2,3,0};
+	const int sq_ix_nbytes=sizeof(sq_ix);
+	const int sq_ix_count=sq_ix_nbytes/sizeof(GLubyte);
+}
+
 class globo:public glob{
 	GLuint glpt;
 	GLuint glix;
+protected:
+	virtual void getvtxs(const GLfloat*&buf,int&bufsizebytes,int&floatspervertex){
+		bufsizebytes=db::sq_pt_nbytes;
+		floatspervertex=db::sq_pt_dim;
+		buf=db::sq_pt;
+	}
+	virtual void getixs(const GLubyte*&buf,int&bufsizebytes,int&ixcount){
+		bufsizebytes=db::sq_ix_nbytes;
+		ixcount=db::sq_ix_count;
+		buf=db::sq_ix;
+	}
 public:
+	int vtxbufsizebytes,vtxdim,ixbufsizebytes,ixcount;
 	globo(glob&g,const p3&p):glob(g,p){
 		metrics::globos++;
-		GLfloat pt[4*2];
-		pt[0]=0;pt[1]=0;
-		pt[2]=1;pt[3]=0;
-		pt[4]=1;pt[5]=1;
-		pt[6]=0;pt[7]=1;
-
-		GLubyte ix[5];
-		ix[0]=0;ix[1]=1;ix[2]=2;ix[3]=3;ix[4]=0;
 		glGenBuffers(1,&glpt);
 		glBindBuffer(GL_ARRAY_BUFFER,glpt);
-		glBufferData(GL_ARRAY_BUFFER,sizeof(pt),pt,GL_STATIC_DRAW);
+		const GLfloat*pt;
+		getvtxs(pt,vtxbufsizebytes,vtxdim);
+		glBufferData(GL_ARRAY_BUFFER,vtxbufsizebytes,pt,GL_STATIC_DRAW);
 		glGenBuffers(1,&glix);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,glix);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(ix),ix,GL_STATIC_DRAW);
+		const GLubyte*ix;
+		getixs(ix,ixbufsizebytes,ixcount);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER,ixbufsizebytes,ix,GL_STATIC_DRAW);
 	}
 	~globo(){
 		glDeleteBuffers(1,&glpt);
@@ -546,13 +563,12 @@ public:
 	}
 	virtual void gldraw(){
 		glBindBuffer(GL_ARRAY_BUFFER, glpt);
-		glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,0,0);
+		glVertexAttribPointer(0,vtxdim,GL_FLOAT,GL_FALSE,0,0);
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,glix);
-		glDrawElements(GL_TRIANGLE_STRIP,5,GL_UNSIGNED_BYTE,0);
+		glDrawElements(GL_TRIANGLE_STRIP,ixcount,GL_UNSIGNED_BYTE,0);
 	}
 };
-
 
 #include<typeinfo>
 
@@ -808,7 +824,7 @@ class windo:public glob{
 
 		oss.str("");
 		oss<<setprecision(2);
-		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs<<") p3s("<<metrics::p3s<<") m3s("<<metrics::m3s<<") bvols("<<metrics::bvols<<") sphdet("<<metrics::coldetsph<<") sphcols("<<metrics::collisions<<") xz("<<a.getx()<<" "<<a.getz()<<") p("<<*this<<")";
+		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs-metrics::globos<<") vbos("<<metrics::globos<<") p3s("<<metrics::p3s<<") m3s("<<metrics::m3s<<") bvols("<<metrics::bvols<<") sphdet("<<metrics::coldetsph<<") sphcols("<<metrics::collisions<<") xz("<<a.getx()<<" "<<a.getz()<<") p("<<*this<<")";
 //		oss<<"keys("<<glut::keysdn<<")";
 		y-=dy;pl(oss.str().c_str(),y,0,1,.1f);
 	}
