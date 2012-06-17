@@ -526,7 +526,7 @@ namespace db{
 	const int sq_ix_nbytes=sizeof(sq_ix);
 	const int sq_ix_count=sq_ix_nbytes/sizeof(GLubyte);
 }
-
+#include<fstream>
 class globo:public glob{
 	GLuint glpt;
 	GLuint glix;
@@ -542,31 +542,70 @@ protected:
 		buf=db::sq_ix;
 	}
 public:
-	int vtxbufsizebytes,vtxdim,ixbufsizebytes,ixcount;
-	globo(glob&g,const p3&p):glob(g,p){
+	int vtxbufsizebytes,vtxdim,ixbufsizebytes,ntri;
+	globo(glob&g,const char*filepath="ufo.f3d",const p3&scale=p3(1,1,1),const p3&p=p3()):glob(g,p),glpt(0),glix(0){
 		metrics::globos++;
+		agl().transl(90,0,0);
+
+		ifstream ifs(filepath);
+		if(!ifs.good())throw signl(-1,filepath);
+		ifs>>skipws;
+		int n;
+		ifs>>n;
+		vtxdim=3;
+		GLfloat*pt=new GLfloat[(unsigned long)(n*vtxdim)];//? bug leak
+		vtxbufsizebytes=n*vtxdim*(int)sizeof(GLfloat);
+		GLfloat*pp=pt;
+		while(n--){
+			ifs>>*pp;*pp*=scale.getx();pp++;
+			ifs>>*pp;*pp*=scale.gety();pp++;
+			ifs>>*pp;*pp*=scale.getz();pp++;
+		}
 		glGenBuffers(1,&glpt);
 		glBindBuffer(GL_ARRAY_BUFFER,glpt);
-		const GLfloat*pt;
-		getvtxs(pt,vtxbufsizebytes,vtxdim);
 		glBufferData(GL_ARRAY_BUFFER,vtxbufsizebytes,pt,GL_STATIC_DRAW);
+//		delete pt;
+
+		ifs>>n;
+		ntri=n;
+		GLubyte*ix=new GLubyte[(unsigned int)ntri*3];
+		ixbufsizebytes=(int)sizeof(GLubyte)*ntri*3;
+		GLubyte*p1=ix;
+		while(n--){
+			int i0,i1,i2;
+			int nv;ifs>>nv;
+			if(nv!=3)throw signl(-3,"surfacenottriangle");
+			ifs>>i0;*p1++=(GLubyte)i0;
+			ifs>>i1;*p1++=(GLubyte)i1;
+			ifs>>i2;*p1++=(GLubyte)i2;
+			GLshort rgb[3];
+			ifs>>rgb[0]>>rgb[1]>>rgb[2];
+			cout<<rgb[0]<<" "<<rgb[1]<<endl;
+		}
+		ifs.close();
+//		cout<<filepath<<"(nvtx("<<vtxbufsizebytes/vtxdim/(int)sizeof(GLfloat)<<") nix("<<ntri<<"))"<<endl;
+
 		glGenBuffers(1,&glix);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,glix);
-		const GLubyte*ix;
-		getixs(ix,ixbufsizebytes,ixcount);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER,ixbufsizebytes,ix,GL_STATIC_DRAW);
+//		delete ix;
 	}
 	~globo(){
-		glDeleteBuffers(1,&glpt);
-		glDeleteBuffers(1,&glix);
+		if(glpt)glDeleteBuffers(1,&glpt);
+		if(glix)glDeleteBuffers(1,&glix);
 		metrics::globos--;
 	}
 	virtual void gldraw(){
 		glBindBuffer(GL_ARRAY_BUFFER, glpt);
 		glVertexAttribPointer(0,vtxdim,GL_FLOAT,GL_FALSE,0,0);
 		glEnableVertexAttribArray(0);
+
+//		glPointSize(3);
+//		glColor3b(0,0,0);
+//		glDrawArrays(GL_POINTS,0,vtxbufsizebytes/vtxdim);
+
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,glix);
-		glDrawElements(GL_TRIANGLE_STRIP,ixcount,GL_UNSIGNED_BYTE,0);
+		glDrawElements(GL_TRIANGLES,ixbufsizebytes,GL_UNSIGNED_BYTE,0);
 	}
 };
 
@@ -579,7 +618,7 @@ class wold:public glob{
 		agl().transl(-111,0,0);
 //		transl(0,-.3,0);
 		bv.r=s;
-//		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
+		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
 //		new obball(*this,p3(0,0,10));
 //		new obball(*this,p3(.1f,0,10));
 	}
@@ -590,10 +629,11 @@ public:
 	bool drawaxis,drawgrid,hidezplane;
 	float ddegx,ddegz;
 	void initvbo(){
-		new globo(*this,p3(0,0,1));
+		new globo(*this,"ufo.f3d",p3(3,.5,2),p3(0,0,20));
 	}
 	void gldraw(){
 		glDisable(GL_LIGHTING);
+		glDisable(GL_CULL_FACE);
 
 		if(drawgrid){
 			glColor3b(0,0,0x7f);
@@ -657,6 +697,8 @@ public:
 		glLightfv(GL_LIGHT0,GL_POSITION,lhtpos);
 		const GLfloat lhtcol[]={0,0,0,1};
 		glLightfv(GL_LIGHT0,GL_AMBIENT_AND_DIFFUSE,lhtcol);
+
+		glEnable(GL_CULL_FACE);
 	}
 	void tick(){
 		agl().transl(-dt(ddegx),0,dt(ddegz));
@@ -836,6 +878,10 @@ public:
 		cout<<"\rframe("<<metrics::frames++<<")";
 //		glClearColor(0,0,0,1);
 		glClearColor(.5f,.5f,1,1);
+
+		glEnable(GL_CULL_FACE);
+//		glFrontFace(GL_CCW);
+//		glCullFace(GL_BACK);
 
 		glEnable(GL_DEPTH_TEST);
 		glClearDepth(1);
