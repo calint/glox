@@ -382,6 +382,10 @@ public:
 		f++;if(f>128)f=0;
 //		flf();cout<<f<<endl;
 		glMaterialfv(GL_FRONT,GL_SHININESS,matshin);
+		glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE) ;
+		glEnable(GL_COLOR_MATERIAL) ;
+		glColor3b(127,127,127);
+
 	}
 };
 const float obcorp::s=7;
@@ -470,16 +474,29 @@ const float obcorp::s=7;
 class obball:public glob{
 	p3 dp;
 public:
-	obball(glob&g,const p3&p,const float r=.05f):glob(g,p,p3(),r),dp(p3()){}
+	obball(glob&g,const p3&p,const float r=.05f):glob(g,p,p3(-180,0,0),r),dp(p3()){}
 	inline p3&getdp(){return dp;}
 	virtual void gldraw(){
-		glutSolidSphere(bv.r,5,5);
+		glShadeModel(GL_SMOOTH);
+//		glScalef(1,1,2);
+
+//		GLfloat matspec[]={127,0,0,1};
+//		glMaterialfv(GL_FRONT,GL_SPECULAR,matspec);
+//		GLfloat matshin[]={127};
+//		glMaterialfv(GL_FRONT,GL_SHININESS,matshin);
+
+//		glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
+		glEnable(GL_COLOR_MATERIAL);
+		glColor3f(.5f,.5f,1);
+//		glColor3b(0,0,127);
+
+		glutSolidSphere(bv.r,3,7);
 //		flf();ll()<<"gldraw"<<endl;
 	}
 	virtual void tick(){
 //		flf();ll()<<"tick "<<dp<<endl;
-		dp.transl(0,dt(-5),dt(-9.f));
-		agl().transl(0,dt(360/6),0);
+		dp.transl(0,dt(-2),dt(-9.f));
+		agl().transl(0,0,dt(720));
 		transl(dt(dp.getx()),dt(dp.gety()),dt(dp.getz()));
 		if(getz()<bv.r){
 //			rm();
@@ -716,9 +733,9 @@ class windo:public glob{
 		pl("glox",y,0,1,.2f);
 
 		const p3&a=wold::get().agl();
-		ostringstream oss;
 		timeval tv;gettimeofday(&tv,0);
 		const tm&t=*localtime(&tv.tv_sec);
+		ostringstream oss;
 		oss<<t.tm_hour<<":"<<":"<<t.tm_min<<":"<<t.tm_sec<<"."<<tv.tv_usec/1000;
 		oss<<setprecision(3)<<fixed;
 		oss<<"          rend.dt("<<metrics::dtrend<<")s   upd.dt("<<metrics::dtupd<<")s     "<<((int)(metrics::globs/metrics::dtrend)>>10)<<"Kglobs/s    rendonly "<<(1/metrics::dtrend)<<"fps";
@@ -726,7 +743,7 @@ class windo:public glob{
 
 
 		oss.str("");
-		oss<<setprecision(2);
+		oss<<setprecision(2)<<setprecision(2);
 		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs<<") sphdet("<<metrics::coldetsph<<") xz("<<a.getx()<<" "<<a.getz()<<") p("<<*this<<")";
 //		oss<<"keys("<<glut::keysdn<<")";
 		y-=dy;pl(oss.str().c_str(),y,0,1,.1f);
@@ -743,14 +760,16 @@ public:
 		glEnable(GL_DEPTH_TEST);
 		glClearDepth(1);
 
+		glShadeModel(GL_SMOOTH);
+
 //		glEnable(GL_BLEND);
 //		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 
 		glEnable(GL_LIGHTING);
 		glEnable(GL_LIGHT0);
-		const GLfloat lhtpos[]={0,20,10000,1};
+		const GLfloat lhtpos[]={0,10000,10000,1};
 		glLightfv(GL_LIGHT0,GL_POSITION,lhtpos);
-		const GLfloat lhtcol[]={1,1,1,1};
+		const GLfloat lhtcol[]={0,0,0,1};
 		glLightfv(GL_LIGHT0,GL_AMBIENT_AND_DIFFUSE,lhtcol);
 
 
@@ -768,6 +787,7 @@ public:
 //		glRotatef(-a.gety(), 0, 1, 0);
 //		glRotatef(-a.getx(), 1, 0, 0);
 		getglob().draw();
+
 		glDisable(GL_DEPTH_TEST);
 		glDisable(GL_CULL_FACE);
 		glDisable(GL_LIGHTING);
@@ -817,9 +837,15 @@ namespace glut{
 		return b;
 	}
 	void timer(const int value){
+		static float a=0;
+		static float dr=2;
+		static float fromheight=20;
 		if(iskeydn('r')&&iskeydn('u')){wn.transl(0,dt(1),0);}
 		if(iskeydn('v')&&iskeydn('n')){wn.transl(0,-dt(1),0);}
-		if(iskeydn('a')){for(int i=0;i<11;i++)new obball(wold::get(),p3(rnd(-5,5),rnd(-5,5),20+rnd(-1,1)));}
+		if(iskeydn('a')){for(int i=0;i<11;i++)new obball(wold::get(),p3(dr*cos(dt(a))*rnd(-dr,dr),dr*sin(dt(a))*rnd(-dr,dr),fromheight));}
+		if(iskeydn('i')){wold::get().transl(0,0,dt(10));}
+		if(iskeydn('k')){wold::get().transl(0,0,-dt(10));}
+		a+=dt(360);
 
 		clk::timerrestart();
 		wold::get().tick();
