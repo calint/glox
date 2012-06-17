@@ -526,7 +526,7 @@ class wold:public glob{
 		agl().transl(-111,0,0);
 //		transl(0,-.3,0);
 		bv.r=s;
-//		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
+		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
 //		new obball(*this,p3(0,0,10));
 	}
 //	~wold(){cout<<endl<<" ~wold() ";}
