@@ -55,10 +55,10 @@
 								</option>
 								<option id="gnu.cpp.compiler.option.warnings.pedantic.1734171221" name="Pedantic (-pedantic)" superClass="gnu.cpp.compiler.option.warnings.pedantic" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.warnings.extrawarn.1354286325" name="Extra warnings (-Wextra)" superClass="gnu.cpp.compiler.option.warnings.extrawarn" value="true" valueType="boolean"/>
-								<option id="gnu.cpp.compiler.option.warnings.toerrors.32920028" name="Warnings as errors (-Werror)" superClass="gnu.cpp.compiler.option.warnings.toerrors" value="true" valueType="boolean"/>
+								<option id="gnu.cpp.compiler.option.warnings.toerrors.32920028" name="Warnings as errors (-Werror)" superClass="gnu.cpp.compiler.option.warnings.toerrors" value="false" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.warnings.pedantic.error.1910814862" name="Pedantic warnings as errors (-pedantic-errors)" superClass="gnu.cpp.compiler.option.warnings.pedantic.error" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.warnings.wconversion.1573687138" name="Implicit conversion warnings (-Wconversion)" superClass="gnu.cpp.compiler.option.warnings.wconversion" value="true" valueType="boolean"/>
-								<option id="gnu.cpp.compiler.option.other.other.1446896252" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wfatal-errors -framework OpenGL -framework GLUT -Wconversion" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.1446896252" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -framework OpenGL -framework GLUT -Wconversion" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1450677622" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.macosx.exe.debug.209717922" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.macosx.exe.debug">
@@ -215,11 +215,11 @@
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.macosx.exe.debug.2090847021;cdt.managedbuild.config.gnu.macosx.exe.debug.2090847021.;cdt.managedbuild.tool.gnu.cpp.compiler.macosx.exe.debug.1195467957;cdt.managedbuild.tool.gnu.cpp.compiler.input.1450677622">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.macosx.exe.release.865523163;cdt.managedbuild.config.macosx.exe.release.865523163.;cdt.managedbuild.tool.gnu.cpp.compiler.macosx.exe.release.461295876;cdt.managedbuild.tool.gnu.cpp.compiler.input.1203737356">
-			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
-		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.macosx.exe.release.865523163;cdt.managedbuild.config.macosx.exe.release.865523163.;cdt.managedbuild.tool.gnu.c.compiler.macosx.exe.release.126579266;cdt.managedbuild.tool.gnu.c.compiler.input.1195054832">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileC"/>
+		</scannerConfigBuildInfo>
+		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.macosx.exe.release.865523163;cdt.managedbuild.config.macosx.exe.release.865523163.;cdt.managedbuild.tool.gnu.cpp.compiler.macosx.exe.release.461295876;cdt.managedbuild.tool.gnu.cpp.compiler.input.1203737356">
+			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
 		</scannerConfigBuildInfo>
 		<scannerConfigBuildInfo instanceId="cdt.managedbuild.config.gnu.macosx.exe.debug.2090847021.685997474;cdt.managedbuild.config.gnu.macosx.exe.debug.2090847021.685997474.;cdt.managedbuild.tool.gnu.cpp.compiler.macosx.exe.debug.232296742;cdt.managedbuild.tool.gnu.cpp.compiler.input.225806015">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId="org.eclipse.cdt.managedbuilder.core.GCCManagedMakePerProjectProfileCPP"/>
