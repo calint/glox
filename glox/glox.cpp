@@ -621,10 +621,27 @@ public:
 	}
 	virtual void tick(){
 		obtex::tick();
-		zap();
+
+
+//		zap();
+
+		int n=wihi*wihi;
+		GLubyte*pp=rgba;
+		while(n--){
+			GLubyte b=(GLubyte)rnd(0,255);
+			if(b==0){
+				b=*pp>0?0:100;
+				*pp++=b;
+				*pp++=b;
+				*pp++=b;
+				*pp++=255;
+			}else
+				pp+=4;
+		}
+
 		GLubyte*p=rgba;
 		int i=wihi*wihi*4;
-		i>>=2;
+		i>>=4;
 		while(i--)*p++=0;
 
 		p=rgba+wihi*4+4;
