@@ -102,10 +102,8 @@ public:
 #include <GL/glut.h>
 #endif
 
-//#define mhello()cout<<"hello"<<endl;
 #define flf()l("  ",__FILE__,__LINE__,__FUNCTION__);
 static inline ostream&l(const char*s="",const char*file="",int lineno=0,const char*func=""){cerr<<file;if(lineno){cerr<<":"<<lineno;}cerr<<" "<<func<<"  "<<s;return cerr;}
-//static inline ostream&ll(const char*s="",const char*file="",int lineno=0,const char*func=""){return l(s,file,lineno,func)<<endl;}
 
 class m3{
 	float xx,xy,xz,xo;
@@ -206,9 +204,7 @@ class bvol{
 public:
 	float r;
 	p3 v;
-	bvol(const float sphereradius,const p3&boxcorner):r(sphereradius),v(boxcorner){
-		metrics::bvols++;
-	}
+	bvol(const float sphereradius,const p3&boxcorner):r(sphereradius),v(boxcorner){metrics::bvols++;}
 	~bvol(){metrics::bvols--;}
 	bool spheresoverlap(const p3&p,const p3&pb,const bvol&b){
 		metrics::coldetsph++;
