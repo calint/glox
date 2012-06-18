@@ -272,7 +272,7 @@ public:
 		}
 		for(auto g:chs){glPushMatrix();g->draw();glPopMatrix();}
 	}
-	virtual void gldraw(){};
+	virtual void gldraw()=0;
 	virtual void tick(){
 		chs.splice(chs.end(),chsadd);
 		for(auto g:chs)g->tick();
@@ -537,7 +537,7 @@ public:
 static f3*fufo=0;
 class obufocluster:glob{
 public:
-	obufocluster(glob&g,const p3&p=p3()):glob(g){
+	obufocluster(glob&g,const p3&p=p3()):glob(g,p){
 		const float s=20;
 		const float ds=s/9;
 		for(float zz=-s;zz<=s;zz+=ds)
@@ -547,6 +547,38 @@ public:
 						continue;
 					else
 						new globo(*this,*fufo,p3(p.getx()+xx,p.gety()+yy,p.getz()+zz));
+	}
+};
+
+class obtex:public glob{
+	GLuint gltx;
+public:
+	obtex(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,const p3&v=p3()):glob(g,p,a,r,v),gltx(1){
+		glBindTexture(GL_TEXTURE_2D,gltx);
+		glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+		glTexEnvf(GL_TEXTURE_ENV,GL_TEXTURE_ENV_MODE,GL_DECAL);
+		GLubyte ram[]={127,127,127,127, 0,0,0,0, 0,0,0,0, 127,127,127,127};
+		glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,2,2,0,GL_RGBA,GL_UNSIGNED_BYTE,ram);
+		if(glGetError())throw signl(-3,"texture");
+	}
+	void gldraw(){
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D,gltx);
+		glBegin(GL_QUADS);
+		glTexCoord2f(0,0);
+		glVertex3f(-1,-1,0);
+		glTexCoord2f(1,0);
+		glVertex3f(1,-1,0);
+		glTexCoord2f(1,1);
+		glVertex3f(1,1,0);
+		glTexCoord2f(0,1);
+		glVertex3f(-1,1,0);
+		glEnd();
+		glDisable(GL_TEXTURE_2D);
 	}
 };
 
@@ -563,14 +595,16 @@ class wold:public glob{
 	~wold(){if(fufo)delete fufo;}
 public:
 	void load(){
-		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
+//		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
 //		new obcorp(*this,p3(0,9,4.2f),p3(90,0,0));
 		//		new obball(*this,p3(0,0,10));
 		//		new obball(*this,p3(.1f,0,10));
 
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
-		fufo=new f3("ufo.f3",p3(1,1,1));//? leak
+//		fufo=new f3("ufo.f3",p3(1,1,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
+		glob&g=*new obtex(*this,p3(0,0,1));
+		g.agl().transl(90,0,0);
 	}
 
 	inline static wold&get(){return wd;}
@@ -894,6 +928,7 @@ public:
 		drawhud();
 		cout<<flush;
 	}
+	virtual void gldraw(){}
 };
 
 extern void gnox();
@@ -981,7 +1016,7 @@ namespace glut{
 		else if(key=='3'){wd.drawgrid=!wd.drawgrid;}
 		else if(key=='4'){wd.hidezplane=!wd.hidezplane;}
 		else if(key=='5'){wd.coldet=!wd.coldet;}
-		else if(key=='6'){sts.str("");}
+		else if(key==127){sts.str("");}// bkspc
 	}
 	void keyup(const unsigned char key,const int x,const int y){
 		const char k[]={(char)key,0};
