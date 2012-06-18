@@ -555,11 +555,11 @@ class obtex:public glob{
 protected:
 	int wihi;
 	GLubyte*rgba;
+	float s;
 public:
-	obtex(glob&g,const int wihi=4*32,const p3&p=p3(),const p3&a=p3(),const float r=1,const p3&v=p3()):glob(g,p,a,r,v),gltx(0),wihi(wihi){
+	obtex(glob&g,const int wihi=4*32,const float s=1,const p3&p=p3(),const p3&a=p3(),const float r=1,const p3&v=p3()):glob(g,p,a,r,v),gltx(0),wihi(wihi),s(s){
 		rgba=new GLubyte[wihi*wihi*4];
 		zap();
-
 		glGenTextures(1,&gltx);
 		glBindTexture(GL_TEXTURE_2D,gltx);
 		glPixelStorei(GL_UNPACK_ALIGNMENT,1);
@@ -581,7 +581,7 @@ public:
 		GLubyte*pp=rgba;
 		while(n--){
 			GLubyte b=(GLubyte)rnd(0,50);
-			if(b<45)
+			if(b<49)
 				b=0;
 			*pp++=b;
 			*pp++=b;
@@ -595,13 +595,13 @@ public:
 		glBindTexture(GL_TEXTURE_2D,gltx);
 		glBegin(GL_QUADS);
 		glTexCoord2f(0,0);
-		glVertex3f(-1,-1,0);
+		glVertex3f(-s,-s,0);
 		glTexCoord2f(1,0);
-		glVertex3f(1,-1,0);
+		glVertex3f(s,-s,0);
 		glTexCoord2f(1,1);
-		glVertex3f(1,1,0);
+		glVertex3f(s,s,0);
 		glTexCoord2f(0,1);
-		glVertex3f(-1,1,0);
+		glVertex3f(-s,s,0);
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
 	}
@@ -615,7 +615,10 @@ namespace fnt4{
 class obcon:public obtex{
 	const char*hello;
 public:
-	obcon(glob&g):obtex(g),hello("hello"){}
+	obcon(glob&g):obtex(g,32*4,20),hello("hello"){
+		agl().transl(-90,0,0);
+		transl(0,s,s);
+	}
 	virtual void tick(){
 		obtex::tick();
 		zap();
@@ -669,12 +672,12 @@ public:
 class wold:public glob{
 	static wold wd;
 	wold():glob(*(glob*)0,p3(),p3(),15),ddegx(0),ddegz(.1f){
-		agl().transl(180,0,0);
+		agl().transl(-90,0,0);
 	}
 	~wold(){if(fufo)delete fufo;}
 public:
 	void load(){
-//		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
+		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
 //		new obcorp(*this,p3(0,9,4.2f),p3(90,0,0));
 		//		new obball(*this,p3(0,0,10));
 		//		new obball(*this,p3(.1f,0,10));
@@ -682,7 +685,7 @@ public:
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		fufo=new f3("ufo.f3",p3(1,1,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
-		hidezplane=true;
+//		hidezplane=true;
 		new obcon(*this);
 //		g.agl().transl(90,0,0);
 	}
@@ -921,15 +924,15 @@ class windo:public glob{
 		oss<<t.tm_hour<<":"<<":"<<t.tm_min<<":"<<t.tm_sec<<"."<<tv.tv_usec/1000;
 		oss<<setprecision(3);
 		oss<<"          rend.dt("<<metrics::dtrend<<")s   upd.dt("<<metrics::dtupd<<")s     "<<((int)(metrics::globs/(metrics::dtrend?metrics::dtrend:1))>>10)<<"Kglobs/s    rendonly "<<(1/metrics::dtrend)<<"fps";
-		y=h-dy;pl(oss.str().c_str(),y,0,1,.1f);
+		y=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
 		oss<<setprecision(2);
 		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs-metrics::globos<<") f3ds("<<metrics::f3s<<") vbos("<<metrics::globos<<") p3s("<<metrics::p3s<<") m3s("<<metrics::m3s<<") bvols("<<metrics::bvols<<") sphdet("<<metrics::coldetsph<<") sphcols("<<metrics::collisions<<") xz("<<a.getx()<<" "<<a.getz()<<") p("<<*this<<")";
 //		oss<<"keys("<<glut::keysdn<<")";
-		y-=dy;pl(oss.str().c_str(),y,0,1,.1f);
+		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
-		y-=dy;pl(sts.str().c_str(),y,0,1,.1f);
+		y+=dy;pl(sts.str().c_str(),y,0,1,.1f);
 //		sts.str("");
 	}
 	char ccounter;
@@ -1019,7 +1022,8 @@ namespace glut{
 	bool gamemode=false;
 	bool fullscr=false;
 //	windo&wn=*new windo(p3(0,6,15));
-	windo&wn=*new windo(p3(0,0,3));
+//	windo&wn=*new windo(p3(0,0,3));
+	windo&wn=*new windo(p3(0,16,64));
 //	bool nl;
 	void reshape(const int width,const int height){
 		sts<<"reshape("<<w<<"x"<<h<<")";
