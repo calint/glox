@@ -1107,12 +1107,12 @@ namespace glut{
 		if(key==27)// esc
 		{glutReshapeWindow(w,h);exit(0);}
 	}
-	void mouseclk(const int button,const int state,int x,const int y){sts<<"mousclk("<<state<<","<<button<<",["<<x<<","<<y<<",0])"<<endl;}
+	void mouseclk(const int button,const int state,int x,const int y){sts<<"mousclk("<<state<<","<<button<<",["<<x<<","<<y<<",0])";}
 	//void idle(){
 	//	printf("idle\n");
 	//	return;
 	//}
-	void mousemov(const int x,const int y){sts<<"mousmov("<<x<<","<<y<<")"<<endl;}
+	void mousemov(const int x,const int y){sts<<"mousmov("<<x<<","<<y<<")";}
 	static void mainsig(const int i){cerr<<" ••• terminated with signal "<<i<<endl;exit(i);}
 //	static void mainxit(){
 //		if(metrics::nglobs==0){
