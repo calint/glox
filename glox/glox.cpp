@@ -25,6 +25,7 @@ namespace glox{
 		int bvols;
 		int collisions;
 		int globos;
+		int f3s;
 	}
 	inline float dt(const float f){return f*clk::dt;}
 	inline float rnd(const float from,const float tonotincluding){
@@ -248,19 +249,11 @@ public:
 	virtual ~glob(){
 //		cout<<"~glob("<<id<<")";
 		metrics::globs--;
-//		for_each(chs.begin(),chs.end(),[](glob*g){delete*g;});
-//		for_each(chs.begin(),chs.end(),[](_){delete*_;});
-//		for_each(chs.begin(),chs.end(),[](){delete*_;});
-//		for_each(chs.begin(),chs.end(),(){delete*_;});
-//		for_each(chs.begin(),chs.end(),{delete*_;});
-//		for_each(chs.begin(),chs.end(),{delete*_});
-//		for_each(chs,{delete*_});
-		for(auto i=chs.begin();i!=chs.end();i++)
-			delete*i;
+//		auto f=[]{cout<<"hello lambda"<<endl;};f();
+		for(auto g:chs)delete g;
 		chs.clear();
 	}
 	inline p3&agl(){return a;}
-//	inline glob&seta(const p3&a){this->a.set(a);return*this;}
 	void draw(){
 		glTranslatef(getx(),gety(),getz());
 		glRotatef(a.getx(),1,0,0);
@@ -274,66 +267,21 @@ public:
 			glutWireSphere(bv.r,drawboundingspheresdetail,drawboundingspheresdetail);
 			glEnable(GL_LIGHTING);
 		}
-//		for(auto g:chs){
-//			glPushMatrix();
-//			g->draw();
-//			glPopMatrix();
-//		}
-		for(auto i=chs.begin();i!=chs.end();i++){
-//		for(list<glob*>::iterator i=chs.begin();i!=chs.end();i++){
-			glPushMatrix();
-			(*i)->draw();
-			glPopMatrix();
-		}
+		for(auto g:chs){glPushMatrix();g->draw();glPopMatrix();}
 	}
 	virtual void gldraw(){};
 	virtual void tick(){
-		if(!chsadd.empty())
-			chs.splice(chs.end(),chsadd);
-		if(!chsadd.empty())
-			cerr<<"pock"<<endl;
-		for(auto i=chs.begin();i!=chs.end();i++){
-			(*i)->tick();
-		}
-		for(auto i=chsrm.begin();i!=chsrm.end();i++){
-			chs.remove((*i));
-			delete*i;
-		}
+		chs.splice(chs.end(),chsadd);
+		for(auto g:chs)g->tick();
+		for(auto g:chsrm){chs.remove(g);delete g;}
 		chsrm.clear();
 	}
 	inline glob&getglob()const{return g;}
-	virtual bool oncol(glob&o){
-		metrics::collisions++;
-//		cerr<<" collision "<<typeid(*this).name()<<"["<<this->id<<"] "<<typeid(o).name()<<"["<<o.id<<"]"<<endl;
-		return &o!=0;
-	}
-	void rm(){
-//		g.chs.remove(this);
-		g.chsrm.push_back(this);
-	}
+	virtual bool oncol(glob&o){metrics::collisions++;return &o!=0;}
+	void rm(){g.chsrm.push_back(this);}
 };
 bool glob::drawboundingspheres;
 int glob::drawboundingspheresdetail=7;
-
-//class obteapot:public glob{
-//	float dy;
-//public:
-//	obteapot(glob&pt):glob(pt),dy(.1f){}
-//	void gldraw(){
-//		glPushAttrib(GL_ENABLE_BIT);
-//		glEnable(GL_CULL_FACE);
-//		glFrontFace(GL_CW);
-//		glEnable(GL_LIGHTING);
-//		glEnable(GL_LIGHT0);
-//		glutSolidTeapot(1);
-//		glPopAttrib();
-//	}
-//	virtual void tick(){
-//		glob::tick();
-//		transl(0,dt(dy),0);
-//		if(gety()>10||gety()<0)dy=-dy;
-//	}
-//};
 
 class obcorpqb:public glob{
 	float r;
@@ -341,9 +289,7 @@ class obcorpqb:public glob{
 	float a,drscl,dr;
 public:
 	obcorpqb(glob&pt,const float r=1):glob(pt),r(r),a(.25f*n++),drscl(.5){}
-	void gldraw(){
-		glutSolidSphere(r+dr,4,3);
-	}
+	void gldraw(){glutSolidSphere(r+dr,4,3);}
 	virtual void tick(){
 		const float s=.1f;
 		const float dx=rnd(-s,s);
@@ -380,99 +326,55 @@ public:
 		glShadeModel(GL_FLAT);
 		glEnable(GL_CULL_FACE);
 		glFrontFace(GL_CCW);
-		GLfloat matspec[]={ff,ff,ff,1};
-		ff+=dt(1/10);if(ff>1)ff=0;
-		glMaterialfv(GL_FRONT,GL_SPECULAR,matspec);
-		GLfloat matshin[]={f};
-		f++;if(f>128)f=0;
-		glMaterialfv(GL_FRONT,GL_SHININESS,matshin);
-		glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE) ;
-		glEnable(GL_COLOR_MATERIAL) ;
-		glColor3b(127,127,127);
+		glColor4f(.5,.5,.5,1);
+//		GLfloat matspec[]={ff,ff,ff,1};
+//		ff+=dt(1/10);if(ff>1)ff=0;
+//		glMaterialfv(GL_FRONT,GL_SPECULAR,matspec);
+//		GLfloat matshin[]={f};
+//		f++;if(f>128)f=0;
+//		glMaterialfv(GL_FRONT,GL_SHININESS,matshin);
+//		glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE) ;
+//		glEnable(GL_COLOR_MATERIAL) ;
+//		glColor3b(127,127,127);
 
 	}
 };
 const float obcorp::s=7;
 
-//
-//class obquad:public glob{
-//public:
-//	obquad(glob&g):glob(g){}
-//	void gldraw(){
-//		const float s=15.f;
-//
-//		glColor3b(0,0,0x7f);
-//		glBegin(GL_QUADS);
-//		glVertex2f(-s,-s);
-//		glVertex2f( s,-s);
-//		glVertex2f( s, s);
-//		glVertex2f(-s, s);
-//		glEnd();
-//
-//		glColor3b(0,0,127);
-//		glBegin(GL_LINE_STRIP);
-//		glVertex3f(s,0,.01f);
-//		glVertex3f(0,0,.01f);
-//		glColor3b(127,127,127);
-//		glVertex3f(0,s,.02f);
-//		glEnd();
-//
-//		const float r=.75*s;
-//		glPushMatrix();
-//		glTranslatef(0,0,.01f);
-//		glColor3b(0,0x7f,0);
-//		glBegin(GL_TRIANGLE_FAN);
-//		glVertex2f(0,0);
-//		glVertex2f(r,0);
-//		const float dtr=3.14159/180;
-//		const int di=360/12;
-//		for(int i=di;i<=360;i+=di){
-//			const float rd=i*dtr;
-//			glVertex2f(r*cos(rd),r*sin(rd));
-//		}
-//		glEnd();
-//		glPopMatrix();
-//	}
-//	virtual void tick(){
-//		agl().transl(dt(360/60),0,0);
-//		glob::tick();
-//	}
-//};
-//
-//
-//class obwom:public glob{
-//public:
-//	obwom(glob&pt,const int links):glob(pt){
-//		if(links==0)
-//			return;
-//		glob*o=new obwom(*this,links-1);
-//		o->transl(0,.4f,0);
-//	}
-//	void gldraw(){
-//		glPushAttrib(GL_ENABLE_BIT);
-//		glShadeModel(GL_SMOOTH);
-////		glShadeModel(GL_FLAT);
-//		glEnable(GL_CULL_FACE);
-//		glFrontFace(GL_CCW);
-//		glEnable(GL_LIGHTING);
-//		glEnable(GL_LIGHT0);
-//		glColor3b(0,0x20,0x60);
-//		const float dr=rnd(0,.1f);
-////		const float dr=0;
-//		const float r=.4;
-//		glutSolidSphere(r+dr,6,6);
-////		glutSolidCube(r+dr);
-//		glPopAttrib();
-//	}
-//	virtual void tick(){
-//		glob::tick();
-//		agl().transl(dt(60),0,dt(60));
-////		a.transl(0,d(60),d(60));
-////		a.transl(d(60),0,0);
-////		a.transl(d(60),d(60),0);
-//	}
-//};
-//
+
+class obwom:public glob{
+public:
+	obwom(glob&pt,const int links):glob(pt){
+		if(links==0)
+			return;
+		glob&o=*new obwom(*this,links-1);
+		o.transl(0,.4f,0);
+	}
+	void gldraw(){
+		glPushAttrib(GL_ENABLE_BIT);
+		glShadeModel(GL_SMOOTH);
+//		glShadeModel(GL_FLAT);
+		glEnable(GL_CULL_FACE);
+		glFrontFace(GL_CCW);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		glColor3b(0,0x20,0x60);
+		const float dr=rnd(0,.1f);
+//		const float dr=0;
+		const float r=.4f;
+		glutSolidSphere(r+dr,6,6);
+//		glutSolidCube(r+dr);
+		glPopAttrib();
+	}
+	virtual void tick(){
+		glob::tick();
+		agl().transl(dt(60),0,dt(60));
+//		a.transl(0,d(60),d(60));
+//		a.transl(d(60),0,0);
+//		a.transl(d(60),d(60),0);
+	}
+};
+
 
 
 class obball:public glob{
@@ -531,85 +433,117 @@ namespace db{
 	const int sq_ix_count=sq_ix_nbytes/sizeof(GLubyte);
 }
 #include<fstream>
-class globo:public glob{
+class f3{
 	GLuint glpt;
 	GLuint glix;
-protected:
-	virtual void getvtxs(const GLfloat*&buf,int&bufsizebytes,int&floatspervertex){
-		bufsizebytes=db::sq_pt_nbytes;
-		floatspervertex=db::sq_pt_dim;
-		buf=db::sq_pt;
-	}
-	virtual void getixs(const GLubyte*&buf,int&bufsizebytes,int&ixcount){
-		bufsizebytes=db::sq_ix_nbytes;
-		ixcount=db::sq_ix_count;
-		buf=db::sq_ix;
-	}
-public:
 	int vtxbufsizebytes,vtxdim,ixbufsizebytes,ntri;
-	globo(glob&g,const char*filepath="ufo.f3d",const p3&scale=p3(1,1,1),const p3&p=p3()):glob(g,p),glpt(0),glix(0){
-		metrics::globos++;
-		agl().transl(90,0,0);
+	p3 scl;
 
-		ifstream ifs(filepath);
-		if(!ifs.good())throw signl(-1,filepath);
-		ifs>>skipws;
+	f3&load(ifstream&is){
+		is>>skipws;
 		int n;
-		ifs>>n;
+		is>>n;
 		vtxdim=3;
+//		unique_ptr<GLfloat>pt=new GLfloat[(unsigned long)(n*vtxdim)];
 		GLfloat*pt=new GLfloat[(unsigned long)(n*vtxdim)];//? bug leak
 		vtxbufsizebytes=n*vtxdim*(int)sizeof(GLfloat);
 		GLfloat*pp=pt;
+		const float sx=scl.getx();
+		const float sy=scl.gety();
+		const float sz=scl.getz();
 		while(n--){
-			ifs>>*pp;*pp*=scale.getx();pp++;
-			ifs>>*pp;*pp*=scale.gety();pp++;
-			ifs>>*pp;*pp*=scale.getz();pp++;
+			is>>*pp;*pp++*=sx;
+			is>>*pp;*pp++*=sy;
+			is>>*pp;*pp++*=sz;
 		}
 		glGenBuffers(1,&glpt);
 		glBindBuffer(GL_ARRAY_BUFFER,glpt);
 		glBufferData(GL_ARRAY_BUFFER,vtxbufsizebytes,pt,GL_STATIC_DRAW);
-//		delete pt;
+		delete pt;
 
-		ifs>>n;
+		is>>n;
 		ntri=n;
-		GLubyte*ix=new GLubyte[(unsigned int)ntri*3];
+		GLubyte*ix=new GLubyte[(unsigned int)ntri*3];//? leak
 		ixbufsizebytes=(int)sizeof(GLubyte)*ntri*3;
 		GLubyte*p1=ix;
 		while(n--){
 			int i0,i1,i2;
-			int nv;ifs>>nv;
+			int nv;is>>nv;
 			if(nv!=3)throw signl(-3,"surfacenottriangle");
-			ifs>>i0;*p1++=(GLubyte)i0;
-			ifs>>i1;*p1++=(GLubyte)i1;
-			ifs>>i2;*p1++=(GLubyte)i2;
+			is>>i0;*p1++=(GLubyte)i0;
+			is>>i1;*p1++=(GLubyte)i1;
+			is>>i2;*p1++=(GLubyte)i2;
 			GLshort rgb[3];
-			ifs>>rgb[0]>>rgb[1]>>rgb[2];
-//			cout<<rgb[0]<<" "<<rgb[1]<<endl;
+			is>>rgb[0]>>rgb[1]>>rgb[2];
 		}
-		ifs.close();
 //		cout<<filepath<<"(nvtx("<<vtxbufsizebytes/vtxdim/(int)sizeof(GLfloat)<<") nix("<<ntri<<"))"<<endl;
 
 		glGenBuffers(1,&glix);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,glix);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER,ixbufsizebytes,ix,GL_STATIC_DRAW);
-//		delete ix;
+		delete ix;//? uqptr
+		return*this;
 	}
-	~globo(){
+public:
+	f3(const char*filepath="ufo.f3",const p3&scale=p3(1,1,1)):glpt(0),glix(0),vtxbufsizebytes(0),vtxdim(0),ixbufsizebytes(0),ntri(0),scl(scale){
+		metrics::f3s++;
+		ifstream is(filepath);
+		if(!is.good())throw signl(-1,filepath);
+		load(is);
+		if(!is.good())throw signl(-1,filepath);
+		is.close();
+	}
+	virtual~f3(){
 		if(glpt)glDeleteBuffers(1,&glpt);
 		if(glix)glDeleteBuffers(1,&glix);
-		metrics::globos--;
+		metrics::f3s--;
 	}
+	inline const p3&scale()const{return scl;}
 	virtual void gldraw(){
-		glBindBuffer(GL_ARRAY_BUFFER, glpt);
-		glVertexAttribPointer(0,vtxdim,GL_FLOAT,GL_FALSE,0,0);
-		glEnableVertexAttribArray(0);
-
-//		glPointSize(3);
-//		glColor3b(0,0,0);
-//		glDrawArrays(GL_POINTS,0,vtxbufsizebytes/vtxdim);
-
+		if(glpt){
+			glBindBuffer(GL_ARRAY_BUFFER,glpt);
+			glVertexAttribPointer(0,vtxdim,GL_FLOAT,GL_FALSE,0,0);
+			glEnableVertexAttribArray(0);
+		}
+		if(!glix){
+			glPointSize(3);
+			glColor3b(0,0,0);
+			glDrawArrays(GL_POINTS,0,vtxbufsizebytes/vtxdim);
+			return;
+		}
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,glix);
+		gldrawelems();
+	}
+protected:
+	virtual void gldrawelems(){
+		glColor3b(0,0,0);
 		glDrawElements(GL_TRIANGLES,ixbufsizebytes,GL_UNSIGNED_BYTE,0);
+	}
+};
+
+class obufo:public glob{
+	f3&f;
+public:
+	obufo(glob&g,f3&f,const p3&pos=p3()):glob(g,pos,p3(),f.scale().magn(),f.scale()),f(f){
+		metrics::globos++;
+	}
+	virtual~obufo(){metrics::globos--;}
+	void gldraw(){f.gldraw();}
+};
+
+static f3*fufo=0;
+class obufocluster:glob{
+public:
+	obufocluster(glob&g,const p3&p=p3()):glob(g){
+		const float s=20;
+		const float ds=s/9;
+		for(float zz=-s;zz<=s;zz+=ds)
+			for(float yy=-s;yy<=s;yy+=ds)
+				for(float xx=-s;xx<=s;xx+=ds)
+					if(sqrtf(xx*xx+yy*yy+zz*zz)>s)
+						continue;
+					else
+						new obufo(*this,*fufo,p3(p.getx()+xx,p.gety()+yy,p.getz()+zz));
 	}
 };
 
@@ -622,19 +556,22 @@ class wold:public glob{
 		agl().transl(-111,0,0);
 //		transl(0,-.3,0);
 		bv.r=s;
-		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
-//		new obball(*this,p3(0,0,10));
-//		new obball(*this,p3(.1f,0,10));
 	}
-//	~wold(){cout<<endl<<" ~wold() ";}
+	~wold(){if(fufo)delete fufo;}
 public:
-	inline static wold&get(){return wd;}
+	void load(){
+		//		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
+		//		new obball(*this,p3(0,0,10));
+		//		new obball(*this,p3(.1f,0,10));
 
+//		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
+		fufo=new f3("ufo.f3",p3(1,1,1));//? leak
+		new obufocluster(*this);
+	}
+
+	inline static wold&get(){return wd;}
 	bool drawaxis,drawgrid,hidezplane,coldet;
 	float ddegx,ddegz;
-	void initvbo(){
-		new globo(*this,"ufo.f3d",p3(1.5,.25,1),p3(0,0,20));
-	}
 	void gldraw(){
 		glDisable(GL_LIGHTING);
 		glDisable(GL_CULL_FACE);
@@ -872,7 +809,7 @@ class windo:public glob{
 
 		oss.str("");
 		oss<<setprecision(2);
-		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs-metrics::globos<<") vbos("<<metrics::globos<<") p3s("<<metrics::p3s<<") m3s("<<metrics::m3s<<") bvols("<<metrics::bvols<<") sphdet("<<metrics::coldetsph<<") sphcols("<<metrics::collisions<<") xz("<<a.getx()<<" "<<a.getz()<<") p("<<*this<<")";
+		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs-metrics::globos<<") f3ds("<<metrics::f3s<<") vbos("<<metrics::globos<<") p3s("<<metrics::p3s<<") m3s("<<metrics::m3s<<") bvols("<<metrics::bvols<<") sphdet("<<metrics::coldetsph<<") sphcols("<<metrics::collisions<<") xz("<<a.getx()<<" "<<a.getz()<<") p("<<*this<<")";
 //		oss<<"keys("<<glut::keysdn<<")";
 		y-=dy;pl(oss.str().c_str(),y,0,1,.1f);
 	}
@@ -912,6 +849,17 @@ public:
 //		const GLfloat lhtcol[]={0,0,0,1};
 //		glLightfv(GL_LIGHT0,GL_AMBIENT_AND_DIFFUSE,lhtcol);
 
+
+		float ff=0,f=0;
+		GLfloat matspec[]={ff,ff,ff,1};
+		ff+=dt(1/10);if(ff>1)ff=0;
+		glMaterialfv(GL_FRONT,GL_SPECULAR,matspec);
+		GLfloat matshin[]={f};
+		f++;if(f>128)f=0;
+		glMaterialfv(GL_FRONT,GL_SHININESS,matshin);
+		glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE) ;
+		glEnable(GL_COLOR_MATERIAL) ;
+		glColor3b(127,127,127);
 
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 //		glClear(GL_COLOR_BUFFER_BIT);
@@ -1070,7 +1018,7 @@ namespace glut{
 			}
 		}
 
-		wold::get().initvbo();
+		wold::get().load();
 
 		glutDisplayFunc(draw);
 		glutReshapeFunc(reshape);
@@ -1090,8 +1038,8 @@ namespace glut{
 			cout<<setw(16)<<"m3"<<setw(8)<<sizeof(m3)<<endl;
 			cout<<setw(16)<<"glob"<<setw(8)<<sizeof(glob)<<endl;
 			cout<<setw(16)<<"bvol"<<setw(8)<<sizeof(bvol)<<endl;
+			cout<<endl;
 		}
-		cout<<endl;
 		glutMainLoop();
 		return 0;
 	}

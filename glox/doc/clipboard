@@ -1,3 +1,71 @@
+//
+//class obquad:public glob{
+//public:
+//	obquad(glob&g):glob(g){}
+//	void gldraw(){
+//		const float s=15.f;
+//
+//		glColor3b(0,0,0x7f);
+//		glBegin(GL_QUADS);
+//		glVertex2f(-s,-s);
+//		glVertex2f( s,-s);
+//		glVertex2f( s, s);
+//		glVertex2f(-s, s);
+//		glEnd();
+//
+//		glColor3b(0,0,127);
+//		glBegin(GL_LINE_STRIP);
+//		glVertex3f(s,0,.01f);
+//		glVertex3f(0,0,.01f);
+//		glColor3b(127,127,127);
+//		glVertex3f(0,s,.02f);
+//		glEnd();
+//
+//		const float r=.75*s;
+//		glPushMatrix();
+//		glTranslatef(0,0,.01f);
+//		glColor3b(0,0x7f,0);
+//		glBegin(GL_TRIANGLE_FAN);
+//		glVertex2f(0,0);
+//		glVertex2f(r,0);
+//		const float dtr=3.14159/180;
+//		const int di=360/12;
+//		for(int i=di;i<=360;i+=di){
+//			const float rd=i*dtr;
+//			glVertex2f(r*cos(rd),r*sin(rd));
+//		}
+//		glEnd();
+//		glPopMatrix();
+//	}
+//	virtual void tick(){
+//		agl().transl(dt(360/60),0,0);
+//		glob::tick();
+//	}
+//};
+//
+
+//class obteapot:public glob{
+//	float dy;
+//public:
+//	obteapot(glob&pt):glob(pt),dy(.1f){}
+//	void gldraw(){
+//		glPushAttrib(GL_ENABLE_BIT);
+//		glEnable(GL_CULL_FACE);
+//		glFrontFace(GL_CW);
+//		glEnable(GL_LIGHTING);
+//		glEnable(GL_LIGHT0);
+//		glutSolidTeapot(1);
+//		glPopAttrib();
+//	}
+//	virtual void tick(){
+//		glob::tick();
+//		transl(0,dt(dy),0);
+//		if(gety()>10||gety()<0)dy=-dy;
+//	}
+//};
+
+
+
 //#define mhello()cout<<"hello"<<endl;
 //static inline ostream&ll(const char*s="",const char*file="",int lineno=0,const char*func=""){return l(s,file,lineno,func)<<endl;}
 
