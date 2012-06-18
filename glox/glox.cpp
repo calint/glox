@@ -252,6 +252,13 @@ public:
 	virtual ~glob(){
 //		cout<<"~glob("<<id<<")";
 		metrics::globs--;
+//		for_each(chs.begin(),chs.end(),[](glob*g){delete*g;});
+//		for_each(chs.begin(),chs.end(),[](_){delete*_;});
+//		for_each(chs.begin(),chs.end(),[](){delete*_;});
+//		for_each(chs.begin(),chs.end(),(){delete*_;});
+//		for_each(chs.begin(),chs.end(),{delete*_;});
+//		for_each(chs.begin(),chs.end(),{delete*_});
+//		for_each(chs,{delete*_});
 		for(auto i=chs.begin();i!=chs.end();i++)
 			delete*i;
 		chs.clear();
@@ -581,7 +588,7 @@ public:
 			ifs>>i2;*p1++=(GLubyte)i2;
 			GLshort rgb[3];
 			ifs>>rgb[0]>>rgb[1]>>rgb[2];
-			cout<<rgb[0]<<" "<<rgb[1]<<endl;
+//			cout<<rgb[0]<<" "<<rgb[1]<<endl;
 		}
 		ifs.close();
 //		cout<<filepath<<"(nvtx("<<vtxbufsizebytes/vtxdim/(int)sizeof(GLfloat)<<") nix("<<ntri<<"))"<<endl;
@@ -627,7 +634,7 @@ class wold:public glob{
 public:
 	inline static wold&get(){return wd;}
 
-	bool drawaxis,drawgrid,hidezplane;
+	bool drawaxis,drawgrid,hidezplane,coldet;
 	float ddegx,ddegz;
 	void initvbo(){
 		new globo(*this,"ufo.f3d",p3(1.5,.25,1),p3(0,0,20));
@@ -703,21 +710,23 @@ public:
 	}
 	void tick(){
 		agl().transl(-dt(ddegx),0,dt(ddegz));
-		list<glob*>::iterator i1=chs.begin();
-		while(true){
-			list<glob*>::reverse_iterator i2=chs.rbegin();
-			if(*i1==*i2)
-				break;
-			glob&g1=*(*i1);
-			do{
-				glob&g2=*(*i2);
-				if(g1.bv.spheresoverlap(g1,g2,g2.bv)){
-					g1.oncol(g2);
-					g2.oncol(g1);
-				}
-				i2++;
-			}while(*i1!=*i2);
-			i1++;
+		if(coldet){
+			auto i1=chs.begin();
+			while(true){
+				auto i2=chs.rbegin();
+				if(*i1==*i2)
+					break;
+				glob&g1=*(*i1);
+				do{
+					glob&g2=*(*i2);
+					if(g1.bv.spheresoverlap(g1,g2,g2.bv)){
+						g1.oncol(g2);
+						g2.oncol(g1);
+					}
+					i2++;
+				}while(*i1!=*i2);
+				i1++;
+			}
 		}
 		glob::tick();
 	}
@@ -1020,6 +1029,7 @@ namespace glut{
 		else if(key=='2'){wd.drawaxis=!wd.drawaxis;}
 		else if(key=='3'){wd.drawgrid=!wd.drawgrid;}
 		else if(key=='4'){wd.hidezplane=!wd.hidezplane;}
+		else if(key=='5'){wd.coldet=!wd.coldet;}
 	}
 	void keyup(const unsigned char key,const int x,const int y){
 		const char k[]={(char)key,0};
