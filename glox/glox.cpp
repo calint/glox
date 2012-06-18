@@ -521,13 +521,13 @@ protected:
 	}
 };
 
-class obufo:public glob{
+class globo:public glob{
 	f3&f;
 public:
-	obufo(glob&g,f3&f,const p3&pos=p3()):glob(g,pos,p3(),f.scale().magn(),f.scale()),f(f){
+	globo(glob&g,f3&f,const p3&pos=p3()):glob(g,pos,p3(),f.scale().magn(),f.scale()),f(f){
 		metrics::globos++;
 	}
-	virtual~obufo(){metrics::globos--;}
+	virtual~globo(){metrics::globos--;}
 	void gldraw(){f.gldraw();}
 };
 
@@ -543,7 +543,7 @@ public:
 					if(sqrtf(xx*xx+yy*yy+zz*zz)>s)
 						continue;
 					else
-						new obufo(*this,*fufo,p3(p.getx()+xx,p.gety()+yy,p.getz()+zz));
+						new globo(*this,*fufo,p3(p.getx()+xx,p.gety()+yy,p.getz()+zz));
 	}
 };
 
