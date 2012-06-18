@@ -252,7 +252,7 @@ public:
 	virtual ~glob(){
 //		cout<<"~glob("<<id<<")";
 		metrics::globs--;
-		for(list<glob*>::iterator i=chs.begin();i!=chs.end();i++)
+		for(auto i=chs.begin();i!=chs.end();i++)
 			delete*i;
 		chs.clear();
 	}
@@ -276,7 +276,8 @@ public:
 //			g->draw();
 //			glPopMatrix();
 //		}
-		for(list<glob*>::iterator i=chs.begin();i!=chs.end();i++){
+		for(auto i=chs.begin();i!=chs.end();i++){
+//		for(list<glob*>::iterator i=chs.begin();i!=chs.end();i++){
 			glPushMatrix();
 			(*i)->draw();
 			glPopMatrix();
@@ -288,10 +289,10 @@ public:
 			chs.splice(chs.end(),chsadd);
 		if(!chsadd.empty())
 			cerr<<"pock"<<endl;
-		for(list<glob*>::iterator i=chs.begin();i!=chs.end();i++){
+		for(auto i=chs.begin();i!=chs.end();i++){
 			(*i)->tick();
 		}
-		for(list<glob*>::iterator i=chsrm.begin();i!=chsrm.end();i++){
+		for(auto i=chsrm.begin();i!=chsrm.end();i++){
 			chs.remove((*i));
 			delete*i;
 		}
