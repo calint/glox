@@ -630,7 +630,7 @@ public:
 	bool drawaxis,drawgrid,hidezplane;
 	float ddegx,ddegz;
 	void initvbo(){
-		new globo(*this,"ufo.f3d",p3(3,.5,2),p3(0,0,20));
+		new globo(*this,"ufo.f3d",p3(1.5,.25,1),p3(0,0,20));
 	}
 	void gldraw(){
 		glDisable(GL_LIGHTING);

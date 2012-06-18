@@ -5,7 +5,7 @@ bin=$bindir/glox
 #cc=g++
 cc=clang++
 cmd="$cc -o $bin $src\
-	-Wfatal-errors -Wall -Wextra -Werror -Wconversion -pedantic -pedantic-errors\
+	-std=c++0x -Wfatal-errors -Wall -Wextra -Werror -Wconversion -pedantic -pedantic-errors\
 	-framework OpenGL\
 	-framework GLUT\
 	-I/System/Library/Frameworks/GLUT.framework/Versions/Current/Headers\
