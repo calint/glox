@@ -4,6 +4,8 @@
 #include<iostream>
 using namespace std;
 
+#include<sstream>
+
 namespace glox{
 	namespace clk{
 		int dtms=10;
@@ -31,6 +33,7 @@ namespace glox{
 	inline float rnd(const float from,const float tonotincluding){
 		return from+(tonotincluding-from)*rand()/RAND_MAX;
 	}
+	ostringstream sts;
 }
 using namespace glox;
 
@@ -246,7 +249,7 @@ public:
 			return;
 		g.chsadd.push_back(this);
 	}
-	virtual ~glob(){
+	virtual~glob(){
 //		cout<<"~glob("<<id<<")";
 		metrics::globs--;
 //		auto f=[]{cout<<"hello lambda"<<endl;};f();
@@ -424,15 +427,17 @@ public:
 	}
 };
 
-namespace db{
-	const int sq_pt_dim=2;
-	const GLfloat sq_pt[]={0,0, 1,0, 1,1, 0,1};
-	const int sq_pt_nbytes=sizeof(sq_pt);
-	const GLubyte sq_ix[]={0,1,2,3,0};
-	const int sq_ix_nbytes=sizeof(sq_ix);
-	const int sq_ix_count=sq_ix_nbytes/sizeof(GLubyte);
-}
+//namespace db{
+//	const int sq_pt_dim=2;
+//	const GLfloat sq_pt[]={0,0, 1,0, 1,1, 0,1};
+//	const int sq_pt_nbytes=sizeof(sq_pt);
+//	const GLubyte sq_ix[]={0,1,2,3,0};
+//	const int sq_ix_nbytes=sizeof(sq_ix);
+//	const int sq_ix_count=sq_ix_nbytes/sizeof(GLubyte);
+//}
+
 #include<fstream>
+
 class f3{
 	GLuint glpt;
 	GLuint glix;
@@ -524,10 +529,8 @@ protected:
 class globo:public glob{
 	f3&f;
 public:
-	globo(glob&g,f3&f,const p3&pos=p3()):glob(g,pos,p3(),f.scale().magn(),f.scale()),f(f){
-		metrics::globos++;
-	}
-	virtual~globo(){metrics::globos--;}
+	globo(glob&g,f3&f,const p3&pos=p3()):glob(g,pos,p3(),f.scale().magn(),f.scale()),f(f){metrics::globos++;}
+	~globo(){metrics::globos--;}
 	void gldraw(){f.gldraw();}
 };
 
@@ -560,13 +563,14 @@ class wold:public glob{
 	~wold(){if(fufo)delete fufo;}
 public:
 	void load(){
-		//		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
+		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
+//		new obcorp(*this,p3(0,9,4.2f),p3(90,0,0));
 		//		new obball(*this,p3(0,0,10));
 		//		new obball(*this,p3(.1f,0,10));
 
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 		fufo=new f3("ufo.f3",p3(1,1,1));//? leak
-		new obufocluster(*this);
+//		new obufocluster(*this,p3(50,0,0));
 	}
 
 	inline static wold&get(){return wd;}
@@ -775,7 +779,6 @@ public:
 
 
 #include<sys/time.h>
-#include<sstream>
 #include <iomanip>
 
 class windo:public glob{
@@ -794,7 +797,7 @@ class windo:public glob{
 		const int dy=h>>5;
 		int y=dy>>2;
 
-		pl("glox",y,0,1,.2f);
+//		pl("glox",y,0,1,.2f);
 
 		const p3&a=wold::get().agl();
 		timeval tv;gettimeofday(&tv,0);
@@ -806,12 +809,14 @@ class windo:public glob{
 		oss<<"          rend.dt("<<metrics::dtrend<<")s   upd.dt("<<metrics::dtupd<<")s     "<<((int)(metrics::globs/(metrics::dtrend?metrics::dtrend:1))>>10)<<"Kglobs/s    rendonly "<<(1/metrics::dtrend)<<"fps";
 		y=h-dy;pl(oss.str().c_str(),y,0,1,.1f);
 
-
 		oss.str("");
 		oss<<setprecision(2);
 		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs-metrics::globos<<") f3ds("<<metrics::f3s<<") vbos("<<metrics::globos<<") p3s("<<metrics::p3s<<") m3s("<<metrics::m3s<<") bvols("<<metrics::bvols<<") sphdet("<<metrics::coldetsph<<") sphcols("<<metrics::collisions<<") xz("<<a.getx()<<" "<<a.getz()<<") p("<<*this<<")";
 //		oss<<"keys("<<glut::keysdn<<")";
 		y-=dy;pl(oss.str().c_str(),y,0,1,.1f);
+
+		y-=dy;pl(sts.str().c_str(),y,0,1,.1f);
+//		sts.str("");
 	}
 	char ccounter;
 public:
@@ -899,9 +904,10 @@ namespace glut{
 	bool gamemode=false;
 	bool fullscr=false;
 	windo&wn=*new windo(p3(0,6,15));
-	bool nl;
+//	bool nl;
 	void reshape(const int width,const int height){
-		cout<<" reshape("<<w<<"x"<<h<<")";nl=true;
+		sts<<"reshape("<<w<<"x"<<h<<")";
+//		nl=true;
 		w=width;h=height;
 	}
 	void draw(){
@@ -911,10 +917,10 @@ namespace glut{
 		metrics::dtrend=clk::timerdt();
 		metrics::coldetsph=metrics::collisions=0;
 		glutSwapBuffers();
-		if(nl){
-			cout<<endl;
-			nl=false;
-		}
+//		if(nl){
+//			cout<<endl;
+//			nl=false;
+//		}
 	}
 	bool iskeydn(const unsigned char key,const bool setifnot=0){
 		static char k[]={0,0};
@@ -944,7 +950,8 @@ namespace glut{
 	}
 	void keydn(const unsigned char key,const int x,const int y){
 		if(iskeydn(key,true))return;
-		cout<<"keydn("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";nl=true;
+		sts<<"keydn("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
+//		nl=true;
 		if(key=='0'){
 			fullscr=!fullscr;
 			if(fullscr){
@@ -974,20 +981,22 @@ namespace glut{
 		else if(key=='3'){wd.drawgrid=!wd.drawgrid;}
 		else if(key=='4'){wd.hidezplane=!wd.hidezplane;}
 		else if(key=='5'){wd.coldet=!wd.coldet;}
+		else if(key=='6'){sts.str("");}
 	}
 	void keyup(const unsigned char key,const int x,const int y){
 		const char k[]={(char)key,0};
 		keysdn.rm(k);//? whatif 1 and not handled
-		cout<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";nl=true;
+		sts<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
+//		nl=true;
 		if(key==27)// esc
 		{glutReshapeWindow(w,h);exit(0);}
 	}
-	void mouseclk(const int button,const int state,int x,const int y){cout<<"mousclk("<<state<<","<<button<<",["<<x<<","<<y<<",0])"<<endl;}
+	void mouseclk(const int button,const int state,int x,const int y){sts<<"mousclk("<<state<<","<<button<<",["<<x<<","<<y<<",0])"<<endl;}
 	//void idle(){
 	//	printf("idle\n");
 	//	return;
 	//}
-	void mousemov(const int x,const int y){cout<<"mousmov("<<x<<","<<y<<")"<<endl;}
+	void mousemov(const int x,const int y){sts<<"mousmov("<<x<<","<<y<<")"<<endl;}
 	static void mainsig(const int i){cerr<<" ••• terminated with signal "<<i<<endl;exit(i);}
 //	static void mainxit(){
 //		if(metrics::nglobs==0){
@@ -998,7 +1007,7 @@ namespace glut{
 //	}
 	int main(int argc,char**argv){
 //		atexit(mainxit);
-		cout<<"glox ";
+		cout<<"glox"<<endl;
 		for(int i=0;i<32;i++)signal(i,mainsig);//?
 		srand(0);
 		gnox();
