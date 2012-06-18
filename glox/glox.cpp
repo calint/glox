@@ -556,7 +556,7 @@ protected:
 	int wihi;
 	GLubyte*rgba;
 public:
-	obtex(glob&g,const int wihi=4*16,const p3&p=p3(),const p3&a=p3(),const float r=1,const p3&v=p3()):glob(g,p,a,r,v),gltx(0),wihi(wihi){
+	obtex(glob&g,const int wihi=4*32,const p3&p=p3(),const p3&a=p3(),const float r=1,const p3&v=p3()):glob(g,p,a,r,v),gltx(0),wihi(wihi){
 		rgba=new GLubyte[wihi*wihi*4];
 		zap();
 
@@ -580,8 +580,8 @@ public:
 		int n=wihi*wihi;
 		GLubyte*pp=rgba;
 		while(n--){
-			*pp++=(GLubyte)rnd(0,255);
-			*pp++=(GLubyte)rnd(0,255);
+			*pp++=0;//(GLubyte)rnd(0,255);
+			*pp++=0;//(GLubyte)rnd(0,255);
 			*pp++=(GLubyte)rnd(0,255);
 			*pp++=255;
 		}
@@ -606,7 +606,6 @@ public:
 
 namespace fnt4{
 	int wh=4;
-//	short a=0b0001000100010001;
 	short a=0x1111;
 }
 
@@ -622,12 +621,12 @@ public:
 		i>>=2;
 		while(i--)*p++=0;
 
-		p=rgba;
+		p=rgba+wihi*4+4;
 		int w=fnt4::wh;
 		int h=fnt4::wh;
-		const unsigned short s[]={0x08be,0x1350,0x0000};
+		const unsigned short s[]={0x0651,0x0530,0x0252,0x0525,0x0000,0x0212,0x0252,0x0530,0x0324,0x0252,0x0610,0x0737,0x0000,0x0252,0x0160,0x0137,0x0552,0x0212,0x0737};
 		const int sln=sizeof(s)/sizeof(short);
-		int m=3;
+		int m=1;
 		while(m--){
 			GLubyte*pnl=p;
 			for(int i=0;i<sln;i++){
@@ -655,9 +654,9 @@ public:
 			}
 			p=pnl+fnt4::wh*wihi*4;
 		}
-		GLuint*ip=(GLuint*)rgba;
-		*ip=0xff0000ff;
-		*(ip+wihi*wihi-1)=0xffff00ff;
+//		GLuint*ip=(GLuint*)rgba;
+//		*ip=0xff0000ff;
+//		*(ip+wihi*wihi-1)=0xffff00ff;
 		updtx();
 	}
 };
@@ -667,7 +666,7 @@ public:
 class wold:public glob{
 	static wold wd;
 	wold():glob(*(glob*)0,p3(),p3(),15),ddegx(0),ddegz(.1f){
-//		agl().transl(-111,0,0);
+		agl().transl(180,0,0);
 	}
 	~wold(){if(fufo)delete fufo;}
 public:
@@ -1017,7 +1016,7 @@ namespace glut{
 	bool gamemode=false;
 	bool fullscr=false;
 //	windo&wn=*new windo(p3(0,6,15));
-	windo&wn=*new windo(p3(0,0,10));
+	windo&wn=*new windo(p3(0,0,3));
 //	bool nl;
 	void reshape(const int width,const int height){
 		sts<<"reshape("<<w<<"x"<<h<<")";
