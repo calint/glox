@@ -29,6 +29,8 @@ namespace glox{
 		int collisions;
 		int globos;
 		int f3s;
+		int mwmxrefresh;
+		int m3p3mul;
 	}
 	inline float dt(const float f=1){return f*clk::dt;}
 	inline float rnd(const float from,const float tonotincluding){
@@ -301,6 +303,7 @@ public:
 		return*this;
 	}
 	const m3&mult(const p3&src,p3&dst)const{
+		metrics::m3p3mul++;
 		const float x=src.getx();
 		const float y=src.gety();
 		const float z=src.getz();
@@ -423,6 +426,7 @@ public:
 				return false;
 			}
 		}
+		metrics::mwmxrefresh++;
 		mxmw=g.mxmw;
 		mxmwpos=*this;
 		mxmw.transl(mxmwpos);
@@ -1187,9 +1191,14 @@ class windo:public glob{
 
 		oss.str("");
 		oss<<setprecision(2);
-		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs-metrics::globos<<") f3ds("<<metrics::f3s<<") vbos("<<metrics::globos<<") p3s("<<metrics::p3s<<") m3s("<<metrics::m3s<<") bvols("<<metrics::bvols<<") sphdet("<<metrics::coldetsph<<") sphcols("<<metrics::collisions<<") xz("<<a.getx()<<" "<<a.getz()<<") p("<<*this<<")";
-//		oss<<"keys("<<glut::keysdn<<")";
+		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs-metrics::globos<<") f3s("<<metrics::f3s<<") vbos("<<metrics::globos<<") p3s("<<metrics::p3s<<") m3s("<<metrics::m3s<<") bvols("<<metrics::bvols<<") sphdet("<<metrics::coldetsph<<") sphcols("<<metrics::collisions<<") xz("<<a.getx()<<" "<<a.getz()<<") p("<<*this<<")";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
+
+		oss.str("");
+		oss<<"mxrfsh("<<metrics::mwmxrefresh<<")";
+		oss<<" m3p3mul("<<metrics::m3p3mul<<")";
+		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
+
 
 		y+=dy;pl(sts.str().c_str(),y,0,1,.1f);
 //		sts.str("");
@@ -1365,7 +1374,7 @@ namespace glut{
 			}
 		}
 
-		metrics::coldetsph=metrics::collisions=0;
+		metrics::coldetsph=metrics::collisions=metrics::mwmxrefresh=metrics::m3p3mul=0;
 		clk::timerrestart();
 		wold::get().tick();
 		metrics::dtupd=clk::timerdt();
