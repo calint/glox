@@ -1444,7 +1444,7 @@ namespace glut{
 		else if(key=='6'){wn.set(p3(0,0,3));}
 		else if(key==13){inp<<endl;consolemode=!consolemode;}
 		else if(key==127){sts.str("");}// bkspc
-		else if(key=='k'){if(wn.rocketry>0){wn.f.set(0,11,0);};wn.rocketry-=dt(12);}
+		else if(key=='k'){if(wn.rocketry>0){wn.f.set(0,11,0);};wn.rocketry-=dt(30);}
 		else if(key=='i'){if(wn.flappery>0){wn.fi.set(0,300,0);wn.flappery-=1;}}
 
 	}
