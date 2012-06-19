@@ -12,6 +12,7 @@ namespace glox{
 		float dt=dtms/1000.f;
 		clock_t t0=clock();
 		clock_t t1=t0;
+		int tk=0;
 		inline void timerrestart(){t1=clock();}
 		inline clock_t timerdclk(){return clock()-t1;}
 		inline float timerdt(){return (float)(clock()-t1)/CLOCKS_PER_SEC;}
@@ -60,6 +61,7 @@ public:
 	inline p3&neg(){x=-x;y=-y;z=-z;return*this;}
 	inline p3&scale(const float s){x*=s;y*=s;z*=s;return*this;}
 	inline p3&scale(const float sx,const float sy,const float sz){x*=sx;y*=sy;z*=sz;return*this;}
+	inline bool operator==(const p3&p)const{return x==p.x&&y==p.y&&z==p.z;}
 	friend ostream&operator<<(ostream&,const p3&);
 	friend istream&operator>>(istream&,p3&);
 };
@@ -110,19 +112,154 @@ public:
 #define flf()l("  ",__FILE__,__LINE__,__FUNCTION__);
 static inline ostream&l(const char*s="",const char*file="",int lineno=0,const char*func=""){cerr<<file;if(lineno){cerr<<":"<<lineno;}cerr<<" "<<func<<"  "<<s;return cerr;}
 
+
+
+
+
+
+bool gluInvertMatrix(const float m[16],float invOut[16]){
+	double inv[16],det;
+	int i;
+
+	inv[0] = m[5]  * m[10] * m[15] -
+             m[5]  * m[11] * m[14] -
+             m[9]  * m[6]  * m[15] +
+             m[9]  * m[7]  * m[14] +
+             m[13] * m[6]  * m[11] -
+             m[13] * m[7]  * m[10];
+
+	inv[4] = -m[4]  * m[10] * m[15] +
+              m[4]  * m[11] * m[14] +
+              m[8]  * m[6]  * m[15] -
+              m[8]  * m[7]  * m[14] -
+              m[12] * m[6]  * m[11] +
+              m[12] * m[7]  * m[10];
+
+	inv[8] = m[4]  * m[9] * m[15] -
+             m[4]  * m[11] * m[13] -
+             m[8]  * m[5] * m[15] +
+             m[8]  * m[7] * m[13] +
+             m[12] * m[5] * m[11] -
+             m[12] * m[7] * m[9];
+
+	inv[12] = -m[4]  * m[9] * m[14] +
+               m[4]  * m[10] * m[13] +
+               m[8]  * m[5] * m[14] -
+               m[8]  * m[6] * m[13] -
+               m[12] * m[5] * m[10] +
+               m[12] * m[6] * m[9];
+
+	inv[1] = -m[1]  * m[10] * m[15] +
+              m[1]  * m[11] * m[14] +
+              m[9]  * m[2] * m[15] -
+              m[9]  * m[3] * m[14] -
+              m[13] * m[2] * m[11] +
+              m[13] * m[3] * m[10];
+
+	inv[5] = m[0]  * m[10] * m[15] -
+             m[0]  * m[11] * m[14] -
+             m[8]  * m[2] * m[15] +
+             m[8]  * m[3] * m[14] +
+             m[12] * m[2] * m[11] -
+             m[12] * m[3] * m[10];
+
+	inv[9] = -m[0]  * m[9] * m[15] +
+              m[0]  * m[11] * m[13] +
+              m[8]  * m[1] * m[15] -
+              m[8]  * m[3] * m[13] -
+              m[12] * m[1] * m[11] +
+              m[12] * m[3] * m[9];
+
+	inv[13] = m[0]  * m[9] * m[14] -
+              m[0]  * m[10] * m[13] -
+              m[8]  * m[1] * m[14] +
+              m[8]  * m[2] * m[13] +
+              m[12] * m[1] * m[10] -
+              m[12] * m[2] * m[9];
+
+	inv[2] = m[1]  * m[6] * m[15] -
+             m[1]  * m[7] * m[14] -
+             m[5]  * m[2] * m[15] +
+             m[5]  * m[3] * m[14] +
+             m[13] * m[2] * m[7] -
+             m[13] * m[3] * m[6];
+
+	inv[6] = -m[0]  * m[6] * m[15] +
+              m[0]  * m[7] * m[14] +
+              m[4]  * m[2] * m[15] -
+              m[4]  * m[3] * m[14] -
+              m[12] * m[2] * m[7] +
+              m[12] * m[3] * m[6];
+
+	inv[10] = m[0]  * m[5] * m[15] -
+              m[0]  * m[7] * m[13] -
+              m[4]  * m[1] * m[15] +
+              m[4]  * m[3] * m[13] +
+              m[12] * m[1] * m[7] -
+              m[12] * m[3] * m[5];
+
+	inv[14] = -m[0]  * m[5] * m[14] +
+               m[0]  * m[6] * m[13] +
+               m[4]  * m[1] * m[14] -
+               m[4]  * m[2] * m[13] -
+               m[12] * m[1] * m[6] +
+               m[12] * m[2] * m[5];
+
+	inv[3] = -m[1] * m[6] * m[11] +
+              m[1] * m[7] * m[10] +
+              m[5] * m[2] * m[11] -
+              m[5] * m[3] * m[10] -
+              m[9] * m[2] * m[7] +
+              m[9] * m[3] * m[6];
+
+	inv[7] = m[0] * m[6] * m[11] -
+             m[0] * m[7] * m[10] -
+             m[4] * m[2] * m[11] +
+             m[4] * m[3] * m[10] +
+             m[8] * m[2] * m[7] -
+             m[8] * m[3] * m[6];
+
+	inv[11] = -m[0] * m[5] * m[11] +
+               m[0] * m[7] * m[9] +
+               m[4] * m[1] * m[11] -
+               m[4] * m[3] * m[9] -
+               m[8] * m[1] * m[7] +
+               m[8] * m[3] * m[5];
+
+	inv[15] = m[0] * m[5] * m[10] -
+              m[0] * m[6] * m[9] -
+              m[4] * m[1] * m[10] +
+              m[4] * m[2] * m[9] +
+              m[8] * m[1] * m[6] -
+              m[8] * m[2] * m[5];
+
+	det=m[0]*inv[0]+m[1]*inv[4]+m[2]*inv[8]+m[3]*inv[12];
+	if(det==0)
+		return false;
+
+	det=1.0/det;
+	for(i=0;i<16;i++)
+		invOut[i]=(float)(inv[i]*det);
+	return true;
+}
+
+
+
+
+
+
+
+
+
+
 class m3{
 	float xx,xy,xz,xo;
 	float yx,yy,yz,yo;
 	float zx,zy,zz,zo;
+	float ox,oy,oz,oo;
 public:
-	inline m3(){metrics::m3s++;}
+	inline m3(){metrics::m3s++;ident();}
 	inline ~m3(){metrics::m3s--;}
-	m3&set(const GLfloat m[16]){
-		xx=m[0];xy=m[4];xz=m[8];xo=m[12];
-		yx=m[1];yy=m[5];yz=m[9];yo=m[13];
-		zx=m[2];zy=m[6];zz=m[10];zo=m[14];
-		return*this;
-	}
 	m3&ident(){xx=1;xy=0;xz=0;xo=0; yx=0;yy=1;yz=0;yo=0; zx=0;zy=0;zz=1;zo=0;return*this;}
 	const m3&vx(p3&p)const{p.set(xx,xy,xz);return*this;}
 	const m3&vy(p3&p)const{p.set(yx,yy,yz);return*this;}
@@ -172,6 +309,27 @@ public:
 		float rz=x*zx+y*zy+z*zz+zo;
 		dst.set(rx,ry,rz);
 		return*this;
+	}
+	m3&set(const GLfloat m[16]){
+		xx=m[0];xy=m[4];xz=m[8];xo=m[12];
+		yx=m[1];yy=m[5];yz=m[9];yo=m[13];
+		zx=m[2];zy=m[6];zz=m[10];zo=m[14];
+		ox=m[3];oy=m[7];oz=m[11];oo=m[15];
+		return*this;
+	}
+	m3 inv()const{
+		GLfloat m[16];
+		m[0]=xx;m[4]=xy;m[ 8]=xz;m[12]=xo;
+		m[1]=yx;m[5]=yy;m[ 9]=yz;m[13]=yo;
+		m[2]=zx;m[6]=zy;m[10]=zz;m[14]=zo;
+		m[3]=ox;m[7]=oy;m[11]=oz;m[15]=oo;
+
+		GLfloat mout[16];
+		gluInvertMatrix(m,mout);
+
+		m3 mx;
+		mx.set(mout);
+		return mx;
 	}
 	friend ostream&operator<<(ostream&,const m3&);
 	friend istream&operator>>(istream&,m3&);
@@ -249,11 +407,43 @@ protected:
 	list<glob*>chs;
 	list<glob*>chsrm;
 	list<glob*>chsadd;
+	int bits;
+
+	m3 mxmw;
+	p3 mxmwpos;
+	p3 mxmwagl;
+
 public:
+	bool refreshmxmw(){
+		if(!&g)
+			return false;
+		bool refrsh=g.refreshmxmw();
+		if(!refrsh){
+			if(mxmwpos==*this&&mxmwagl==a){
+				return false;
+			}
+		}
+		mxmw=g.mxmw;
+		mxmwpos=*this;
+		mxmw.transl(mxmwpos);
+		mxmwagl=a;
+		mxmw.rotx(mxmwagl.getx());
+		mxmw.roty(mxmwagl.gety());
+		mxmw.rotz(mxmwagl.getz());
+		return true;
+	}
+	p3 posinwcs(const p3&p){
+		refreshmxmw();
+		p3 d;
+		mxmw.mult(p,d);
+		return d;
+	}
+
+	inline bool issolid(){return(bits&1)==1;}
 	bvol bv;
 	static bool drawboundingspheres;
 	static int drawboundingspheresdetail;
-	glob(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=0,const p3&pbox=p3()):p3(p),id(metrics::globs++),g(g),a(a),bv(r,pbox){
+	glob(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=0,const p3&pbox=p3()):p3(p),id(metrics::globs++),g(g),a(a),bits(1),bv(r,pbox){
 		if(&g==0)
 			return;
 		g.chsadd.push_back(this);
@@ -264,6 +454,32 @@ public:
 //		auto f=[]{cout<<"hello lambda"<<endl;};f();
 		for(auto g:chs)delete g;
 		chs.clear();
+	}
+	virtual bool oncol(glob&o){metrics::collisions++;return &o!=0;}
+	m3 mmw;
+	void coldet(glob&o){
+		const p3 wpthis=g.posinwcs(*this);
+		const p3 wpo=o.g.posinwcs(o);
+		const p3 v(wpthis,wpo);
+		const float d=v.magn();
+		metrics::coldetsph++;
+		if(d>(bv.r+o.bv.r))
+			return;
+		if(issolid()&&o.issolid()){
+			oncol(o);
+			o.oncol(*this);
+			return;
+		}
+		if(issolid()&&!o.issolid()){
+			for(auto gg:o.chs)
+				coldet(*gg);
+			return;
+		}
+		if(!issolid()&&o.issolid()){
+			for(auto gg:chs)
+				o.coldet(*gg);
+			return;
+		}
 	}
 	inline p3&agl(){return a;}
 	void draw(){
@@ -294,7 +510,6 @@ public:
 		chsrm.clear();
 	}
 	inline glob&getglob()const{return g;}
-	virtual bool oncol(glob&o){metrics::collisions++;return &o!=0;}
 	void rm(){g.chsrm.push_back(this);}
 };
 bool glob::drawboundingspheres=true;
@@ -326,6 +541,7 @@ public:
 	static const float s;
 	obcorp(glob&pt,const p3&p=p3(),const p3&a=p3()):glob(pt,p,a){
 		bv.r=s+1.4f;
+		bits=0;
 		const float ds=.1f*s;
 		const float dz=.5f*s;
 		for(float zz=-s;zz<=s;zz+=dz)
@@ -731,6 +947,7 @@ public:
 //		hidezplane=true;
 //		new obcon(*this,p3(),p3(90,0,0));
 		new obcorp(*this,p3(0,4.2f,0));
+		new obcorp(*this,p3(0,4.2f,8));
 	}
 
 	inline static wold&get(){return wd;}
@@ -818,10 +1035,7 @@ public:
 				glob&g1=*(*i1);
 				do{
 					glob&g2=*(*i2);
-					if(g1.bv.spheresoverlap(g1,g2,g2.bv)){
-						g1.oncol(g2);
-						g2.oncol(g1);
-					}
+					g1.coldet(g2);
 					i2++;
 				}while(*i1!=*i2);
 				i1++;
@@ -1118,6 +1332,7 @@ namespace glut{
 		}
 	}
 	void timer(const int value){
+		clk::tk++;
 		static float a=0;
 		static float dr=2;
 		static float fromheight=20;

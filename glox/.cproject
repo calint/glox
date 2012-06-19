@@ -55,7 +55,7 @@
 								<option id="gnu.cpp.compiler.option.warnings.toerrors.32920028" name="Warnings as errors (-Werror)" superClass="gnu.cpp.compiler.option.warnings.toerrors" value="false" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.warnings.pedantic.error.1910814862" name="Pedantic warnings as errors (-pedantic-errors)" superClass="gnu.cpp.compiler.option.warnings.pedantic.error" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.warnings.wconversion.1573687138" name="Implicit conversion warnings (-Wconversion)" superClass="gnu.cpp.compiler.option.warnings.wconversion" value="true" valueType="boolean"/>
-								<option id="gnu.cpp.compiler.option.other.other.1446896252" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wconversion -std=c++0x" valueType="string"/>
+								<option id="gnu.cpp.compiler.option.other.other.1446896252" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" value="-c -fmessage-length=0 -Wconversion -std=c++0x -Wfatal-errors" valueType="string"/>
 								<option id="gnu.cpp.compiler.option.preprocessor.nostdinc.1885934217" name="Do not search system directories (-nostdinc)" superClass="gnu.cpp.compiler.option.preprocessor.nostdinc" value="false" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1450677622" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
