@@ -29,7 +29,7 @@ namespace glox{
 		int globos;
 		int f3s;
 	}
-	inline float dt(const float f){return f*clk::dt;}
+	inline float dt(const float f=1){return f*clk::dt;}
 	inline float rnd(const float from,const float tonotincluding){
 		return from+(tonotincluding-from)*rand()/RAND_MAX;
 	}
@@ -53,6 +53,7 @@ public:
 	inline float getz()const{return z;}
 	inline p3&transl(const float dx,const float dy,const float dz){x+=dx;y+=dy;z+=dz;return*this;}
 	inline p3&transl(const p3&dp){x+=dp.x;y+=dp.y;z+=dp.z;return*this;}
+	inline p3&transl(const p3&dp,const float dt){x+=dp.x*dt;y+=dp.y*dt;z+=dp.z*dt;return*this;}
 	inline float magn()const{return sqrt(x*x+y*y+z*z);}
 	inline p3&set(const p3&p){x=p.x;y=p.y;z=p.z;return*this;}
 	inline p3&set(const float x,const float y,const float z){this->x=x;this->y=y;this->z=z;return*this;}
@@ -387,7 +388,7 @@ public:
 	obball(glob&g,const p3&p,const float r=.05f):glob(g,p,p3(-180,0,0),r),dp(p3()),lft(0){}
 	inline p3&getdp(){return dp;}
 	virtual void gldraw(){
-		glShadeModel(GL_SMOOTH);
+//		glShadeModel(GL_SMOOTH);
 //		glScalef(1,1,2);
 
 //		GLfloat matspec[]={127,0,0,1};
@@ -396,10 +397,12 @@ public:
 //		glMaterialfv(GL_FRONT,GL_SHININESS,matshin);
 
 //		glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
-		glEnable(GL_COLOR_MATERIAL);
-		glColor3f(.5f,.5f,1);
-//		glColor3b(0,0,127);
+		//		glColor3f(.5f,.5f,1);
+		//		glColor3b(0,0,127);
 
+		glShadeModel(GL_FLAT);
+		glEnable(GL_COLOR_MATERIAL);
+		glColor3f(1,1,1);
 		glutSolidSphere(bv.r,3,7);
 	}
 	virtual void tick(){
@@ -615,9 +618,9 @@ namespace fnt4{
 class obcon:public obtex{
 	const char*hello;
 public:
-	obcon(glob&g):obtex(g,32*4,20),hello("hello"){
-		agl().transl(-90,0,0);
-		transl(0,s,s);
+	obcon(glob&g):obtex(g,32*4,2),hello("hello"){
+		agl().transl(90,0,0);
+//		transl(0,s,s);
 	}
 	virtual void tick(){
 		obtex::tick();
@@ -689,12 +692,13 @@ public:
 class wold:public glob{
 	static wold wd;
 	wold():glob(*(glob*)0,p3(),p3(),15),ddegx(0),ddegz(.1f){
-		agl().transl(-90,0,0);
+//		agl().transl(-90,0,0);
+		hidezplane=true;
 	}
 	~wold(){if(fufo)delete fufo;}
 public:
 	void load(){
-		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
+//		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
 //		new obcorp(*this,p3(0,9,4.2f),p3(90,0,0));
 		//		new obball(*this,p3(0,0,10));
 		//		new obball(*this,p3(.1f,0,10));
@@ -955,6 +959,8 @@ class windo:public glob{
 	char ccounter;
 public:
 	int w,h;
+	float zoom=1;
+	p3 lv;
 	windo(const p3&p):glob(wold::get()){set(p);bv.r=2;}
 	void drawframe(){
 		cout<<"\rframe("<<metrics::frames++<<")";
@@ -1001,18 +1007,19 @@ public:
 		glColor3b(127,127,127);
 
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-//		glClear(GL_COLOR_BUFFER_BIT);
 		glViewport(0,0,w,h);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		gluPerspective(45,(GLdouble)w/h,.01,10000);
-		glTranslatef(-getx(), -gety(), -getz());
-//		gluLookAt(getx(),gety(),getz(), 0,0,0, 0,1,0);
+		gluPerspective(45*zoom,(GLdouble)w/h,.01,1000);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-//		glRotatef(-a.getz(), 0, 0, 1);
-//		glRotatef(-a.gety(), 0, 1, 0);
-//		glRotatef(-a.getx(), 1, 0, 0);
+
+		const p3 yaxis=getz()!=0?p3(0,1,0):p3(0,0,-1);
+		gluLookAt(getx(),gety(),getz(), 0,0,0, yaxis.getx(),yaxis.gety(),yaxis.getz());
+		GLfloat mmv[16];
+		glGetFloatv(GL_MODELVIEW_MATRIX,mmv);
+		lv.set(mmv[2],mmv[6],mmv[10]);
+		flf();l()<<lv<<endl;
 		getglob().draw();
 
 		glDisable(GL_DEPTH_TEST);
@@ -1040,7 +1047,7 @@ namespace glut{
 	bool fullscr=false;
 //	windo&wn=*new windo(p3(0,6,15));
 //	windo&wn=*new windo(p3(0,0,3));
-	windo&wn=*new windo(p3(0,16,64));
+	windo&wn=*new windo(p3(0,6,0));
 //	bool nl;
 	void reshape(const int width,const int height){
 		sts<<"reshape("<<w<<"x"<<h<<")";
@@ -1074,8 +1081,10 @@ namespace glut{
 		if(iskeydn('r')&&iskeydn('u')){wn.transl(0,dt(1),0);}
 		if(iskeydn('v')&&iskeydn('n')){wn.transl(0,-dt(1),0);}
 		if(iskeydn('a')){for(int i=0;i<11;i++)new obball(wold::get(),p3(dr*cos(a)*rnd(-dr,dr),dr*sin(a)*rnd(-dr,dr),fromheight+rnd(0,dr)));}
-		if(iskeydn('i')){wold::get().transl(0,0,dt(10));}
-		if(iskeydn('k')){wold::get().transl(0,0,-dt(10));}
+//		if(iskeydn('i')){wold::get().transl(0,0,dt(10));}
+//		if(iskeydn('k')){wold::get().transl(0,0,-dt(10));}
+		if(iskeydn('w')){wn.transl(wn.lv,dt());}
+		if(iskeydn('s')){wn.transl(wn.lv,dt(-1));}
 		a+=dt(360);
 
 		clk::timerrestart();
@@ -1111,8 +1120,10 @@ namespace glut{
 		else if(key==' '){wd.ddegz=wd.ddegx=0;}
 		else if(key=='y'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(270,0,0));}
 		else if(key=='h'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(90.5,0,0));}
-		else if(key=='i'){wn.transl(0,0,-1);}
-		else if(key=='k'){wn.transl(0,0,1);}
+//		else if(key=='i'){wn.transl(0,0,-1);}
+//		else if(key=='k'){wn.transl(0,0,1);}
+		else if(key=='i'){wn.zoom-=1;}
+		else if(key=='k'){wn.zoom+=1;}
 		else if(key=='1'){glob::drawboundingspheres=!glob::drawboundingspheres;}
 		else if(key=='2'){wd.drawaxis=!wd.drawaxis;}
 		else if(key=='3'){wd.drawgrid=!wd.drawgrid;}
@@ -1128,12 +1139,32 @@ namespace glut{
 		if(key==27)// esc
 		{glutReshapeWindow(w,h);exit(0);}
 	}
-	void mouseclk(const int button,const int state,int x,const int y){sts<<"mousclk("<<state<<","<<button<<",["<<x<<","<<y<<",0])";}
+	void mouseclk(const int button,const int state,int x,const int y){
+		GLint viewport[4];
+		GLdouble modelview[16];
+		GLdouble projection[16];
+		GLfloat winX, winY, winZ;
+		GLdouble posX, posY, posZ;
+
+		glGetDoublev(GL_MODELVIEW_MATRIX,modelview);
+		glGetDoublev(GL_PROJECTION_MATRIX,projection);
+		glGetIntegerv(GL_VIEWPORT,viewport);
+
+		winX=(float)x;
+		winY=(float)viewport[3]-(float)y;
+		glReadPixels(x,int(winY),1,1,GL_DEPTH_COMPONENT,GL_FLOAT,&winZ);
+		gluUnProject(winX,winY,winZ,modelview,projection,viewport,&posX,&posY,&posZ);
+		sts<<"mousclk("<<state<<","<<button<<",["<<x<<","<<y<<",0])";
+		cout<<"unproj("<<posX<<" "<<posY<<" "<<posZ<<")";
+	}
 	//void idle(){
 	//	printf("idle\n");
 	//	return;
 	//}
-	void mousemov(const int x,const int y){sts<<"mousmov("<<x<<","<<y<<")";}
+	void mousemov(const int x,const int y){
+//		cout<<"mousemove"<<endl;
+		sts<<"mousmov("<<x<<","<<y<<")";
+	}
 	static void mainsig(const int i){cerr<<" ••• terminated with signal "<<i<<endl;exit(i);}
 //	static void mainxit(){
 //		if(metrics::nglobs==0){
