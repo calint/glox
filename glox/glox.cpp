@@ -1037,13 +1037,14 @@ public:
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-		const p3 up=mmv.yaxis().magn()==0?p3(0,1,0):mmv.yaxis();
+		const p3 up=mmv.yaxis().gety()==0?p3(0,1,0):mmv.yaxis();
+		flf();l("upvec")<<up<<endl;
 		gluLookAt(getx(),gety(),getz(), lookat.getx(),lookat.gety(),lookat.getz(), up.getx(),up.gety(),up.getz());
 		GLfloat af[16];
 		glGetFloatv(GL_MODELVIEW_MATRIX,af);
 		mmv.set(af);
 		flf();l()<<lookat<<endl;
-		lookat.set(mmv.zaxis());
+		lookat.set(mmv.zaxis().neg()).scale(100);
 		flf();l()<<lookat<<endl;
 
 		getglob().draw();
@@ -1122,13 +1123,13 @@ namespace glut{
 
 			if(iskeydn('j')){
 				m3 m(wn.mmv);
-				m.roty(dt(3.1415f));
-				wn.lookat.set(m.zaxis()).scale(100);
+				m.roty(-dt(3.1415f));
+				wn.lookat.set(m.zaxis().neg()).scale(100);
 			}
 			if(iskeydn('l')){
 				m3 m(wn.mmv);
-				m.roty(-dt(3.1415f));
-				wn.lookat.set(m.zaxis()).scale(100);
+				m.roty(dt(3.1415f));
+				wn.lookat.set(m.zaxis().neg()).scale(100);
 			}
 		}
 
