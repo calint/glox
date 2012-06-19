@@ -273,16 +273,11 @@ public:
 		glRotatef(a.getz(),0,0,1);
 		gldraw();
 		if(drawboundingspheres){
-//			const GLbyte i=(GLbyte)rnd(0,32);
-//			glColor3b(i,0,0);
-//			glDisable(GL_LIGHTING);
-//			glutWireSphere(bv.r,drawboundingspheresdetail,drawboundingspheresdetail);
-//			glEnable(GL_LIGHTING);
-
-//			const GLbyte i=32+(GLbyte)rnd(0,32);
-			const GLbyte i=127;
-			glColor3b(i,i,i);
-			glutSolidSphere(bv.r,15,15);
+			const GLbyte i=(GLbyte)rnd(0,32);
+			glColor3b(i,0,0);
+			glDisable(GL_LIGHTING);
+			glutWireSphere(bv.r,drawboundingspheresdetail,drawboundingspheresdetail);
+			glEnable(GL_LIGHTING);
 		}
 		for(auto g:chs){glPushMatrix();g->draw();glPopMatrix();}
 	}
@@ -297,7 +292,7 @@ public:
 	virtual bool oncol(glob&o){metrics::collisions++;return &o!=0;}
 	void rm(){g.chsrm.push_back(this);}
 };
-bool glob::drawboundingspheres=true;
+bool glob::drawboundingspheres;
 int glob::drawboundingspheresdetail=7;
 
 class obcorpqb:public glob{
@@ -324,7 +319,7 @@ int obcorpqb::n=0;
 class obcorp:public glob{
 public:
 	static const float s;
-	obcorp(glob&pt,const p3&p=p3(),const p3&a=p3()):glob(pt,p,a){
+	obcorp(glob&pt,const p3&p,const p3&a):glob(pt,p,a){
 		bv.r=s+1.4f;
 		const float ds=.1f*s;
 		const float dz=.5f*s;
@@ -632,7 +627,7 @@ class obcon:public obtex{
 	GLubyte*p;
 	GLubyte*pnl;
 public:
-	obcon(glob&g,const p3&p,const p3&a):obtex(g,32*4,20,p,a){}
+	obcon(glob&g):obtex(g,32*4,1){}
 	void phom(){p=rgba+wihi*bp+bp;}
 	void prnt(const size_t len,const char*s){
 		const unsigned short fnt_az[]={0x0552,0x0771,0x0212,0x0774,0x0737,0x0137,0x0651,0x0571,0x0220,0x0122,0x0531,0x0610,0x0770,0x0530,0x0252,0x1770,0x4770,0x0160,0x0324,0x0270,0x0650,0x0250,0x0775,0x0525,0x0225,0x0630};
@@ -717,10 +712,13 @@ unsigned short obcon::fnt_09[]={0x0252,0x0220,0x0621,0x0642,0x0451,0x0324,0x0612
 
 class wold:public glob{
 	static wold wd;
-	wold():glob(*(glob*)0,p3(),p3(),15),hidezplane(false){}
+	wold():glob(*(glob*)0,p3(),p3(),15),ddegx(0),ddegz(.1f){
+		hidezplane=true;
+	}
 	~wold(){if(fufo)delete fufo;}
 public:
 	void load(){
+//		new obcorp(*this,p3(0,0,4.2f),p3(90,0,0));
 //		new obcorp(*this,p3(0,9,4.2f),p3(90,0,0));
 		//		new obball(*this,p3(0,0,10));
 		//		new obball(*this,p3(.1f,0,10));
@@ -729,12 +727,13 @@ public:
 //		fufo=new f3("ufo.f3",p3(1,1,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
 //		hidezplane=true;
-//		new obcon(*this,p3(),p3(90,0,0));
-		new obcorp(*this,p3(0,4.2f,0));
+		new obcon(*this);
+//		g.agl().transl(90,0,0);
 	}
 
 	inline static wold&get(){return wd;}
 	bool drawaxis,drawgrid,hidezplane,coldet;
+	float ddegx,ddegz;
 	void gldraw(){
 		glDisable(GL_LIGHTING);
 		glDisable(GL_CULL_FACE);
@@ -786,7 +785,7 @@ public:
 			const int di=360/24/2/2;
 			for(int i=di;i<=360;i+=di){
 				const float rd=i*dtr;
-				glVertex3f(r*cos(rd),0,r*sin(rd));
+				glVertex2f(r*cos(rd),r*sin(rd));
 			}
 			glEnd();
 			glPopMatrix();
@@ -809,6 +808,7 @@ public:
 		glEnable(GL_CULL_FACE);
 	}
 	void tick(){
+		agl().transl(-dt(ddegx),0,dt(ddegz));
 		if(coldet){
 			auto i1=chs.begin();
 			while(true){
@@ -981,13 +981,12 @@ class windo:public glob{
 //		sts.str("");
 	}
 	char ccounter;
-	p3 pprv;
 public:
 	int w,h;
 	float zoom=1;
 	m3 mmv;
 	p3 lookat;
-	windo(const p3&p):glob(wold::get(),p,p3(),0,p3()){}
+	windo(const p3&p):glob(wold::get()){set(p);bv.r=1;}
 	void drawframe(){
 		cout<<"\rframe("<<metrics::frames++<<")";
 //		glClearColor(0,0,0,1);
@@ -1040,18 +1039,15 @@ public:
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-		glRotatef(agl().gety(),0,1,0);
-		glTranslatef(-getx(),-gety(),-getz());
-//		glutSolidSphere(1,5,4);
-//		const p3 up=mmv.yaxis().gety()==0?p3(0,1,0):mmv.yaxis();
-//		flf();l("upvec")<<up<<endl;
-//		gluLookAt(getx(),gety(),getz(), lookat.getx(),lookat.gety(),lookat.getz(), up.getx(),up.gety(),up.getz());
+		const p3 up=mmv.yaxis().gety()==0?p3(0,1,0):mmv.yaxis();
+		flf();l("upvec")<<up<<endl;
+		gluLookAt(getx(),gety(),getz(), lookat.getx(),lookat.gety(),lookat.getz(), up.getx(),up.gety(),up.getz());
 		GLfloat af[16];
 		glGetFloatv(GL_MODELVIEW_MATRIX,af);
 		mmv.set(af);
-//		flf();l()<<lookat<<endl;
-//		lookat.set(mmv.zaxis().neg()).scale(100);
-//		flf();l()<<lookat<<endl;
+		flf();l()<<lookat<<endl;
+		lookat.set(mmv.zaxis().neg()).scale(100);
+		flf();l()<<lookat<<endl;
 
 		getglob().draw();
 
@@ -1068,15 +1064,6 @@ public:
 		drawhud();
 		cout<<flush;
 	}
-	virtual bool oncol(glob&g){
-		set(pprv);
-		flf();l()<<typeid(g).name()<<endl;
-		return true;
-	}
-	virtual void tick(){
-		pprv.set(*this);
-		flf();l()<<endl;
-	}
 	virtual void gldraw(){}
 };
 
@@ -1085,8 +1072,8 @@ extern void gnox();
 namespace glut{
 	int w=512,h=512,__w=w,__h=h;
 	lut<int>keysdn;
-	bool gamemode=false,fullscr=false,consolemode=false;
-	windo&wn=*new windo(p3(0,.2f,0));
+	bool gamemode=false,fullscr=false,consolemode=true;
+	windo&wn=*new windo(p3(0,0,3));
 	void reshape(const int width,const int height){
 		sts<<"reshape("<<w<<"x"<<h<<")";
 		w=width;h=height;
@@ -1136,17 +1123,15 @@ namespace glut{
 			if(iskeydn('q')){wn.transl(wn.mmv.yaxis(),dt(d));}
 			if(iskeydn('e')){wn.transl(wn.mmv.yaxis(),dt(-d));}
 
-			if(iskeydn('l')){
-				wn.agl().transl(0,dt(180),0);
-//				m3 m(wn.mmv);
-//				m.roty(-dt(3.1415f));
-//				wn.lookat.set(m.zaxis().neg()).scale(100);
-			}
 			if(iskeydn('j')){
-				wn.agl().transl(0,-dt(180),0);
-//				m3 m(wn.mmv);
-//				m.roty(dt(3.1415f));
-//				wn.lookat.set(m.zaxis().neg()).scale(100);
+				m3 m(wn.mmv);
+				m.roty(-dt(3.1415f));
+				wn.lookat.set(m.zaxis().neg()).scale(100);
+			}
+			if(iskeydn('l')){
+				m3 m(wn.mmv);
+				m.roty(dt(3.1415f));
+				wn.lookat.set(m.zaxis().neg()).scale(100);
 			}
 		}
 
@@ -1176,7 +1161,7 @@ namespace glut{
 //		else if(key=='f'){wd.ddegz+=360/60;}
 //		else if(key=='t'){wd.ddegx-=360/60;}
 //		else if(key=='g'){wd.ddegx+=360/60;}
-//		else if(key==' '){wd.ddegz=wd.ddegx=0;}
+		else if(key==' '){wd.ddegz=wd.ddegx=0;}
 //		else if(key=='y'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(270,0,0));}
 //		else if(key=='h'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(90.5,0,0));}
 //		else if(key=='i'){wn.transl(0,0,-1);}
