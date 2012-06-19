@@ -972,6 +972,7 @@ public:
 	int w,h;
 	float zoom=1;
 	m3 mmv;
+	p3 lookat;
 	windo(const p3&p):glob(wold::get()){set(p);bv.r=1;}
 	void drawframe(){
 		cout<<"\rframe("<<metrics::frames++<<")";
@@ -1025,12 +1026,14 @@ public:
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-		flf();l()<<mmv.yaxis()<<" "<<mmv.yaxis().magn()<<endl;
 		const p3 up=mmv.yaxis().magn()==0?p3(0,1,0):mmv.yaxis();
-		gluLookAt(getx(),gety(),getz(), 0,0,0, up.getx(),up.gety(),up.getz());
+		gluLookAt(getx(),gety(),getz(), lookat.getx(),lookat.gety(),lookat.getz(), up.getx(),up.gety(),up.getz());
 		GLfloat af[16];
 		glGetFloatv(GL_MODELVIEW_MATRIX,af);
 		mmv.set(af);
+		flf();l()<<lookat<<endl;
+		lookat.set(mmv.zaxis());
+		flf();l()<<lookat<<endl;
 
 		getglob().draw();
 
@@ -1077,32 +1080,6 @@ namespace glut{
 			keysdn.put(strcpy(new char[2],k),1);//? bug leak
 		return b;
 	}
-	void timer(const int value){
-		static float a=0;
-		static float dr=2;
-		static float fromheight=20;
-		static float d=3;
-		if(iskeydn('r')&&iskeydn('u')){wn.transl(0,dt(1),0);}
-		if(iskeydn('v')&&iskeydn('n')){wn.transl(0,-dt(1),0);}
-		if(iskeydn('r')){for(int i=0;i<11;i++)new obball(wold::get(),p3(dr*cos(a)*rnd(-dr,dr),dr*sin(a)*rnd(-dr,dr),fromheight+rnd(0,dr)));}
-//		if(iskeydn('i')){wold::get().transl(0,0,dt(10));}
-//		if(iskeydn('k')){wold::get().transl(0,0,-dt(10));}
-		if(iskeydn('w')){wn.transl(wn.mmv.zaxis(),dt(-d));}
-		if(iskeydn('s')){wn.transl(wn.mmv.zaxis(),dt(d));}
-		if(iskeydn('d')){wn.transl(wn.mmv.xaxis(),dt(d));}
-		if(iskeydn('a')){wn.transl(wn.mmv.xaxis(),dt(-d));}
-		if(iskeydn('q')){wn.transl(wn.mmv.yaxis(),dt(d));}
-		if(iskeydn('e')){wn.transl(wn.mmv.yaxis(),dt(-d));}
-		a+=dt(360);
-
-		metrics::coldetsph=metrics::collisions=0;
-		clk::timerrestart();
-		wold::get().tick();
-		metrics::dtupd=clk::timerdt();
-
-		glutPostRedisplay();
-		glutTimerFunc((unsigned)value,timer,value);
-	}
 	void togglefullscr(){
 		fullscr=!fullscr;
 		if(fullscr){
@@ -1114,29 +1091,67 @@ namespace glut{
 			glutSetCursor(GLUT_CURSOR_INHERIT);
 		}
 	}
+	void timer(const int value){
+		static float a=0;
+		static float dr=2;
+		static float fromheight=20;
+		static float d=3;
+		a+=dt(360);
+//		if(iskeydn('r')&&iskeydn('u')){wn.transl(0,dt(1),0);}
+//		if(iskeydn('v')&&iskeydn('n')){wn.transl(0,-dt(1),0);}
+		if(iskeydn('r')){for(int i=0;i<11;i++)new obball(wold::get(),p3(dr*cos(a)*rnd(-dr,dr),dr*sin(a)*rnd(-dr,dr),fromheight+rnd(0,dr)));}
+//		if(iskeydn('i')){wold::get().transl(0,0,dt(10));}
+//		if(iskeydn('k')){wold::get().transl(0,0,-dt(10));}
+		if(iskeydn('w')){wn.transl(wn.mmv.zaxis(),dt(-d));}
+		if(iskeydn('s')){wn.transl(wn.mmv.zaxis(),dt(d));}
+		if(iskeydn('d')){wn.transl(wn.mmv.xaxis(),dt(d));}
+		if(iskeydn('a')){wn.transl(wn.mmv.xaxis(),dt(-d));}
+		if(iskeydn('q')){wn.transl(wn.mmv.yaxis(),dt(d));}
+		if(iskeydn('e')){wn.transl(wn.mmv.yaxis(),dt(-d));}
+
+		if(iskeydn('j')){
+			m3 m(wn.mmv);
+			m.roty(dt(3.1415f));
+			wn.lookat.set(m.zaxis()).scale(100);
+		}
+		if(iskeydn('l')){
+			m3 m(wn.mmv);
+			m.roty(-dt(3.1415f));
+			wn.lookat.set(m.zaxis()).scale(100);
+		}
+
+		metrics::coldetsph=metrics::collisions=0;
+		clk::timerrestart();
+		wold::get().tick();
+		metrics::dtupd=clk::timerdt();
+
+		glutPostRedisplay();
+		glutTimerFunc((unsigned)value,timer,value);
+	}
 	void keydn(const unsigned char key,const int x,const int y){
 		if(iskeydn(key,true))return;
 		sts<<"keydn("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
 //		nl=true;
-		if(key=='0'){togglefullscr();return;}
 		wold&wd=wold::get();
 		if(key==0){throw "keyo";}
-		else if(key=='j'){wd.ddegz-=360/60;}
-		else if(key=='f'){wd.ddegz+=360/60;}
-		else if(key=='t'){wd.ddegx-=360/60;}
-		else if(key=='g'){wd.ddegx+=360/60;}
+//		else if(key=='j'){wd.ddegz-=360/60;}
+//		else if(key=='f'){wd.ddegz+=360/60;}
+//		else if(key=='t'){wd.ddegx-=360/60;}
+//		else if(key=='g'){wd.ddegx+=360/60;}
 		else if(key==' '){wd.ddegz=wd.ddegx=0;}
-		else if(key=='y'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(270,0,0));}
-		else if(key=='h'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(90.5,0,0));}
+//		else if(key=='y'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(270,0,0));}
+//		else if(key=='h'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(90.5,0,0));}
 //		else if(key=='i'){wn.transl(0,0,-1);}
 //		else if(key=='k'){wn.transl(0,0,1);}
-		else if(key=='i'){wn.zoom-=1;}
-		else if(key=='k'){wn.zoom+=1;}
+		else if(key=='i'){wn.zoom-=.1;}
+		else if(key=='k'){wn.zoom+=.1;}
+		else if(key=='0'){togglefullscr();return;}
 		else if(key=='1'){glob::drawboundingspheres=!glob::drawboundingspheres;}
 		else if(key=='2'){wd.drawaxis=!wd.drawaxis;}
 		else if(key=='3'){wd.drawgrid=!wd.drawgrid;}
 		else if(key=='4'){wd.hidezplane=!wd.hidezplane;}
 		else if(key=='5'){wd.coldet=!wd.coldet;}
+		else if(key=='6'){wn.set(p3(0,0,3));}
 		else if(key==127){sts.str("");}// bkspc
 	}
 	void keyup(const unsigned char key,const int x,const int y){
