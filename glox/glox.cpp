@@ -117,10 +117,19 @@ class m3{
 public:
 	inline m3(){metrics::m3s++;}
 	inline ~m3(){metrics::m3s--;}
+	m3&set(const GLfloat m[16]){
+		xx=m[0];xy=m[4];xz=m[8];xo=m[12];
+		yx=m[1];yy=m[5];yz=m[9];yo=m[13];
+		zx=m[2];zy=m[6];zz=m[10];zo=m[14];
+		return*this;
+	}
 	m3&ident(){xx=1;xy=0;xz=0;xo=0; yx=0;yy=1;yz=0;yo=0; zx=0;zy=0;zz=1;zo=0;return*this;}
 	const m3&vx(p3&p)const{p.set(xx,xy,xz);return*this;}
 	const m3&vy(p3&p)const{p.set(yx,yy,yz);return*this;}
 	const m3&vz(p3&p)const{p.set(zx,zy,zz);return*this;}
+	p3 xaxis()const{return p3(xx,xy,xz);}
+	p3 yaxis()const{return p3(yx,yy,yz);}
+	p3 zaxis()const{return p3(zx,zy,zz);}
 	m3&rotx(const float a){
 		float c=cos(a),s=sin(a);
 		float nyx=yx*c+zx*s,nyy=yy*c+zy*s,nyz=yz*c+zz*s,nyo=yo*c+zo*s;
@@ -168,9 +177,9 @@ public:
 	friend istream&operator>>(istream&,m3&);
 };
 ostream&operator<<(ostream&os,const m3&m){
-	cout<<"["<<p3(m.xx,m.xy,m.xz)<<","<<m.xo<<"] [";
-	cout<<p3(m.yx,m.yy,m.yz)<<","<<m.yo<<"] [";
-	cout<<p3(m.zx,m.zy,m.zz)<<","<<m.zo<<"]";
+	cout<<"["<<p3(m.xx,m.xy,m.xz)<<" "<<m.xo<<"] [";
+	cout<<p3(m.yx,m.yy,m.yz)<<" "<<m.yo<<"] [";
+	cout<<p3(m.zx,m.zy,m.zz)<<" "<<m.zo<<"]";
 	return os;
 }
 istream&operator>>(istream&is,m3&m){
@@ -242,7 +251,6 @@ protected:
 	list<glob*>chsadd;
 public:
 	bvol bv;
-	m3 mw;
 	static bool drawboundingspheres;
 	static int drawboundingspheresdetail;
 	glob(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=0,const p3&pbox=p3()):p3(p),id(metrics::globs++),g(g),a(a),bv(r,pbox){
@@ -601,9 +609,9 @@ public:
 		glVertex3f(-s,-s,0);
 		glTexCoord2f(1,0);
 		glVertex3f(s,-s,0);
-		glTexCoord2f(1,1);
+		glTexCoord2f(1,-1);
 		glVertex3f(s,s,0);
-		glTexCoord2f(0,1);
+		glTexCoord2f(0,-1);
 		glVertex3f(-s,s,0);
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
@@ -618,8 +626,8 @@ namespace fnt4{
 class obcon:public obtex{
 	const char*hello;
 public:
-	obcon(glob&g):obtex(g,32*4,2),hello("hello"){
-		agl().transl(90,0,0);
+	obcon(glob&g):obtex(g,32*4,1),hello("hello"){
+//		agl().transl(180,0,0);
 //		transl(0,s,s);
 	}
 	virtual void tick(){
@@ -692,7 +700,6 @@ public:
 class wold:public glob{
 	static wold wd;
 	wold():glob(*(glob*)0,p3(),p3(),15),ddegx(0),ddegz(.1f){
-//		agl().transl(-90,0,0);
 		hidezplane=true;
 	}
 	~wold(){if(fufo)delete fufo;}
@@ -733,16 +740,20 @@ public:
 			//glPolygonOffset
 			glBegin(GL_LINE_STRIP);
 
-			glColor3b(127,127,127);
-			glVertex3f(s,0,0);
+			glColor3b(127,0,0);
+			glVertex3f(0,0,0);
 
-			glColor3b(127,127,127);
+			glColor3b(127,0,0);
+			glVertex3f(s,0,0);
+			glVertex3f(0,0,0);
+
+			glColor3b(0,0,0);
 			glVertex3f(0,0,0);
 
 			glColor3b(0,0,0);
 			glVertex3f(0,s,0);
 
-			glColor3b(0,0,0);
+			glColor3b(0,0,127);
 			glVertex3f(0,0,0);
 
 			glColor3b(0,0,127);
@@ -960,8 +971,8 @@ class windo:public glob{
 public:
 	int w,h;
 	float zoom=1;
-	p3 lv;
-	windo(const p3&p):glob(wold::get()){set(p);bv.r=2;}
+	m3 mmv;
+	windo(const p3&p):glob(wold::get()){set(p);bv.r=1;}
 	void drawframe(){
 		cout<<"\rframe("<<metrics::frames++<<")";
 //		glClearColor(0,0,0,1);
@@ -1014,12 +1025,13 @@ public:
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-		const p3 yaxis=getz()!=0?p3(0,1,0):p3(0,0,-1);
-		gluLookAt(getx(),gety(),getz(), 0,0,0, yaxis.getx(),yaxis.gety(),yaxis.getz());
-		GLfloat mmv[16];
-		glGetFloatv(GL_MODELVIEW_MATRIX,mmv);
-		lv.set(mmv[2],mmv[6],mmv[10]);
-		flf();l()<<lv<<endl;
+		flf();l()<<mmv.yaxis()<<" "<<mmv.yaxis().magn()<<endl;
+		const p3 up=mmv.yaxis().magn()==0?p3(0,1,0):mmv.yaxis();
+		gluLookAt(getx(),gety(),getz(), 0,0,0, up.getx(),up.gety(),up.getz());
+		GLfloat af[16];
+		glGetFloatv(GL_MODELVIEW_MATRIX,af);
+		mmv.set(af);
+
 		getglob().draw();
 
 		glDisable(GL_DEPTH_TEST);
@@ -1045,13 +1057,9 @@ namespace glut{
 	lut<int>keysdn;
 	bool gamemode=false;
 	bool fullscr=false;
-//	windo&wn=*new windo(p3(0,6,15));
-//	windo&wn=*new windo(p3(0,0,3));
-	windo&wn=*new windo(p3(0,6,0));
-//	bool nl;
+	windo&wn=*new windo(p3(0,0,3));
 	void reshape(const int width,const int height){
 		sts<<"reshape("<<w<<"x"<<h<<")";
-//		nl=true;
 		w=width;h=height;
 	}
 	void draw(){
@@ -1059,12 +1067,7 @@ namespace glut{
 		clk::timerrestart();
 		wn.drawframe();
 		metrics::dtrend=clk::timerdt();
-		metrics::coldetsph=metrics::collisions=0;
 		glutSwapBuffers();
-//		if(nl){
-//			cout<<endl;
-//			nl=false;
-//		}
 	}
 	bool iskeydn(const unsigned char key,const bool setifnot=0){
 		static char k[]={0,0};
@@ -1078,15 +1081,21 @@ namespace glut{
 		static float a=0;
 		static float dr=2;
 		static float fromheight=20;
+		static float d=3;
 		if(iskeydn('r')&&iskeydn('u')){wn.transl(0,dt(1),0);}
 		if(iskeydn('v')&&iskeydn('n')){wn.transl(0,-dt(1),0);}
-		if(iskeydn('a')){for(int i=0;i<11;i++)new obball(wold::get(),p3(dr*cos(a)*rnd(-dr,dr),dr*sin(a)*rnd(-dr,dr),fromheight+rnd(0,dr)));}
+		if(iskeydn('r')){for(int i=0;i<11;i++)new obball(wold::get(),p3(dr*cos(a)*rnd(-dr,dr),dr*sin(a)*rnd(-dr,dr),fromheight+rnd(0,dr)));}
 //		if(iskeydn('i')){wold::get().transl(0,0,dt(10));}
 //		if(iskeydn('k')){wold::get().transl(0,0,-dt(10));}
-		if(iskeydn('w')){wn.transl(wn.lv,dt());}
-		if(iskeydn('s')){wn.transl(wn.lv,dt(-1));}
+		if(iskeydn('w')){wn.transl(wn.mmv.zaxis(),dt(-d));}
+		if(iskeydn('s')){wn.transl(wn.mmv.zaxis(),dt(d));}
+		if(iskeydn('d')){wn.transl(wn.mmv.xaxis(),dt(d));}
+		if(iskeydn('a')){wn.transl(wn.mmv.xaxis(),dt(-d));}
+		if(iskeydn('q')){wn.transl(wn.mmv.yaxis(),dt(d));}
+		if(iskeydn('e')){wn.transl(wn.mmv.yaxis(),dt(-d));}
 		a+=dt(360);
 
+		metrics::coldetsph=metrics::collisions=0;
 		clk::timerrestart();
 		wold::get().tick();
 		metrics::dtupd=clk::timerdt();
@@ -1094,23 +1103,22 @@ namespace glut{
 		glutPostRedisplay();
 		glutTimerFunc((unsigned)value,timer,value);
 	}
+	void togglefullscr(){
+		fullscr=!fullscr;
+		if(fullscr){
+			__w=w;__h=h;
+			glutFullScreen();
+			glutSetCursor(GLUT_CURSOR_NONE);
+		}else{
+			glutReshapeWindow(__w,__h);
+			glutSetCursor(GLUT_CURSOR_INHERIT);
+		}
+	}
 	void keydn(const unsigned char key,const int x,const int y){
 		if(iskeydn(key,true))return;
 		sts<<"keydn("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
 //		nl=true;
-		if(key=='0'){
-			fullscr=!fullscr;
-			if(fullscr){
-				__w=w;__h=h;
-				glutFullScreen();
-				glutSetCursor(GLUT_CURSOR_NONE);
-			}else{
-				glutReshapeWindow(__w,__h);
-				glutSetCursor(GLUT_CURSOR_INHERIT);
-			}
-			return;
-		}
-
+		if(key=='0'){togglefullscr();return;}
 		wold&wd=wold::get();
 		if(key==0){throw "keyo";}
 		else if(key=='j'){wd.ddegz-=360/60;}
