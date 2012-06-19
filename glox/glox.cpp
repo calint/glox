@@ -417,6 +417,7 @@ protected:
 	p3 mxmwagl;
 
 public:
+	inline int getid()const{return id;}
 	bool refreshmxmw(){
 		if(!&g)
 			return false;
@@ -516,7 +517,7 @@ public:
 	inline glob&getglob()const{return g;}
 	void rm(){g.chsrm.push_back(this);}
 };
-bool glob::drawboundingspheres=true;
+bool glob::drawboundingspheres=false;
 int glob::drawboundingspheresdetail=7;
 
 class obcorpqb:public glob{
@@ -852,7 +853,7 @@ class obcon:public obtex{
 	GLubyte*p;
 	GLubyte*pnl;
 public:
-	obcon(glob&g,const p3&p,const p3&a):obtex(g,32*4,20,p,a){}
+	obcon(glob&g,const p3&p=p3(),const p3&a=p3()):obtex(g,32*bp,1,p,a){}
 	void phom(){p=rgba+wihi*bp+bp;}
 	void prnt(const size_t len,const char*s){
 		const unsigned short fnt_az[]={0x0552,0x0771,0x0212,0x0774,0x0737,0x0137,0x0651,0x0571,0x0220,0x0122,0x0531,0x0610,0x0770,0x0530,0x0252,0x1770,0x4770,0x0160,0x0324,0x0270,0x0650,0x0250,0x0775,0x0525,0x0225,0x0630};
@@ -937,19 +938,19 @@ unsigned short obcon::fnt_09[]={0x0252,0x0220,0x0621,0x0642,0x0451,0x0324,0x0612
 
 class wold:public glob{
 	static wold wd;
-	wold():glob(*(glob*)0,p3(),p3(),15),hidezplane(false){}
+	wold():glob(*(glob*)0,p3(),p3(),15),hidezplane(false),coldet(true){}
 	~wold(){if(fufo)delete fufo;}
 public:
 	void load(){
 //		new obcorp(*this,p3(0,9,4.2f),p3(90,0,0));
-		//		new obball(*this,p3(0,0,10));
-		//		new obball(*this,p3(.1f,0,10));
+		new obball(*this,p3(0,1,0));
+		new obball(*this,p3(.1f,1,0));
 
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		fufo=new f3("ufo.f3",p3(1,1,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
 //		hidezplane=true;
-//		new obcon(*this,p3(),p3(90,0,0));
+		new obcon(*this,p3(10,.1f,0),p3(90,0,0));
 		new obcorp(*this,p3(0,4.2f,0));
 		new obcorp(*this,p3(0,4.2f,8));
 	}
@@ -1191,17 +1192,15 @@ class windo:public glob{
 
 		oss.str("");
 		oss<<setprecision(2);
-		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs-metrics::globos<<") f3s("<<metrics::f3s<<") vbos("<<metrics::globos<<") p3s("<<metrics::p3s<<") m3s("<<metrics::m3s<<") bvols("<<metrics::bvols<<") sphdet("<<metrics::coldetsph<<") sphcols("<<metrics::collisions<<") xz("<<a.getx()<<" "<<a.getz()<<") p("<<*this<<")";
+		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs-metrics::globos<<") f3s("<<metrics::f3s<<") vbos("<<metrics::globos<<") p3s("<<metrics::p3s<<") m3s("<<metrics::m3s<<") bvols("<<metrics::bvols<<") axy("<<a.getx()<<" "<<a.gety()<<") p("<<*this<<")";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
-		oss<<"mxrfsh("<<metrics::mwmxrefresh<<")";
-		oss<<" m3p3mul("<<metrics::m3p3mul<<")";
+		oss<<"sphcolsdet("<<metrics::coldetsph<<") sphcols("<<metrics::collisions<<")"<<" mxrfsh("<<metrics::mwmxrefresh<<")"<<" mvmul("<<metrics::m3p3mul<<")";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
-
 		y+=dy;pl(sts.str().c_str(),y,0,1,.1f);
-//		sts.str("");
+		sts.str("");
 	}
 	char ccounter;
 	p3 pprv;
@@ -1210,7 +1209,8 @@ public:
 	float zoom=1;
 	m3 mmv;
 	p3 lookat;
-	windo(const p3&p):glob(wold::get(),p,p3(),0,p3()){}
+
+	windo(const p3&p):glob(wold::get(),p,p3(),.2f,p3()){}
 	void drawframe(){
 		cout<<"\rframe("<<metrics::frames++<<")";
 //		glClearColor(0,0,0,1);
@@ -1293,12 +1293,28 @@ public:
 	}
 	virtual bool oncol(glob&g){
 		set(pprv);
-		flf();l()<<typeid(g).name()<<endl;
+		d.neg().scale(.5f);
+		sts<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
 		return true;
 	}
+	p3 d;
+	p3 dd;
+	p3 f;
 	virtual void tick(){
+		glob::tick();
 		pprv.set(*this);
-		flf();l()<<endl;
+		dd.set(0,-9.8f,0);
+		dd.transl(f);
+		flf();l()<<dd<<endl;
+		d.transl(dd,dt());
+		transl(d,dt());
+		if(gety()<bv.r){
+			flf();l()<<gety()<<" < "<<bv.r<<endl;
+			d.neg().scale(.2f);
+			dd.set(0,0,0);
+			set(pprv);
+		}
+//		flf();l()<<endl;
 	}
 	virtual void gldraw(){}
 };
@@ -1309,7 +1325,7 @@ namespace glut{
 	int w=512,h=512,__w=w,__h=h;
 	lut<int>keysdn;
 	bool gamemode=false,fullscr=false,consolemode=false;
-	windo&wn=*new windo(p3(0,.2f,0));
+	windo&wn=*new windo(p3(10,.2f,2));
 	void reshape(const int width,const int height){
 		sts<<"reshape("<<w<<"x"<<h<<")";
 		w=width;h=height;
@@ -1359,6 +1375,8 @@ namespace glut{
 			if(iskeydn('a')){wn.transl(wn.mmv.xaxis(),dt(-d));}
 			if(iskeydn('q')){wn.transl(wn.mmv.yaxis(),dt(d));}
 			if(iskeydn('e')){wn.transl(wn.mmv.yaxis(),dt(-d));}
+			if(iskeydn('i')){wn.f.set(0,20,0);}else{wn.f.set(0,0,0);}
+//			if(iskeydn('k')){wn.d.transl(0,dt(-1),0);}
 
 			if(iskeydn('l')){
 				wn.agl().transl(0,dt(180),0);
@@ -1403,10 +1421,8 @@ namespace glut{
 //		else if(key==' '){wd.ddegz=wd.ddegx=0;}
 //		else if(key=='y'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(270,0,0));}
 //		else if(key=='h'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(90.5,0,0));}
-//		else if(key=='i'){wn.transl(0,0,-1);}
-//		else if(key=='k'){wn.transl(0,0,1);}
-		else if(key=='i'){wn.zoom-=.1;}
-		else if(key=='k'){wn.zoom+=.1;}
+		else if(key=='y'){wn.zoom-=.1;}
+		else if(key=='h'){wn.zoom+=.1;}
 		else if(key=='0'){togglefullscr();return;}
 		else if(key=='1'){glob::drawboundingspheres=!glob::drawboundingspheres;}
 		else if(key=='2'){wd.drawaxis=!wd.drawaxis;}
@@ -1416,6 +1432,9 @@ namespace glut{
 		else if(key=='6'){wn.set(p3(0,0,3));}
 		else if(key==13){inp<<endl;consolemode=!consolemode;}
 		else if(key==127){sts.str("");}// bkspc
+		else if(key=='i'){wn.f.set(0,11,0);}
+		else if(key=='k'){wn.f.set(0,0,0);}
+
 	}
 	void keyup(const unsigned char key,const int x,const int y){
 		const char k[]={(char)key,0};
