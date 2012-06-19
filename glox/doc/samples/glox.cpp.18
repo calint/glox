@@ -33,7 +33,7 @@ namespace glox{
 	inline float rnd(const float from,const float tonotincluding){
 		return from+(tonotincluding-from)*rand()/RAND_MAX;
 	}
-	ostringstream sts,inp;
+	ostringstream sts;
 }
 using namespace glox;
 
@@ -658,10 +658,8 @@ public:
 		p=rgba+wihi*4+4;
 		int w=fnt4::wh;
 		int h=fnt4::wh;
-		const unsigned short fnt_alf[]={0x0000,0x0552,0x0771,0x0212,0x0774,0x0737,0x0137,0x0651,0x0571,0x0220,0x0122,0x0531,0x0610,0x0770,0x0530,0x0252,0x1770,0x4770,0x0160,0x0324,0x0270,0x0650,0x0250,0x0775,0x0525,0x0225,0x0630};
-		const unsigned short fnt_num[]={0x0252,0x0220,0x0621,0x0642,0x0451,0x0324,0x0612,0x0247,0x2702,0x2452};
-		const char*str=inp.str().c_str();
-		//"gnox consol orface";
+		const unsigned short fnt[]={0x0000,0x0552,'b',0x0212,'d',0x0737,0x0137,0x0651,'h','i','j','k',0x0610,'m',0x0530,0x0252,'p','q',0x0160,0x0324,'t','u','v','w',0x0525,'y','z'};
+		const char*str=sts.str().c_str();//"gnox consol orface";
 		const size_t sln=strlen(str);
 		int m=1;
 		while(m--){
@@ -670,12 +668,7 @@ public:
 				const char ch=str[i];
 				if(ch==0)
 					break;
-				unsigned short sch;
-				if(ch>='a'&&ch<='z')
-					sch=fnt_alf[ch+1-'a'];
-				else if(ch>='0'&&ch<='9'){
-					sch=fnt_num[ch-'0'];
-				}
+				unsigned short sch=fnt[ch+1-'a'];
 				h=w=fnt4::wh;
 				while(h--){
 					while(w--){
@@ -1069,7 +1062,8 @@ extern void gnox();
 namespace glut{
 	int w=512,h=512,__w=w,__h=h;
 	lut<int>keysdn;
-	bool gamemode=false,fullscr=false,consolemode=true;
+	bool gamemode=false;
+	bool fullscr=false;
 	windo&wn=*new windo(p3(0,0,3));
 	void reshape(const int width,const int height){
 		sts<<"reshape("<<w<<"x"<<h<<")";
@@ -1107,29 +1101,27 @@ namespace glut{
 		static float fromheight=20;
 		static float d=3;
 		a+=dt(360);
-		if(!consolemode){
-	//		if(iskeydn('r')&&iskeydn('u')){wn.transl(0,dt(1),0);}
-	//		if(iskeydn('v')&&iskeydn('n')){wn.transl(0,-dt(1),0);}
-			if(iskeydn('r')){for(int i=0;i<11;i++)new obball(wold::get(),p3(dr*cos(a)*rnd(-dr,dr),dr*sin(a)*rnd(-dr,dr),fromheight+rnd(0,dr)));}
-	//		if(iskeydn('i')){wold::get().transl(0,0,dt(10));}
-	//		if(iskeydn('k')){wold::get().transl(0,0,-dt(10));}
-			if(iskeydn('w')){wn.transl(wn.mmv.zaxis(),dt(-d));}
-			if(iskeydn('s')){wn.transl(wn.mmv.zaxis(),dt(d));}
-			if(iskeydn('d')){wn.transl(wn.mmv.xaxis(),dt(d));}
-			if(iskeydn('a')){wn.transl(wn.mmv.xaxis(),dt(-d));}
-			if(iskeydn('q')){wn.transl(wn.mmv.yaxis(),dt(d));}
-			if(iskeydn('e')){wn.transl(wn.mmv.yaxis(),dt(-d));}
+//		if(iskeydn('r')&&iskeydn('u')){wn.transl(0,dt(1),0);}
+//		if(iskeydn('v')&&iskeydn('n')){wn.transl(0,-dt(1),0);}
+		if(iskeydn('r')){for(int i=0;i<11;i++)new obball(wold::get(),p3(dr*cos(a)*rnd(-dr,dr),dr*sin(a)*rnd(-dr,dr),fromheight+rnd(0,dr)));}
+//		if(iskeydn('i')){wold::get().transl(0,0,dt(10));}
+//		if(iskeydn('k')){wold::get().transl(0,0,-dt(10));}
+		if(iskeydn('w')){wn.transl(wn.mmv.zaxis(),dt(-d));}
+		if(iskeydn('s')){wn.transl(wn.mmv.zaxis(),dt(d));}
+		if(iskeydn('d')){wn.transl(wn.mmv.xaxis(),dt(d));}
+		if(iskeydn('a')){wn.transl(wn.mmv.xaxis(),dt(-d));}
+		if(iskeydn('q')){wn.transl(wn.mmv.yaxis(),dt(d));}
+		if(iskeydn('e')){wn.transl(wn.mmv.yaxis(),dt(-d));}
 
-			if(iskeydn('j')){
-				m3 m(wn.mmv);
-				m.roty(dt(3.1415f));
-				wn.lookat.set(m.zaxis()).scale(100);
-			}
-			if(iskeydn('l')){
-				m3 m(wn.mmv);
-				m.roty(-dt(3.1415f));
-				wn.lookat.set(m.zaxis()).scale(100);
-			}
+		if(iskeydn('j')){
+			m3 m(wn.mmv);
+			m.roty(dt(3.1415f));
+			wn.lookat.set(m.zaxis()).scale(100);
+		}
+		if(iskeydn('l')){
+			m3 m(wn.mmv);
+			m.roty(-dt(3.1415f));
+			wn.lookat.set(m.zaxis()).scale(100);
 		}
 
 		metrics::coldetsph=metrics::collisions=0;
@@ -1142,14 +1134,6 @@ namespace glut{
 	}
 	void keydn(const unsigned char key,const int x,const int y){
 		if(iskeydn(key,true))return;
-		if(consolemode){
-			if(key==13){
-				consolemode=false;
-				return;
-			}
-			inp<<key;
-			return;
-		}
 		sts<<"keydn("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
 //		nl=true;
 		wold&wd=wold::get();
@@ -1172,7 +1156,6 @@ namespace glut{
 		else if(key=='4'){wd.hidezplane=!wd.hidezplane;}
 		else if(key=='5'){wd.coldet=!wd.coldet;}
 		else if(key=='6'){wn.set(p3(0,0,3));}
-		else if(key=='7'){consolemode=!consolemode;}
 		else if(key==127){sts.str("");}// bkspc
 	}
 	void keyup(const unsigned char key,const int x,const int y){
