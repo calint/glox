@@ -618,25 +618,68 @@ public:
 	}
 };
 
-namespace fnt4{
-	int wh=4;
-	short a=0x1111;
-}
-
 class obcon:public obtex{
-	const char*hello;
+	static unsigned short fnt_az[];
+	static unsigned short fnt_09[];
+	const static int fnt_w=4;
+	const static int fnt_h=4;
+	const static int bp=4;
+	GLubyte*p;
+	GLubyte*pnl;
 public:
-	obcon(glob&g):obtex(g,32*4,1),hello("hello"){
-//		agl().transl(180,0,0);
-//		transl(0,s,s);
+	obcon(glob&g):obtex(g,32*4,1){}
+	void phom(){p=rgba+wihi*bp+bp;}
+	void prnt(const size_t len,const char*s){
+		const unsigned short fnt_az[]={0x0552,0x0771,0x0212,0x0774,0x0737,0x0137,0x0651,0x0571,0x0220,0x0122,0x0531,0x0610,0x0770,0x0530,0x0252,0x1770,0x4770,0x0160,0x0324,0x0270,0x0650,0x0250,0x0775,0x0525,0x0225,0x0630};
+		const unsigned short fnt_09[]={0x0252,0x0220,0x0621,0x0642,0x0451,0x0324,0x0612,0x0247,0x2702,0x2452};
+
+		pnl=p;
+		for(size_t i=0;i<len;i++){
+			const char ch=s[i];
+			if(ch==0)
+				break;
+			unsigned short sch;
+			if(ch>='a'&&ch<='z')
+				sch=fnt_az[ch-'a'];
+			else if(ch>='0'&&ch<='9'){
+				sch=fnt_09[ch-'0'];
+			}else if(ch=='\n'){
+				p=pnl+fnt_h*wihi*bp;
+				pnl=p;
+				continue;
+			}else if(ch==127){
+				p-=fnt_w*bp;
+				continue;
+			}else if(iswspace(ch)){
+				sch=0x0020;
+			}
+			int h=fnt_h;
+			while(h--){
+				for(int w=fnt_w;w>0;w--){
+					if(sch&1){
+						*p++=255;
+						*p++=255;
+						*p++=255;
+						*p++=255;
+					}else{
+						p+=4;
+//						*p++=0;
+//						*p++=0;
+//						*p++=0;
+//						*p++=0;
+					}
+					sch>>=1;
+				}
+				p=p+wihi*bp-fnt_w*bp;
+			}
+			p=p-wihi*bp*fnt_h+fnt_w*bp;
+		}
+		p=pnl+fnt_h*wihi*bp;
+		pnl=p;
 	}
 	virtual void tick(){
 		obtex::tick();
-
-
-//		zap();
-
-		int n=wihi*wihi;
+		int n=wihi*wihi*bp/4;
 		GLubyte*pp=rgba;
 		while(n--){
 			GLubyte b=(GLubyte)rnd(0,255);
@@ -650,61 +693,20 @@ public:
 				pp+=4;
 		}
 
-		GLubyte*p=rgba;
-		int i=wihi*wihi*4;
-		i>>=4;
-		while(i--)*p++=0;
+//		pp=rgba;
+//		n=wihi*wihi*bp;
+//		n>>=4;
+//		while(n--)*pp++=0;
 
-		p=rgba+wihi*4+4;
-		int w=fnt4::wh;
-		int h=fnt4::wh;
-		const unsigned short fnt_alf[]={0x0000,0x0552,0x0771,0x0212,0x0774,0x0737,0x0137,0x0651,0x0571,0x0220,0x0122,0x0531,0x0610,0x0770,0x0530,0x0252,0x1770,0x4770,0x0160,0x0324,0x0270,0x0650,0x0250,0x0775,0x0525,0x0225,0x0630};
-		const unsigned short fnt_num[]={0x0252,0x0220,0x0621,0x0642,0x0451,0x0324,0x0612,0x0247,0x2702,0x2452};
+		phom();
 		const char*str=inp.str().c_str();
-		//"gnox consol orface";
 		const size_t sln=strlen(str);
-		int m=1;
-		while(m--){
-			GLubyte*pnl=p;
-			for(size_t i=0;i<sln;i++){
-				const char ch=str[i];
-				if(ch==0)
-					break;
-				unsigned short sch;
-				if(ch>='a'&&ch<='z')
-					sch=fnt_alf[ch+1-'a'];
-				else if(ch>='0'&&ch<='9'){
-					sch=fnt_num[ch-'0'];
-				}
-				h=w=fnt4::wh;
-				while(h--){
-					while(w--){
-						if(sch&1){
-							*p++=255;
-							*p++=255;
-							*p++=255;
-							*p++=255;
-						}else{
-							*p++=0;
-							*p++=0;
-							*p++=0;
-							*p++=0;
-						}
-						sch>>=1;
-					}
-					p=p+wihi*4-fnt4::wh*4;
-					w=fnt4::wh;
-				}
-				p=p-wihi*4*fnt4::wh+fnt4::wh*4;
-			}
-			p=pnl+fnt4::wh*wihi*4;
-		}
-//		GLuint*ip=(GLuint*)rgba;
-//		*ip=0xff0000ff;
-//		*(ip+wihi*wihi-1)=0xffff00ff;
+		prnt(sln,str);
 		updtx();
 	}
 };
+unsigned short obcon::fnt_az[]={0x0552,0x0771,0x0212,0x0774,0x0737,0x0137,0x0651,0x0571,0x0220,0x0122,0x0531,0x0610,0x0770,0x0530,0x0252,0x1770,0x4770,0x0160,0x0324,0x0270,0x0650,0x0250,0x0775,0x0525,0x0225,0x0630};
+unsigned short obcon::fnt_09[]={0x0252,0x0220,0x0621,0x0642,0x0451,0x0324,0x0612,0x0247,0x2702,0x2452};
 
 #include<typeinfo>
 
@@ -1173,7 +1175,7 @@ namespace glut{
 		else if(key=='4'){wd.hidezplane=!wd.hidezplane;}
 		else if(key=='5'){wd.coldet=!wd.coldet;}
 		else if(key=='6'){wn.set(p3(0,0,3));}
-		else if(key=='7'){consolemode=!consolemode;}
+		else if(key==13){inp<<endl;consolemode=!consolemode;}
 		else if(key==127){sts.str("");}// bkspc
 	}
 	void keyup(const unsigned char key,const int x,const int y){
