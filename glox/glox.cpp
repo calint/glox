@@ -856,8 +856,9 @@ class obcon:public obtex{
 	const char*title;
 public:
 	obcon(glob&g,const p3&p=p3(),const p3&a=p3(),const char*title="gnox ministry of consoles"):obtex(g,32*bp,1,p,a),p(rgba+wihi*bp+bp),title(title){}
-	void phom(){p=rgba+wihi*bp+bp;}
-	void prnt(const size_t len,const char*s){
+	inline obcon&phom(){p=rgba+wihi*bp+bp;return*this;}
+	inline obcon&prnt(const char*s){return prnt(strlen(s),s);}
+	obcon&prnt(const size_t len,const char*s){
 		const unsigned short fnt_az[]={0x0552,0x0771,0x0212,0x0774,0x0737,0x0137,0x0651,0x0571,0x0220,0x0122,0x0531,0x0610,0x0770,0x0530,0x0252,0x1770,0x4770,0x0160,0x0324,0x0270,0x0650,0x0250,0x0775,0x0525,0x0225,0x0630};
 		const unsigned short fnt_09[]={0x0252,0x0220,0x0621,0x0642,0x0451,0x0324,0x0612,0x0247,0x2702,0x2452};
 
@@ -902,9 +903,10 @@ public:
 			}
 			p=p-wihi*bp*fnt_h+fnt_w*bp;
 		}
-		p=pnl+fnt_h*wihi*bp;
-		pnl=p;
+		pnl=p=pnl+fnt_h*wihi*bp;
+		return *this;
 	}
+	inline obcon&nl(){p=pnl+=wihi*bp;return*this;}
 	virtual void tick(){
 		obtex::tick();
 		int n=wihi*wihi*bp/4;
@@ -925,14 +927,8 @@ public:
 		n=wihi*wihi*bp;
 		n>>=4;
 		while(n--)*pp++=0;
-
-		phom();
-		const char*str=inp.str().c_str();
-		const size_t sln=strlen(str);
-		if(sln!=0)
-			prnt(sln,str);
-		else
-			prnt(strlen(title),title);
+		phom().prnt(title).nl().nl().nl().prnt(sts.str().c_str()).prnt(inp.str().c_str()).nl();
+		sts.str("");
 		updtx();
 	}
 };
@@ -1467,9 +1463,8 @@ namespace glut{
 	}
 	void keyup(const unsigned char key,const int x,const int y){
 		const char k[]={(char)key,0};
-		keysdn.rm(k);//? whatif 1 and not handled
+		keysdn.rm(k);
 		sts<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
-//		nl=true;
 		if(key==27)// esc
 			{if(fullscr)togglefullscr();cout<<endl;exit(0);}
 	}
