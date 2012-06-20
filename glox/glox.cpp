@@ -831,6 +831,7 @@ public:
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D,gltx);
 		glBegin(GL_QUADS);
+		glColor4b(0,0,0,0);
 		glTexCoord2f(0,0);
 		glVertex3f(-s,-s,0);
 		glTexCoord2f(1,0);
@@ -852,8 +853,9 @@ class obcon:public obtex{
 	const static int bp=4;
 	GLubyte*p;
 	GLubyte*pnl;
+	const char*title;
 public:
-	obcon(glob&g,const p3&p=p3(),const p3&a=p3()):obtex(g,32*bp,1,p,a){}
+	obcon(glob&g,const p3&p=p3(),const p3&a=p3(),const char*title="gnox ministry of consoles"):obtex(g,32*bp,1,p,a),p(rgba+wihi*bp+bp),title(title){}
 	void phom(){p=rgba+wihi*bp+bp;}
 	void prnt(const size_t len,const char*s){
 		const unsigned short fnt_az[]={0x0552,0x0771,0x0212,0x0774,0x0737,0x0137,0x0651,0x0571,0x0220,0x0122,0x0531,0x0610,0x0770,0x0530,0x0252,0x1770,0x4770,0x0160,0x0324,0x0270,0x0650,0x0250,0x0775,0x0525,0x0225,0x0630};
@@ -919,15 +921,18 @@ public:
 				pp+=4;
 		}
 
-//		pp=rgba;
-//		n=wihi*wihi*bp;
-//		n>>=4;
-//		while(n--)*pp++=0;
+		pp=rgba;
+		n=wihi*wihi*bp;
+		n>>=4;
+		while(n--)*pp++=0;
 
 		phom();
 		const char*str=inp.str().c_str();
 		const size_t sln=strlen(str);
-		prnt(sln,str);
+		if(sln!=0)
+			prnt(sln,str);
+		else
+			prnt(strlen(title),title);
 		updtx();
 	}
 };
@@ -938,7 +943,8 @@ unsigned short obcon::fnt_09[]={0x0252,0x0220,0x0621,0x0642,0x0451,0x0324,0x0612
 
 class wold:public glob{
 	static wold wd;
-	wold():glob(*(glob*)0,p3(),p3(),15),hidezplane(false),coldet(true){}
+	float t;
+	wold():glob(*(glob*)0,p3(),p3(),15),t(0),hidezplane(false),coldet(true){}
 	~wold(){if(fufo)delete fufo;}
 public:
 	void load(){
@@ -950,7 +956,7 @@ public:
 //		fufo=new f3("ufo.f3",p3(1,1,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
 //		hidezplane=true;
-		new obcon(*this,p3(3.5f,12.f,4));
+		new obcon(*this,p3(10,1,-3));
 		new obcorp(*this,p3(0,4.2f,0));
 //		new obcorp(*this,p3(0,4.2f,8));
 	}
@@ -1000,7 +1006,7 @@ public:
 			const float r=s;
 			glPushMatrix();
 	//		glTranslatef(0,0,01f);
-			glColor3b(0,0x7f,0);
+			glColor3f(0,float(sin(.1*t)),0);
 			glBegin(GL_TRIANGLE_FAN);
 			glVertex2f(0,0);
 			glVertex2f(r,0);
@@ -1031,6 +1037,7 @@ public:
 		glEnable(GL_CULL_FACE);
 	}
 	void tick(){
+		t+=dt();
 		if(coldet){
 			auto i1=chs.begin();
 			while(true){
@@ -1215,6 +1222,8 @@ public:
 	p3 lookat;
 	float flappery;
 	float rocketry;
+	bool dodrawhud;
+	windo&togglehud(){dodrawhud=!dodrawhud;return*this;}
 	windo(const p3&p):glob(wold::get(),p,p3(),.1f,p3()){}
 	void drawframe(){
 		cout<<"\rframe("<<metrics::frames++<<")";
@@ -1285,17 +1294,19 @@ public:
 
 		getglob().draw();
 
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_CULL_FACE);
-		glDisable(GL_LIGHTING);
-		glDisable(GL_BLEND);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glOrtho(0,w,0,h,0,1);
-		glColor3b(0x7f,0x7f,0x7f);
-		drawhud();
+		if(dodrawhud){
+			glDisable(GL_DEPTH_TEST);
+			glDisable(GL_CULL_FACE);
+			glDisable(GL_LIGHTING);
+			glDisable(GL_BLEND);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glOrtho(0,w,0,h,0,1);
+			glColor3b(0x7f,0x7f,0x7f);
+			drawhud();
+		}
 		cout<<flush;
 	}
 	virtual bool oncol(glob&g){
@@ -1322,12 +1333,12 @@ public:
 		pprv.set(*this);
 		transl(d,dt());
 		if(gety()<bv.r){
-			flf();l()<<gety()<<" < "<<bv.r<<endl;
+//			flf();l()<<gety()<<" < "<<bv.r<<endl;
 			d.neg().scale(.2f);
 //			dd.set(0,0,0);
 			set(pprv);
 		}
-		flf();l()<<dd<<endl;
+//		flf();l()<<dd<<endl;
 //		flf();l()<<endl;
 	}
 	virtual void gldraw(){}
@@ -1451,6 +1462,7 @@ namespace glut{
 		else if(key=='c'){wn.agl().transl(30,0,0);}
 		else if(key=='f'){wn.agl().set(0,wn.agl().gety(),wn.agl().getz());}
 		else if(key=='v'){wn.agl().transl(-30,0,0);}
+		else if(key==9){wn.togglehud();}
 	}
 	void keyup(const unsigned char key,const int x,const int y){
 		const char k[]={(char)key,0};
@@ -1458,7 +1470,7 @@ namespace glut{
 		sts<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
 //		nl=true;
 		if(key==27)// esc
-		{glutReshapeWindow(w,h);exit(0);}
+			{if(fullscr)togglefullscr();exit(0);}
 	}
 	void mouseclk(const int button,const int state,int x,const int y){
 		GLint viewport[4];
