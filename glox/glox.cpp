@@ -947,6 +947,7 @@ class wold:public glob{
 	wold():glob(*(glob*)0,p3(),p3(),15),t(0),hidezplane(false),coldet(true){}
 	~wold(){if(fufo)delete fufo;}
 public:
+	inline float gett(){return t;}
 	void load(){
 //		new obcorp(*this,p3(0,9,4.2f),p3(90,0,0));
 		new obball(*this,p3(0,1,0));
@@ -1192,7 +1193,7 @@ class windo:public glob{
 		const tm&t=*localtime(&tv.tv_sec);
 		ostringstream oss;
 		oss<<setprecision(2)<<fixed;
-		oss<<t.tm_hour<<":"<<":"<<t.tm_min<<":"<<t.tm_sec<<"."<<tv.tv_usec/1000;
+		oss<<t.tm_hour<<":"<<":"<<t.tm_min<<":"<<t.tm_sec<<"."<<tv.tv_usec/1000<<"    t("<<wold::get().gett()<<")";
 		oss<<setprecision(3);
 		oss<<"          rend.dt("<<metrics::dtrend<<")s   upd.dt("<<metrics::dtupd<<")s     "<<((int)(metrics::globs/(metrics::dtrend?metrics::dtrend:1))>>10)<<"Kglobs/s    rendonly "<<(1/metrics::dtrend)<<"fps";
 		y=dy;pl(oss.str().c_str(),y,0,1,.1f);
@@ -1470,7 +1471,7 @@ namespace glut{
 		sts<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
 //		nl=true;
 		if(key==27)// esc
-			{if(fullscr)togglefullscr();exit(0);}
+			{if(fullscr)togglefullscr();cout<<endl;exit(0);}
 	}
 	void mouseclk(const int button,const int state,int x,const int y){
 		GLint viewport[4];
