@@ -1028,7 +1028,6 @@ public:
 		n>>=4;
 		while(n--)*pp++=0;
 		phom().prnt(title).nl().nl().nl().prnt(sts.str().c_str()).prnt(inp.str().c_str()).nl();
-		sts.str("");
 		updtx();
 	}
 };
@@ -1410,6 +1409,8 @@ public:
 	}
 	int food;
 	virtual bool oncol(glob&g){
+		sts<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
+//		cout<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
 		if(g.isfood()){
 			g.rm();
 			food++;
@@ -1417,7 +1418,6 @@ public:
 		}
 		set(pprv);
 		d.neg().scale(.2f);
-		sts<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
 		return true;
 		if(g.isblt()){
 			set(0,40,0);
@@ -1493,6 +1493,7 @@ namespace glut{
 	}
 	void timer(const int value){
 		clk::tk++;
+		sts.str("");
 		static float a=0;
 		static float dr=2;
 		static float fromheight=20;
