@@ -950,9 +950,9 @@ public:
 //		fufo=new f3("ufo.f3",p3(1,1,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
 //		hidezplane=true;
-		new obcon(*this,p3(10,.1f,0),p3(90,0,0));
+		new obcon(*this,p3(3.5f,12.f,4));
 		new obcorp(*this,p3(0,4.2f,0));
-		new obcorp(*this,p3(0,4.2f,8));
+//		new obcorp(*this,p3(0,4.2f,8));
 	}
 
 	inline static wold&get(){return wd;}
@@ -1268,7 +1268,9 @@ public:
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
+		glRotatef(agl().getx(),1,0,0);
 		glRotatef(agl().gety(),0,1,0);
+		glRotatef(agl().getz(),0,0,1);
 		glTranslatef(-getx(),-gety(),-getz());
 //		glutSolidSphere(1,5,4);
 //		const p3 up=mmv.yaxis().gety()==0?p3(0,1,0):mmv.yaxis();
@@ -1446,7 +1448,9 @@ namespace glut{
 		else if(key==127){sts.str("");}// bkspc
 		else if(key=='k'){if(wn.rocketry>0){wn.f.set(0,11,0);};wn.rocketry-=dt(30);}
 		else if(key=='i'){if(wn.flappery>0){wn.fi.set(0,300,0);wn.flappery-=1;}}
-
+		else if(key=='c'){wn.agl().transl(30,0,0);}
+		else if(key=='f'){wn.agl().set(0,wn.agl().gety(),wn.agl().getz());}
+		else if(key=='v'){wn.agl().transl(-30,0,0);}
 	}
 	void keyup(const unsigned char key,const int x,const int y){
 		const char k[]={(char)key,0};
