@@ -263,13 +263,6 @@ class m3{
 	float xy,yy,zy,oy;
 	float xz,yz,zz,oz;
 	float xo,yo,zo,oo;
-public:
-	inline m3(){metrics::m3s++;ident();}
-	inline ~m3(){metrics::m3s--;}
-	m3&ident(){xx=1;xy=0;xz=0;xo=0; yx=0;yy=1;yz=0;yo=0; zx=0;zy=0;zz=1;zo=0; ox=oy=oz=0; oo=1;return*this;}
-	p3 xaxis()const{return p3(xx,xy,xz);}
-	p3 yaxis()const{return p3(yx,yy,yz);}
-	p3 zaxis()const{return p3(zx,zy,zz);}
 	m3&rotx(const float a){
 		float c=cos(a),s=sin(a);
 		float nyx=yx*c+zx*s,nyy=yy*c+zy*s,nyz=yz*c+zz*s,nyo=yo*c+zo*s;
@@ -303,6 +296,24 @@ public:
 		zo=zx*x+zy*y+zz*z+zo;
 		return*this;
 	}
+
+public:
+	inline m3(){metrics::m3s++;ident();}
+	inline ~m3(){metrics::m3s--;}
+	m3&ident(){xx=1;xy=0;xz=0;xo=0; yx=0;yy=1;yz=0;yo=0; zx=0;zy=0;zz=1;zo=0; ox=oy=oz=0; oo=1;return*this;}
+	p3 xaxis()const{return p3(xx,xy,xz);}
+	p3 yaxis()const{return p3(yx,yy,yz);}
+	p3 zaxis()const{return p3(zx,zy,zz);}
+	m3&mw(const p3&p,const p3&a){
+		ident();
+		rotz(degtorad(a.getz()));
+		roty(degtorad(a.gety()));
+		rotx(degtorad(a.getx()));
+		xo=p.getx();
+		yo=p.gety();
+		zo=p.getz();
+		return*this;
+	}
 	const m3&mult(const p3&src,p3&dst)const{
 		metrics::mpmul++;
 		const float x=src.getx();
@@ -321,6 +332,9 @@ public:
 		xo=m[12];yo=m[13];zo=m[14];oo=m[15];
 		return*this;
 	}
+//	m3&rottrnsl(const p3&p,const p3&a){
+//		return*this;
+//	}
 	m3 inv()const{
 		GLfloat m[16];
 		m[0 ]=xx;m[ 1]=yx;m[ 2]=zx;m[3]=ox;
@@ -337,25 +351,25 @@ public:
 	}
 	m3&mult(const m3&m){
 		metrics::mmmul++;
-		float nxx=xx*m.xx+yx*m.xy+zx*m.xz+ox*m.xo;
-		float nyx=xx*m.yx+yx*m.yy+zx*m.yz+ox*m.yo;
-		float nzx=xx*m.zx+yx*m.zy+zx*m.zz+ox*m.zo;
-		float nox=xx*m.ox+yx*m.oy+zx*m.oz+ox*m.oo;
+		float nxx=m.xx*xx+m.yx*xy+m.zx*xz+m.ox*xo;
+		float nyx=m.xx*yx+m.yx*yy+m.zx*yz+m.ox*yo;
+		float nzx=m.xx*zx+m.yx*zy+m.zx*zz+m.ox*zo;
+		float nox=m.xx*ox+m.yx*oy+m.zx*oz+m.ox*oo;
 
-		float nxy=xy*m.xx+yy*m.xy+zy*m.xz+oy*m.xo;
-		float nyy=xy*m.yx+yy*m.yy+zy*m.yz+oy*m.yo;
-		float nzy=xy*m.zx+yy*m.zy+zy*m.zz+oy*m.zo;
-		float noy=xy*m.ox+yy*m.oy+zy*m.oz+oy*m.oo;
+		float nxy=m.xy*xx+m.yy*xy+m.zy*xz+m.oy*xo;
+		float nyy=m.xy*yx+m.yy*yy+m.zy*yz+m.oy*yo;
+		float nzy=m.xy*zx+m.yy*zy+m.zy*zz+m.oy*zo;
+		float noy=m.xy*ox+m.yy*oy+m.zy*oz+m.oy*oo;
 
-		float nxz=xz*m.xx+yz*m.xy+zz*m.xz+oz*m.xo;
-		float nyz=xz*m.yx+yz*m.yy+zz*m.yz+oz*m.yo;
-		float nzz=xz*m.zx+yz*m.zy+zz*m.zz+oz*m.zo;
-		float noz=xz*m.ox+yz*m.oy+zz*m.oz+oz*m.oo;
+		float nxz=m.xz*xx+m.yz*xy+m.zz*xz+m.oz*xo;
+		float nyz=m.xz*yx+m.yz*yy+m.zz*yz+m.oz*yo;
+		float nzz=m.xz*zx+m.yz*zy+m.zz*zz+m.oz*zo;
+		float noz=m.xz*ox+m.yz*oy+m.zz*oz+m.oz*oo;
 
-		float nxo=xo*m.xx+yo*m.xy+zo*m.xz+oo*m.xo;
-		float nyo=xo*m.yx+yo*m.yy+zo*m.yz+oo*m.yo;
-		float nzo=xo*m.zx+yo*m.zy+zo*m.zz+oo*m.zo;
-		float noo=xo*m.ox+yo*m.oy+zo*m.oz+oo*m.oo;
+		float nxo=m.xo*xx+m.yo*xy+m.zo*xz+m.oo*xo;
+		float nyo=m.xo*yx+m.yo*yy+m.zo*yz+m.oo*yo;
+		float nzo=m.xo*zx+m.yo*zy+m.zo*zz+m.oo*zo;
+		float noo=m.xo*ox+m.yo*oy+m.zo*oz+m.oo*oo;
 
 		xx=nxx;yx=nyx;zx=nzx;ox=nox;
 		xy=nxy;yy=nyy;zy=nzy;oy=noy;
@@ -364,6 +378,35 @@ public:
 
 		return*this;
 	}
+//	m3&mult(const m3&m){
+//		metrics::mmmul++;
+//		float nxx=xx*m.xx+yx*m.xy+zx*m.xz+ox*m.xo;
+//		float nyx=xx*m.yx+yx*m.yy+zx*m.yz+ox*m.yo;
+//		float nzx=xx*m.zx+yx*m.zy+zx*m.zz+ox*m.zo;
+//		float nox=xx*m.ox+yx*m.oy+zx*m.oz+ox*m.oo;
+//
+//		float nxy=xy*m.xx+yy*m.xy+zy*m.xz+oy*m.xo;
+//		float nyy=xy*m.yx+yy*m.yy+zy*m.yz+oy*m.yo;
+//		float nzy=xy*m.zx+yy*m.zy+zy*m.zz+oy*m.zo;
+//		float noy=xy*m.ox+yy*m.oy+zy*m.oz+oy*m.oo;
+//
+//		float nxz=xz*m.xx+yz*m.xy+zz*m.xz+oz*m.xo;
+//		float nyz=xz*m.yx+yz*m.yy+zz*m.yz+oz*m.yo;
+//		float nzz=xz*m.zx+yz*m.zy+zz*m.zz+oz*m.zo;
+//		float noz=xz*m.ox+yz*m.oy+zz*m.oz+oz*m.oo;
+//
+//		float nxo=xo*m.xx+yo*m.xy+zo*m.xz+oo*m.xo;
+//		float nyo=xo*m.yx+yo*m.yy+zo*m.yz+oo*m.yo;
+//		float nzo=xo*m.zx+yo*m.zy+zo*m.zz+oo*m.zo;
+//		float noo=xo*m.ox+yo*m.oy+zo*m.oz+oo*m.oo;
+//
+//		xx=nxx;yx=nyx;zx=nzx;ox=nox;
+//		xy=nxy;yy=nyy;zy=nzy;oy=noy;
+//		xz=nxz;yz=nyz;zz=nzz;oz=noz;
+//		xo=nxo;yo=nyo;zo=nzo;oo=noo;
+//
+//		return*this;
+//	}
 	friend ostream&operator<<(ostream&,const m3&);
 	friend istream&operator>>(istream&,m3&);
 };
@@ -465,18 +508,15 @@ public:
 		}
 		metrics::mwrefresh++;
 
-		mxmw.ident();
-
-		mxmwpos=*this;
-		mxmw.transl(mxmwpos);
-
 		mxmwagl=a;
-		mxmw.rotx(degtorad(mxmwagl.getx()));
-		mxmw.roty(degtorad(mxmwagl.gety()));
-		mxmw.rotz(degtorad(mxmwagl.getz()));
+		mxmwpos=*this;
 
-		m3 mp=g.mxmw;
-		mxmw.mult(mp);
+		m3 m;
+		m.ident();
+		m.mw(mxmwpos,mxmwagl);
+
+		mxmw=g.mxmw;
+		mxmw.mult(m);
 
 //		glTranslatef(getx(),gety(),getz());
 //		glRotatef(a.getx(),1,0,0);
@@ -495,6 +535,7 @@ public:
 	inline bool issolid(){return bits&1;}
 	inline bool isblt(){return bits&2;}
 	inline bool iscoldetrec()const{return bits&4;}
+	inline bool isfood()const{return bits&8;}
 	bvol bv;
 	static bool drawboundingspheres;
 	static int drawboundingspheresdetail;
@@ -518,7 +559,7 @@ public:
 		const p3 v(wpthis,wpo);
 		const float d=v.magn();
 		metrics::coldetsph++;
-		flf();l()<<typeid(*this).name()<<"("<<wpthis<<")  "<<typeid(o).name()<<"("<<wpo<<")  "<<d<<"  "<<bv.r<<"   "<<o.bv.r<<endl;
+//		flf();l()<<typeid(*this).name()<<"("<<wpthis<<")  "<<typeid(o).name()<<"("<<wpo<<")  "<<d<<"  "<<bv.r<<"   "<<o.bv.r<<endl;
 		if(d>(bv.r+o.bv.r)){
 			if(o.iscoldetrec()){
 				for(auto gg:o.chs)
@@ -643,8 +684,8 @@ public:
 	obwom(glob&pt,const int links=4,const p3&p=p3()):glob(pt,p,p3(),.4f,p3()),links(links){
 		if(links==0)
 			return;
-		bits|=2+4;
-		new obwom(*this,links-1,p3(0,.4f,0));
+		bits|=(2+4);
+		new obwom(*this,links-1,p3(0,.4f,1));
 	}
 	void gldraw(){
 //		glPushAttrib(GL_ENABLE_BIT);
@@ -663,7 +704,7 @@ public:
 	}
 	virtual void tick(){
 		glob::tick();
-		if(links)
+		if(links==1)
 			agl().transl(0,dt(60),0);
 //		agl().transl(dt(60),0,dt(60));
 //		a.transl(0,d(60),d(60));
@@ -678,7 +719,9 @@ class obball:public glob{
 	p3 dp;
 	float lft;
 public:
-	obball(glob&g,const p3&p,const float r=.05f):glob(g,p,p3(-180,0,0),r),dp(p3()),lft(0){}
+	obball(glob&g,const p3&p,const float r=.05f):glob(g,p,p3(-180,0,0),r),dp(p3()),lft(0){
+		bits|=8;
+	}
 	inline p3&getdp(){return dp;}
 	virtual void gldraw(){
 //		glShadeModel(GL_SMOOTH);
@@ -704,21 +747,19 @@ public:
 			rm();
 			return;
 		}
-		dp.transl(0,dt(-2),dt(-9.f));
+		dp.transl(0,dt(-9.f),dt(-2));
 		agl().transl(0,0,dt(720));
-		transl(dt(dp.getx()),dt(dp.gety()),dt(dp.getz()));
-		if(getz()<bv.r){
-			dp.scale(0,0,-.5f);
-			transl(0,0,bv.r-getz());
+		transl(dp,dt());
+		if(gety()<bv.r){
+			dp.scale(0,-.5f,0);
+			transl(0,bv.r-gety(),0);
 		}
 		glob::tick();
 	}
 	virtual bool oncol(glob&o){
-		const float dx=rnd(-1,1)*dt(bv.r);
-		const float dy=rnd(-1,1)*dt(bv.r);
-		const float dz=rnd(-1,1)*dt(bv.r);
-		if(&o)
-		transl(dx,dy,dz);
+//		flf();l()<<typeid(o).name()<<endl;
+		if(!o.issolid())return true;
+		dp.neg().scale(.5f);
 		return true;
 	}
 };
@@ -1012,10 +1053,11 @@ public:
 //		fufo=new f3("ufo.f3",p3(1,1,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
 //		hidezplane=true;
-//		new obcon(*this,p3(10,1,-3));
-//		new obcorp(*this,p3(0,4.2f,0));
-		new obwom(*this,1,p3(10,.8f,-5));
+		new obcon(*this,p3(10,1,-3));
+		new obcorp(*this,p3(0,4.2f,0));
 //		new obcorp(*this,p3(0,4.2f,8));
+//		new obwom(*this,1,p3(10,.8f,-5));
+		new obwom(*this,3,p3(10,0,0));
 	}
 
 	inline static wold&get(){return wd;}
@@ -1260,11 +1302,11 @@ class windo:public glob{
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
-		oss<<"sphcolsdet("<<metrics::coldetsph<<") sphcols("<<metrics::collisions<<")"<<" mxrfsh("<<metrics::mwrefresh<<")"<<" mvmul("<<metrics::mpmul<<")";
+		oss<<"sphcolsdet("<<metrics::coldetsph<<") sphcols("<<metrics::collisions<<")"<<" mxrfsh("<<metrics::mwrefresh<<")"<<" mvmul("<<metrics::mpmul<<") mmmul("<<metrics::mmmul<<") ";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
-		oss<<"flappery("<<flappery<<") "<<"rocketry("<<rocketry<<")";
+		oss<<"flappery("<<flappery<<") "<<"rocketry("<<rocketry<<") "<<"popcorn("<<food<<")";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		y+=dy;pl(sts.str().c_str(),y,0,1,.1f);
@@ -1366,10 +1408,17 @@ public:
 		}
 		cout<<flush;
 	}
+	int food;
 	virtual bool oncol(glob&g){
+		if(g.isfood()){
+			g.rm();
+			food++;
+			return true;
+		}
 		set(pprv);
 		d.neg().scale(.2f);
 		sts<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
+		return true;
 		if(g.isblt()){
 			set(0,40,0);
 			agl().set(45,0,0);
@@ -1452,7 +1501,7 @@ namespace glut{
 		if(!consolemode){
 	//		if(iskeydn('r')&&iskeydn('u')){wn.transl(0,dt(1),0);}
 	//		if(iskeydn('v')&&iskeydn('n')){wn.transl(0,-dt(1),0);}
-			if(iskeydn('r')){for(int i=0;i<11;i++)new obball(wold::get(),p3(dr*cos(a)*rnd(-dr,dr),dr*sin(a)*rnd(-dr,dr),fromheight+rnd(0,dr)));}
+			if(iskeydn('r')){for(int i=0;i<11;i++)new obball(wold::get(),p3(dr*cos(a)*rnd(-dr,dr),fromheight+rnd(0,dr),dr*sin(a)*rnd(-dr,dr)));}
 	//		if(iskeydn('i')){wold::get().transl(0,0,dt(10));}
 	//		if(iskeydn('k')){wold::get().transl(0,0,-dt(10));}
 			if(iskeydn('w')){wn.transl(wn.mmv.zaxis(),dt(-d));}
@@ -1478,7 +1527,7 @@ namespace glut{
 			}
 		}
 
-		metrics::coldetsph=metrics::collisions=metrics::mwrefresh=metrics::mpmul=0;
+		metrics::coldetsph=metrics::collisions=metrics::mwrefresh=metrics::mpmul=metrics::mmmul=0;
 		clk::timerrestart();
 		wold::get().tick();
 		metrics::dtupd=clk::timerdt();
