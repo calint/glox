@@ -743,10 +743,11 @@ public:
 		//		glColor3f(.5f,.5f,1);
 		//		glColor3b(0,0,127);
 
-		glShadeModel(GL_FLAT);
-		glEnable(GL_COLOR_MATERIAL);
-		glColor3f(1,colr,colr);
-		glutSolidSphere(bv.r,3,7);
+//		glShadeModel(GL_FLAT);
+//		glEnable(GL_COLOR_MATERIAL);
+//		glColor3f(1,colr,colr);
+//		glutSolidSphere(bv.r,3,7);
+//		glutSolidSphere(bv.r,3,3);
 	}
 	virtual void tick(){
 		lft+=dt(1);
@@ -757,7 +758,7 @@ public:
 		colr=1;
 		prv.set(*this);
 		dp.transl(0,dt(-9.f),dt());
-		agl().transl(0,0,dt(720));
+		agl().transl(0,0,dt(1));
 		transl(dp,dt());
 		if(gety()<bv.r){
 			dp.scale(0,-.5f,0);
@@ -775,16 +776,16 @@ public:
 	}
 };
 
-class obcube:public glob{
+class obiglo:public glob{
 	float s;
 public:
-	obcube(glob&g,const p3&p,const float size=.05f):glob(g,p,p3(),size),s(size){}
+	obiglo(glob&g,const p3&p,const float size=.05f):glob(g,p,p3(),size),s(size){}
 	float colr=1;
 	virtual void gldraw(){
-		glShadeModel(GL_FLAT);
-		glEnable(GL_COLOR_MATERIAL);
-		glColor3f(1,1,1);
-		glutSolidCube(s);
+//		glShadeModel(GL_FLAT);
+//		glEnable(GL_COLOR_MATERIAL);
+//		glColor3f(1,1,1);
+//		glutSolidCube(s);
 	}
 };
 
@@ -1073,7 +1074,7 @@ public:
 	~grid(){metrics::ngrids--;clear();}
 	void gldraw(){
 		glColor3b(0,0,0x7f);
-		const float yoff=.1f;
+		const float yoff=0;//.1f;
 		glBegin(GL_LINE_STRIP);
 		glVertex3f(ptl.getx()-s,yoff,ptl.getz()-s);
 		glVertex3f(ptl.getx()+s,yoff,ptl.getz()-s);
@@ -1200,7 +1201,7 @@ public:
 			const float xx=rnd(-spread,spread);
 			const float yy=s/2;//rnd(0,bv.r);
 			const float zz=rnd(-spread,spread);
-			new obcube(*this,p3(xx,yy,zz),s);
+			new obiglo(*this,p3(xx,yy,zz),s);
 		}
 
 //		new obcorp(*this,p3(0,4.2f,0));
@@ -1259,7 +1260,8 @@ public:
 			const float r=s;
 			glPushMatrix();
 	//		glTranslatef(0,0,01f);
-			glColor3f(0,float(sin(.1*t)),0);
+			const float a=float(sin(.1*t));
+			glColor3f(a,a,a);
 			glBegin(GL_TRIANGLE_FAN);
 			glVertex2f(0,0);
 			glVertex2f(r,0);
@@ -1460,7 +1462,7 @@ class windo:public glob{
 
 		oss.str("");
 		oss<<setprecision(1);
-		oss<<" p("<<*this<<") a("<<agl()<<") zoom("<<zoom<<")";
+		oss<<"p("<<*this<<") a("<<agl()<<") zoom("<<zoom<<")";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
@@ -1470,12 +1472,12 @@ class windo:public glob{
 
 		oss.str("");
 		oss<<setprecision(3);
-		oss<<"  rend.dt("<<metrics::dtrend<<")s   upd.dt("<<metrics::dtupd<<")s     "<<((int)(metrics::globs/(metrics::dtrend?metrics::dtrend:1))>>10)<<"Kglobs/s    rendonlyest("<<(1/metrics::dtrend)<<")fps";
+		oss<<"upd("<<metrics::dtupd<<")s   draw("<<metrics::dtrend<<")s    "<<((int)(metrics::globs/(metrics::dtrend?metrics::dtrend:1))>>10)<<"Kglobs/s    rendfpsest("<<(1/metrics::dtrend)<<")f/s";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
-		oss<<setprecision(3);
-		oss<<"ngrids("<<metrics::ngrids<<") coldetgrid("<<wold::get().coldetgrid<<") coldetgriddt("<<metrics::dtgrd<<")       coldetbrute("<<wold::get().coldet<<")  coldetbrutedt("<<metrics::dtcoldetbrute<<")";
+		oss<<setprecision(4);
+		oss<<"coldet: ngrids("<<metrics::ngrids<<") grid("<<wold::get().coldetgrid<<") grid("<<metrics::dtgrd<<")s      brute("<<wold::get().coldet<<")  brute("<<metrics::dtcoldetbrute<<")s";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
@@ -1484,7 +1486,7 @@ class windo:public glob{
 
 		oss.str("");
 		oss<<setprecision(1);
-		oss<<"flappery("<<flappery<<") "<<"rocketry("<<rocketry<<") "<<"popcorn("<<food<<")";
+		oss<<"flappery("<<flappery<<") "<<"rocketry("<<rocketry<<") "<<"snowballs("<<item<<")";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		y+=dy;pl(sts.str().c_str(),y,0,1,.1f);
@@ -1582,18 +1584,19 @@ public:
 			glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();
 			glOrtho(0,w,0,h,0,1);
-			glColor3b(0x7f,0x7f,0x7f);
+//			glColor3b(0x7f,0x7f,0x7f);
+			glColor3b(0x40,0x40,0x40);
 			drawhud();
 		}
 		cout<<flush;
 	}
-	int food;
+	int item;
 	virtual bool oncol(glob&g){
 		sts<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
 //		cout<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
 		if(g.isfood()){
 			g.rm();
-			food++;
+			item++;
 			return true;
 		}
 		set(pprv);
@@ -1642,8 +1645,8 @@ namespace glut{
 	int w=512,h=512,__w=w,__h=h;
 	lut<int>keysdn;
 	bool gamemode=false,fullscr=false,consolemode=false;
-	windo&wn=*new windo(p3(0,15,0),p3(90,0,0),false,2.1f);
-//	windo&wn=*new windo(p3(0,.1f,-14),p3(0,180,0));
+//	windo&wn=*new windo(p3(0,15,0),p3(90,0,0),false,2.1f);
+	windo&wn=*new windo(p3(0,.2f,-14),p3(0,180,0));
 	void reshape(const int width,const int height){
 		sts<<"reshape("<<w<<"x"<<h<<")";
 		w=width;h=height;
