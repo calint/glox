@@ -1197,9 +1197,9 @@ public:
 		const float s=1;
 		const float spread=-bv.r/4;
 		for(int n=0;n<10;n++){
-			const float xx=5+rnd(-spread,spread);
+			const float xx=rnd(-spread,spread);
 			const float yy=s/2;//rnd(0,bv.r);
-			const float zz=5+rnd(-spread,spread);
+			const float zz=rnd(-spread,spread);
 			new obcube(*this,p3(xx,yy,zz),s);
 		}
 
@@ -1447,7 +1447,7 @@ class windo:public glob{
 	}
 	void drawhud(){
 		const int dy=h>>5;
-		int y=dy>>2;
+		int y=-dy;
 
 //		pl("glox",y,0,1,.2f);
 
@@ -1456,23 +1456,30 @@ class windo:public glob{
 		ostringstream oss;
 		oss<<setprecision(2)<<fixed;
 		oss<<t.tm_hour<<":"<<":"<<t.tm_min<<":"<<t.tm_sec<<"."<<tv.tv_usec/1000<<"    t("<<wold::get().gett()<<")";
-		oss<<setprecision(3);
-		oss<<"  rend.dt("<<metrics::dtrend<<")s   upd.dt("<<metrics::dtupd<<")s     "<<((int)(metrics::globs/(metrics::dtrend?metrics::dtrend:1))>>10)<<"Kglobs/s    rendonly("<<(1/metrics::dtrend)<<")fps";
-		y=dy;pl(oss.str().c_str(),y,0,1,.1f);
+		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
+
+		oss.str("");
+		oss<<setprecision(1);
+		oss<<" p("<<*this<<") a("<<agl()<<") zoom("<<zoom<<")";
+		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
 		oss<<setprecision(2);
 		oss<<"frame("<<metrics::frames<<") globs("<<metrics::globs-metrics::globos<<") f3s("<<metrics::f3s<<") vbos("<<metrics::globos<<") p3s("<<metrics::p3s<<") m3s("<<metrics::m3s<<") bvols("<<metrics::bvols<<")";
-		oss<<" p("<<*this<<") a("<<agl()<<")";
-		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
-
-		oss.str("");
-		oss<<"sphcolsdet("<<metrics::coldetsph<<") sphcols("<<metrics::collisions<<")"<<" mxrfsh("<<metrics::mwrefresh<<")"<<" mvmul("<<metrics::mpmul<<") mmmul("<<metrics::mmmul<<") ";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
 		oss<<setprecision(3);
-		oss<<"ngrids("<<metrics::ngrids<<") coldetgrid("<<wold::get().coldetgrid<<") griddt("<<metrics::dtgrd<<")       coldetbrute("<<wold::get().coldet<<")  coldetbrutedt("<<metrics::dtcoldetbrute<<")";
+		oss<<"  rend.dt("<<metrics::dtrend<<")s   upd.dt("<<metrics::dtupd<<")s     "<<((int)(metrics::globs/(metrics::dtrend?metrics::dtrend:1))>>10)<<"Kglobs/s    rendonlyest("<<(1/metrics::dtrend)<<")fps";
+		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
+
+		oss.str("");
+		oss<<setprecision(3);
+		oss<<"ngrids("<<metrics::ngrids<<") coldetgrid("<<wold::get().coldetgrid<<") coldetgriddt("<<metrics::dtgrd<<")       coldetbrute("<<wold::get().coldet<<")  coldetbrutedt("<<metrics::dtcoldetbrute<<")";
+		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
+
+		oss.str("");
+		oss<<"sphcolsdet("<<metrics::coldetsph<<") sphcols("<<metrics::collisions<<")"<<" mxrfsh("<<metrics::mwrefresh<<")"<<" mvmul("<<metrics::mpmul<<") mmmul("<<metrics::mmmul<<") ";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
@@ -1488,14 +1495,14 @@ class windo:public glob{
 	bool gravity;
 public:
 	int w,h;
-	float zoom=1;
+	float zoom;
 	m3 mmv;
 	p3 lookat;
 	float flappery;
 	float rocketry;
 	bool dodrawhud;
 	windo&togglehud(){dodrawhud=!dodrawhud;return*this;}
-	windo(const p3&p=p3(),const p3&a=p3(),bool gravity=true,const float s=.1f,const p3&bx=p3()):glob(wold::get(),p,a,s,bx),gravity(gravity),dodrawhud(true){}
+	windo(const p3&p=p3(),const p3&a=p3(),bool gravity=true,const float zoom=1,const float s=.1f,const p3&bx=p3()):glob(wold::get(),p,a,s,bx),gravity(gravity),zoom(zoom),dodrawhud(true){}
 	void drawframe(){
 		cout<<"\rframe("<<metrics::frames++<<")";
 //		glClearColor(0,0,0,1);
@@ -1635,7 +1642,7 @@ namespace glut{
 	int w=512,h=512,__w=w,__h=h;
 	lut<int>keysdn;
 	bool gamemode=false,fullscr=false,consolemode=false;
-	windo&wn=*new windo(p3(0,15,0),p3(90,0,0),false);
+	windo&wn=*new windo(p3(0,15,0),p3(90,0,0),false,2.1f);
 //	windo&wn=*new windo(p3(0,.1f,-14),p3(0,180,0));
 	void reshape(const int width,const int height){
 		sts<<"reshape("<<w<<"x"<<h<<")";
@@ -1678,7 +1685,13 @@ namespace glut{
 		if(!consolemode){
 	//		if(iskeydn('r')&&iskeydn('u')){wn.transl(0,dt(1),0);}
 	//		if(iskeydn('v')&&iskeydn('n')){wn.transl(0,-dt(1),0);}
-			if(iskeydn('r')){for(int i=0;i<11;i++)new obball(wold::get(),p3(5+dr*cos(a)*rnd(-dr,dr),fromheight,5+dr*sin(a)*rnd(-dr,dr)));}
+			if(iskeydn('r')){
+				const float r=wold::get().bv.r/2;
+				const float dx=rnd(-r,r);
+				const float dz=rnd(-r,r);
+				for(int i=0;i<11;i++)
+					new obball(wold::get(),p3(dx+dr*cos(a)*rnd(-dr,dr),fromheight,dz+dr*sin(a)*rnd(-dr,dr)));
+			}
 	//		if(iskeydn('i')){wold::get().transl(0,0,dt(10));}
 	//		if(iskeydn('k')){wold::get().transl(0,0,-dt(10));}
 			if(iskeydn('w')){wn.transl(wn.mmv.zaxis(),dt(-d));}
