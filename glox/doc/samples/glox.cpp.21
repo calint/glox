@@ -781,27 +781,14 @@ public:
 
 class obiglo:public glob{
 	float s;
-	p3 dp;
-	p3 pprv;
 public:
-	obiglo(glob&g,const p3&p,const float size=.05f):glob(g,p,p3(90,0,0),size),s(size),dp(0,-1,0){}
+	obiglo(glob&g,const p3&p,const float size=.05f):glob(g,p,p3(90,0,0),size),s(size){}
 	float colr=1;
 	virtual void gldraw(){
 //		glShadeModel(GL_FLAT);
 //		glEnable(GL_COLOR_MATERIAL);
 //		glColor3f(1,1,1);
 //		glutSolidCube(s);
-	}
-	virtual void tick(){
-		pprv.set(*this);
-		transl(dp,dt());
-		if(gety()<bv.r)
-			dp.set(0,0,0);
-	}
-	virtual bool oncol(glob&o){
-		set(pprv);
-		dp.set(0,0,0);
-		return &o!=0;
 	}
 };
 
@@ -1213,33 +1200,9 @@ public:
 //		for(float zz=-bv.r;zz<=bv.r;zz+=s*4)
 		const float s=1;
 		const float spread=-bv.r/2;
-		for(int n=0;n<50;n++){
+		for(int n=0;n<80;n++){
 			const float xx=rnd(-spread,spread);
 			const float yy=rnd(-s/2,s/2);
-			const float zz=rnd(-spread,spread);
-			new obiglo(*this,p3(xx,yy,zz),s);
-		}
-		for(int n=0;n<50;n++){
-			const float xx=rnd(-spread,spread);
-			const float yy=rnd(-s/2,s/2)+s;
-			const float zz=rnd(-spread,spread);
-			new obiglo(*this,p3(xx,yy,zz),s);
-		}
-		for(int n=0;n<50;n++){
-			const float xx=rnd(-spread,spread);
-			const float yy=rnd(-s/2,s/2)+1.5f*s;
-			const float zz=rnd(-spread,spread);
-			new obiglo(*this,p3(xx,yy,zz),s);
-		}
-		for(int n=0;n<50;n++){
-			const float xx=rnd(-spread,spread);
-			const float yy=rnd(-s/2,s/2)+2*s;
-			const float zz=rnd(-spread,spread);
-			new obiglo(*this,p3(xx,yy,zz),s);
-		}
-		for(int n=0;n<50;n++){
-			const float xx=rnd(-spread,spread);
-			const float yy=rnd(-s/2,s/2)+3*s;
 			const float zz=rnd(-spread,spread);
 			new obiglo(*this,p3(xx,yy,zz),s);
 		}
@@ -1722,7 +1685,7 @@ namespace glut{
 		p3 lv=wn.mmv.zaxis();
 		const float sprd=.05f;
 		const float velocity=30;
-		const float extravelup=2;
+		const float extravelup=4;
 		p3 vel=p3(lv).transl(rnd(-sprd,sprd),rnd(-sprd,sprd),rnd(-sprd,sprd)).neg().scale(velocity).transl(0,extravelup,0);
 		const float scl=.05f;
 		obball&o=*new obball(wold::get(),lv.scale(wn.bv.r/2).transl(wn),scl);
