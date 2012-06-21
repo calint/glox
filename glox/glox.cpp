@@ -1549,7 +1549,7 @@ public:
 	void drawframe(){
 		cout<<"\rframe("<<metrics::frames++<<")";
 //		glClearColor(0,0,0,1);
-		glClearColor(.5f,.5f,1,1);
+		glClearColor(.3f,.3f,1,1);
 
 		glEnable(GL_CULL_FACE);
 //		glFrontFace(GL_CCW);
@@ -1559,6 +1559,7 @@ public:
 		glClearDepth(1);
 
 		glShadeModel(GL_SMOOTH);
+//		glShadeModel(GL_FLAT);
 
 //		glEnable(GL_BLEND);
 //		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
@@ -1723,8 +1724,8 @@ namespace glut{
 		const float sprd=.05f;
 		const float velocity=30;
 		const float extravelup=2;
+		const float scl=.01f;
 		p3 vel=p3(lv).transl(rnd(-sprd,sprd),rnd(-sprd,sprd),rnd(-sprd,sprd)).neg().scale(velocity).transl(0,extravelup,0);
-		const float scl=.05f;
 		obball&o=*new obball(wold::get(),lv.scale(wn.bv.r/2).transl(wn),scl);
 		o.dp=vel;
 	}
@@ -1752,9 +1753,9 @@ namespace glut{
 			if(iskeydn('s')){wn.transl(wn.mmv.zaxis(),dt(d));}
 			if(iskeydn('d')){wn.transl(wn.mmv.xaxis(),dt(d));}
 			if(iskeydn('a')){wn.transl(wn.mmv.xaxis(),dt(-d));}
-			if(iskeydn('q')){wn.transl(wn.mmv.yaxis(),dt(d));}
-			if(iskeydn('e')){wn.transl(wn.mmv.yaxis(),dt(-d));}
-			if(iskeydn('k')&&wn.rocketry>0){wn.f.set(0,20,0);wn.rocketry-=dt(6);}else{wn.f.set(0,0,0);}
+			if(iskeydn('t')){wn.transl(wn.mmv.yaxis(),dt(d));}
+			if(iskeydn('g')){wn.transl(wn.mmv.yaxis(),dt(-d));}
+			if(iskeydn('x')&&wn.rocketry>0){wn.f.set(0,20,0);wn.rocketry-=dt(6);}else{wn.f.set(0,0,0);}
 //			if(iskeydn('k')){wn.d.transl(0,dt(-1),0);}
 
 			if(iskeydn('l')){
@@ -1809,9 +1810,9 @@ namespace glut{
 		else if(key=='9'){wn.set(p3(0,0,3));}
 		else if(key==13){inp<<endl;consolemode=!consolemode;}
 		else if(key==127){sts.str("");}// bkspc
-		else if(key=='k'){if(wn.rocketry>0){wn.f.set(0,11,0);};wn.rocketry-=dt(30);}
-		else if(key=='i'){if(wn.flappery>0){wn.fi.set(0,300,0);wn.flappery-=1;}}
-		else if(key=='u'){if(wn.flappery>0){wn.fi.set(0,600,0);wn.flappery-=1;}}
+//		else if(key=='x'){if(wn.rocketry>0){wn.f.set(0,11,0);};wn.rocketry-=dt(30);}
+		else if(key=='q'){if(wn.flappery>0){wn.fi.set(0,300,0);wn.flappery-=1;}}
+		else if(key=='e'){if(wn.flappery>0){wn.fi.set(0,600,0);wn.flappery-=1;}}
 		else if(key=='c'){wn.agl().transl(15,0,0);}
 		else if(key=='f'){wn.agl().transl(-15,0,0);}
 		else if(key=='r'){wn.agl().set(0,wn.agl().gety(),wn.agl().getz());}
