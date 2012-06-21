@@ -1112,7 +1112,7 @@ public:
 	void addall(list<glob*>&ls){
 		for(auto g:ls)
 			chknput(g,*g,g->bv.r);
-		splitif();
+		splitif(6);
 	}
 	void coldet(){
 		if(!globs.empty()){
@@ -1135,7 +1135,7 @@ public:
 				g->coldet();
 	}
 private:
-	bool splitif(){
+	bool splitif(const int nrec){
 		if(globs.size()<nspl)
 			return false;
 		const float ns=s/2;
@@ -1153,11 +1153,13 @@ private:
 				if(gr->chknput(g,*g,g->bv.r))
 					i++;
 			}
-			if(i==nglobs){
-				done=true;
+			if(nrec==0)
 				break;
-			}
-			gr->splitif();
+//			if(i==nglobs){
+//				done=true;
+//				break;
+//			}
+			gr->splitif(nrec-1);
 		}
 		if(done){
 //			flf();l()<<" allsubgridscontainallobjects, recursiondone  at "<<s<<"   contains "<<globs.size()<<" globs"<<endl;
@@ -1195,9 +1197,9 @@ public:
 		const float s=1;
 		const float spread=-bv.r/4;
 		for(int n=0;n<10;n++){
-			const float xx=rnd(-spread,spread);
+			const float xx=5+rnd(-spread,spread);
 			const float yy=s/2;//rnd(0,bv.r);
-			const float zz=rnd(-spread,spread);
+			const float zz=5+rnd(-spread,spread);
 			new obcube(*this,p3(xx,yy,zz),s);
 		}
 
@@ -1469,10 +1471,12 @@ class windo:public glob{
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
+		oss<<setprecision(3);
 		oss<<"ngrids("<<metrics::ngrids<<") coldetgrid("<<wold::get().coldetgrid<<") griddt("<<metrics::dtgrd<<")       coldetbrute("<<wold::get().coldet<<")  coldetbrutedt("<<metrics::dtcoldetbrute<<")";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
+		oss<<setprecision(1);
 		oss<<"flappery("<<flappery<<") "<<"rocketry("<<rocketry<<") "<<"popcorn("<<food<<")";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
@@ -1631,8 +1635,8 @@ namespace glut{
 	int w=512,h=512,__w=w,__h=h;
 	lut<int>keysdn;
 	bool gamemode=false,fullscr=false,consolemode=false;
-//	windo&wn=*new windo(p3(0,40,0),p3(90,0,0),false);
-	windo&wn=*new windo(p3(0,.1f,-14),p3(0,180,0));
+	windo&wn=*new windo(p3(0,15,0),p3(90,0,0),false);
+//	windo&wn=*new windo(p3(0,.1f,-14),p3(0,180,0));
 	void reshape(const int width,const int height){
 		sts<<"reshape("<<w<<"x"<<h<<")";
 		w=width;h=height;
@@ -1668,13 +1672,13 @@ namespace glut{
 		sts.str("");
 		static float a=0;
 		static float dr=2;
-		static float fromheight=20;
+		static float fromheight=wold::get().bv.r;
 		static float d=3;
 		a+=dt(360);
 		if(!consolemode){
 	//		if(iskeydn('r')&&iskeydn('u')){wn.transl(0,dt(1),0);}
 	//		if(iskeydn('v')&&iskeydn('n')){wn.transl(0,-dt(1),0);}
-			if(iskeydn('r')){for(int i=0;i<11;i++)new obball(wold::get(),p3(dr*cos(a)*rnd(-dr,dr),fromheight+rnd(0,dr),dr*sin(a)*rnd(-dr,dr)));}
+			if(iskeydn('r')){for(int i=0;i<11;i++)new obball(wold::get(),p3(5+dr*cos(a)*rnd(-dr,dr),fromheight,5+dr*sin(a)*rnd(-dr,dr)));}
 	//		if(iskeydn('i')){wold::get().transl(0,0,dt(10));}
 	//		if(iskeydn('k')){wold::get().transl(0,0,-dt(10));}
 			if(iskeydn('w')){wn.transl(wn.mmv.zaxis(),dt(-d));}
