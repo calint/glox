@@ -724,11 +724,11 @@ public:
 
 
 class obball:public glob{
-	p3 dp;
 	float lft;
 	p3 prv;
 public:
-	obball(glob&g,const p3&p,const float r=.05f):glob(g,p,p3(90,0,0),r),dp(p3()),lft(0){
+	p3 dp;
+	obball(glob&g,const p3&p,const float r=.05f):glob(g,p,p3(90,0,0),r),lft(0),dp(p3()){
 		bits|=8;
 	}
 	inline p3&getdp(){return dp;}
@@ -1481,7 +1481,7 @@ class windo:public glob{
 
 		oss.str("");
 		oss<<setprecision(4);
-		oss<<"coldet("<<(wold::get().coldetgrid?"grid":"")<<" "<<(wold::get().coldet?"brute":"")<<") ngrids("<<metrics::ngrids<<") grid("<<metrics::dtgrd<<")s  "<<(((int)(1024.f*metrics::ngrids/metrics::dtgrd)>>20))<<"Mgd/s   brutedt("<<metrics::dtcoldetbrute<<")s";
+		oss<<"coldet("<<(wold::get().coldetgrid?"grid":"")<<" "<<(wold::get().coldet?"brute":"")<<") ngrids("<<metrics::ngrids<<") grid("<<metrics::dtgrd<<")s  "<<(((long long int)(metrics::globs/metrics::dtgrd))>>10)<<"Kglobs/s   brutedt("<<metrics::dtcoldetbrute<<")s";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
@@ -1646,7 +1646,7 @@ public:
 extern void gnox();
 
 namespace glut{
-	int w=512,h=512,__w=w,__h=h;
+	int w=1024,h=512,__w=w,__h=h;
 	lut<int>keysdn;
 	bool gamemode=false,fullscr=false,consolemode=false;
 //	windo&wn=*new windo(p3(0,15,0),p3(90,0,0),false,2.1f);
@@ -1680,6 +1680,16 @@ namespace glut{
 			glutReshapeWindow(__w,__h);
 			glutSetCursor(GLUT_CURSOR_INHERIT);
 		}
+	}
+	void fire(){
+		p3 lv=wn.mmv.zaxis();
+		const float sprd=.05f;
+		const float velocity=30;
+		const float extravelup=4;
+		p3 vel=p3(lv).transl(rnd(-sprd,sprd),rnd(-sprd,sprd),rnd(-sprd,sprd)).neg().scale(velocity).transl(0,extravelup,0);
+		const float scl=.05f;
+		obball&o=*new obball(wold::get(),lv.scale(wn.bv.r/2).transl(wn),scl);
+		o.dp=vel;
 	}
 	void timer(const int value){
 		clk::tk++;
@@ -1722,8 +1732,8 @@ namespace glut{
 //				m.roty(dt(3.1415f));
 //				wn.lookat.set(m.zaxis().neg()).scale(100);
 			}
+			if(iskeydn(' ')){fire();}
 		}
-
 		metrics::coldetsph=metrics::collisions=metrics::mwrefresh=metrics::mpmul=metrics::mmmul=0;
 		wold::get().tick();
 
@@ -1748,7 +1758,6 @@ namespace glut{
 //		else if(key=='f'){wd.ddegz+=360/60;}
 //		else if(key=='t'){wd.ddegx-=360/60;}
 //		else if(key=='g'){wd.ddegx+=360/60;}
-//		else if(key==' '){wd.ddegz=wd.ddegx=0;}
 //		else if(key=='y'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(270,0,0));}
 //		else if(key=='h'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(90.5,0,0));}
 		else if(key=='y'){wn.zoom-=.1;}
@@ -1770,6 +1779,7 @@ namespace glut{
 		else if(key=='f'){wn.agl().transl(-15,0,0);}
 		else if(key=='r'){wn.agl().set(0,wn.agl().gety(),wn.agl().getz());}
 		else if(key==9){wn.togglehud();}
+		else if(key==' '){fire();}
 	}
 	void keyup(const unsigned char key,const int x,const int y){
 		const char k[]={(char)key,0};
