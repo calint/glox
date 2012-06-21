@@ -604,7 +604,10 @@ public:
 //			const GLbyte i=32+(GLbyte)rnd(0,32);
 			const GLbyte i=127;
 			glColor3b(i,i,i);
-			glutSolidSphere(bv.r,drawboundingspheresdetail,drawboundingspheresdetail);
+			int detail=(int)(1.f*bv.r*drawboundingspheresdetail);
+			if(detail<drawboundingspheresdetail)
+				detail=drawboundingspheresdetail;
+			glutSolidSphere(bv.r,detail,detail);
 		}
 		for(auto g:chs){glPushMatrix();g->draw();glPopMatrix();}
 	}
@@ -621,7 +624,7 @@ private:
 	bool rmed;
 };
 bool glob::drawboundingspheres=true;
-int glob::drawboundingspheresdetail=8;
+int glob::drawboundingspheresdetail=6;
 
 class obcorpqb:public glob{
 	float r;
@@ -725,7 +728,7 @@ class obball:public glob{
 	float lft;
 	p3 prv;
 public:
-	obball(glob&g,const p3&p,const float r=.05f):glob(g,p,p3(-180,0,0),r),dp(p3()),lft(0){
+	obball(glob&g,const p3&p,const float r=.05f):glob(g,p,p3(90,0,0),r),dp(p3()),lft(0){
 		bits|=8;
 	}
 	inline p3&getdp(){return dp;}
@@ -757,7 +760,7 @@ public:
 		}
 		colr=1;
 		prv.set(*this);
-		dp.transl(0,dt(-9.f),dt());
+		dp.transl(dt(),dt(-9.f),dt());
 		agl().transl(0,0,dt(1));
 		transl(dp,dt());
 		if(gety()<bv.r){
@@ -779,7 +782,7 @@ public:
 class obiglo:public glob{
 	float s;
 public:
-	obiglo(glob&g,const p3&p,const float size=.05f):glob(g,p,p3(),size),s(size){}
+	obiglo(glob&g,const p3&p,const float size=.05f):glob(g,p,p3(90,0,0),size),s(size){}
 	float colr=1;
 	virtual void gldraw(){
 //		glShadeModel(GL_FLAT);
@@ -1073,7 +1076,7 @@ public:
 	}
 	~grid(){metrics::ngrids--;clear();}
 	void gldraw(){
-		glColor3b(0,0,0x7f);
+		glColor3b(0,0,0x40);
 		const float yoff=0;//.1f;
 		glBegin(GL_LINE_STRIP);
 		glVertex3f(ptl.getx()-s,yoff,ptl.getz()-s);
@@ -1196,13 +1199,14 @@ public:
 //		for(float xx=-bv.r;xx<=bv.r;xx+=s*4)
 //		for(float zz=-bv.r;zz<=bv.r;zz+=s*4)
 		const float s=1;
-		const float spread=-bv.r/4;
-		for(int n=0;n<10;n++){
+		const float spread=-bv.r/2;
+		for(int n=0;n<80;n++){
 			const float xx=rnd(-spread,spread);
-			const float yy=s/2;//rnd(0,bv.r);
+			const float yy=rnd(-s/2,s/2);
 			const float zz=rnd(-spread,spread);
 			new obiglo(*this,p3(xx,yy,zz),s);
 		}
+		new obcon(*this,p3(bv.r,0,bv.r));
 
 //		new obcorp(*this,p3(0,4.2f,0));
 //		new obcorp(*this,p3(0,4.2f,8));
@@ -1477,7 +1481,7 @@ class windo:public glob{
 
 		oss.str("");
 		oss<<setprecision(4);
-		oss<<"coldet: ngrids("<<metrics::ngrids<<") grid("<<wold::get().coldetgrid<<") grid("<<metrics::dtgrd<<")s      brute("<<wold::get().coldet<<")  brute("<<metrics::dtcoldetbrute<<")s";
+		oss<<"coldet("<<(wold::get().coldetgrid?"grid":"")<<" "<<(wold::get().coldet?"brute":"")<<") ngrids("<<metrics::ngrids<<") grid("<<metrics::dtgrd<<")s  "<<(((int)(1024.f*metrics::ngrids/metrics::dtgrd)>>20))<<"Mgd/s   brutedt("<<metrics::dtcoldetbrute<<")s";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
@@ -1585,7 +1589,7 @@ public:
 			glLoadIdentity();
 			glOrtho(0,w,0,h,0,1);
 //			glColor3b(0x7f,0x7f,0x7f);
-			glColor3b(0x40,0x40,0x40);
+			glColor3b(0x00,0x00,0x40);
 			drawhud();
 		}
 		cout<<flush;
@@ -1682,13 +1686,13 @@ namespace glut{
 		sts.str("");
 		static float a=0;
 		static float dr=2;
-		static float fromheight=wold::get().bv.r;
+		static float fromheight=wold::get().bv.r*2;
 		static float d=3;
 		a+=dt(360);
 		if(!consolemode){
 	//		if(iskeydn('r')&&iskeydn('u')){wn.transl(0,dt(1),0);}
 	//		if(iskeydn('v')&&iskeydn('n')){wn.transl(0,-dt(1),0);}
-			if(iskeydn('r')){
+			if(iskeydn('b')){
 				const float r=wold::get().bv.r/2;
 				const float dx=rnd(-r,r);
 				const float dz=rnd(-r,r);
@@ -1761,9 +1765,10 @@ namespace glut{
 		else if(key==127){sts.str("");}// bkspc
 		else if(key=='k'){if(wn.rocketry>0){wn.f.set(0,11,0);};wn.rocketry-=dt(30);}
 		else if(key=='i'){if(wn.flappery>0){wn.fi.set(0,300,0);wn.flappery-=1;}}
-		else if(key=='c'){wn.agl().transl(30,0,0);}
-		else if(key=='f'){wn.agl().set(0,wn.agl().gety(),wn.agl().getz());}
-		else if(key=='v'){wn.agl().transl(-30,0,0);}
+		else if(key=='u'){if(wn.flappery>0){wn.fi.set(0,600,0);wn.flappery-=1;}}
+		else if(key=='c'){wn.agl().transl(15,0,0);}
+		else if(key=='f'){wn.agl().transl(-15,0,0);}
+		else if(key=='r'){wn.agl().set(0,wn.agl().gety(),wn.agl().getz());}
 		else if(key==9){wn.togglehud();}
 	}
 	void keyup(const unsigned char key,const int x,const int y){
