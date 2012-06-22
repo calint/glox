@@ -84,8 +84,8 @@ class signl{
 	const char*s;
 public:
 	signl(const int i,const char*s):i(i),s(s){
-		cout<<" ••• signl "<<i<<" · "<<s<<endl;
-        const int nva=10;
+		cerr<<" ••• signl "<<i<<" · "<<s<<endl;
+		const int nva=10;
 		void*va[nva];
 		int n=backtrace(va,nva);
 		backtrace_symbols_fd(va,n,1);
@@ -120,9 +120,6 @@ public:
 
 #define flf()l("  ",__FILE__,__LINE__,__FUNCTION__);
 static inline ostream&l(const char*s="",const char*file="",int lineno=0,const char*func=""){cerr<<file;if(lineno){cerr<<":"<<lineno;}cerr<<" "<<func<<"  "<<s;return cerr;}
-
-
-
 
 
 
@@ -251,14 +248,6 @@ bool gluInvertMatrix(const float m[16],float invOut[16]){
 		invOut[i]=(float)(inv[i]*det);
 	return true;
 }
-
-
-
-
-
-
-
-
 
 
 class m3{
@@ -511,19 +500,12 @@ public:
 			return;
 		g.chsadd.push_back(this);
 	}
-	virtual~glob(){
-//		cout<<"~glob("<<id<<")";
-		metrics::globs--;
-//		auto f=[]{cout<<"hello lambda"<<endl;};f();
-		for(auto g:chs)delete g;
-		chs.clear();
-	}
+	virtual~glob(){metrics::globs--;for(auto g:chs)delete g;chs.clear();}
 	inline const bvol&getbvol()const{return bv;}
 	inline bool issolid(){return bits&1;}
 	inline bool isblt(){return bits&2;}
 	inline bool iscoldetrec()const{return bits&4;}
-	inline bool isfood()const{return bits&8;}
-
+	inline bool isitem()const{return bits&8;}
 	inline int getid()const{return id;}
 	bool refreshmxmw(){
 		if(!&g)
@@ -600,13 +582,6 @@ public:
 		glRotatef(a.getz(),0,0,1);
 		gldraw();
 		if(drawboundingspheres){
-//			const GLbyte i=(GLbyte)rnd(0,32);
-//			glColor3b(i,0,0);
-//			glDisable(GL_LIGHTING);
-//			glutWireSphere(bv.r,drawboundingspheresdetail,drawboundingspheresdetail);
-//			glEnable(GL_LIGHTING);
-
-//			const GLbyte i=32+(GLbyte)rnd(0,32);
 			const GLbyte i=127;
 			glColor3b(i,i,i);
 			int detail=(int)(1.f*bv.getradius()*drawboundingspheresdetail);
@@ -616,7 +591,7 @@ public:
 		}
 		for(auto g:chs){glPushMatrix();g->draw();glPopMatrix();}
 	}
-	virtual void gldraw()=0;
+	virtual void gldraw(){};
 	virtual void tick(){
 		chs.splice(chs.end(),chsadd);
 		for(auto g:chs)g->tick();
@@ -624,7 +599,7 @@ public:
 		chsrm.clear();
 	}
 	inline glob&getglob()const{return g;}
-	void rm(){if(rmed){flf();return;}rmed=true;g.chsrm.push_back(this);}
+	void rm(){if(rmed){flf();l("rmingarmedobj")<<endl;return;}rmed=true;g.chsrm.push_back(this);}
 private:
 	bool rmed;
 };
@@ -1513,7 +1488,7 @@ public:
 	}
 	virtual bool oncol(glob&g){
 		sts<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
-		if(g.isfood()){
+		if(g.isitem()){
 			g.rm();
 			item++;
 			return true;
@@ -1552,16 +1527,6 @@ public:
 //		flf();l()<<endl;
 	}
 	virtual void gldraw(){}
-	void fire(){
-		p3 lv=mmv.zaxis();
-		const float sprd=.05f;
-		const float velocity=30;
-		const float extravelup=2;
-		const float scl=.01f;
-		p3 vel=p3(lv).transl(rnd(-sprd,sprd),rnd(-sprd,sprd),rnd(-sprd,sprd)).neg().scale(velocity).transl(0,extravelup,0);
-		obball&o=*new obball(wold::get(),lv.scale(bv.getradius()/2).transl(*this),scl);
-		o.getdp().set(vel);
-	}
 	void timer(){
 		clk::tk++;
 		sts.str("");
@@ -1699,6 +1664,16 @@ public:
 		}
 	}
 private:
+	void fire(){
+		p3 lv=mmv.zaxis();
+		const float sprd=.05f;
+		const float velocity=30;
+		const float extravelup=2;
+		const float scl=.01f;
+		p3 vel=p3(lv).transl(rnd(-sprd,sprd),rnd(-sprd,sprd),rnd(-sprd,sprd)).neg().scale(velocity).transl(0,extravelup,0);
+		obball&o=*new obball(wold::get(),lv.scale(bv.getradius()/2).transl(*this),scl);
+		o.getdp().set(vel);
+	}
 	void pl(const char*text,const GLfloat y=0,const GLfloat x=0,const GLfloat linewidth=1,const float scale=1){
 		const char*cp=text;
 		glPushMatrix();
