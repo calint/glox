@@ -846,7 +846,7 @@ class grid{
 	list<glob*>ls;
 	grid*grds[4];
 	const size_t splitthresh=20;
-	const int subgridlevels=5;//? 4 givsbugy?
+	const int subgridlevels=5;
 public:
 	grid(const float size,const p3&p=p3()):po(p),s(size),grds({0,0,0,0}){metrics::ngrids++;}
 	~grid(){metrics::ngrids--;clear();}
@@ -917,6 +917,8 @@ private:
 	bool splitif(const int nrec){
 		if(ls.size()<splitthresh)
 			return false;
+		if(nrec==0)
+			return false;
 		const float ns=s/2;
 //		flf();l()<<"split  "<<globs.size()<<"   size("<<ns<<")"<<endl;
 		grds[0]=new grid(ns,p3(po).transl(-ns,0,-ns));
@@ -924,21 +926,19 @@ private:
 		grds[2]=new grid(ns,p3(po).transl(-ns,0, ns));
 		grds[3]=new grid(ns,p3(po).transl( ns,0, ns));
 		bool done=false;
-		for(auto gr:grds){
+		for(auto g:grds){
 			int i=0;
 			int nglobs=0;
-			for(auto g:ls){
+			for(auto o:ls){
 				nglobs++;
-				if(gr->putif(g,*g,g->radius()))
+				if(g->putif(o,*o,o->radius()))
 					i++;
 			}
-			if(nrec==0)
-				break;
 //			if(i==nglobs){
 //				done=true;
 //				break;
 //			}
-			gr->splitif(nrec-1);
+			g->splitif(nrec-1);
 		}
 		if(done){
 //			flf();l()<<" allsubgridscontainallobjects, recursiondone  at "<<s<<"   contains "<<globs.size()<<" globs"<<endl;
