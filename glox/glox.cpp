@@ -37,9 +37,9 @@ namespace glox{
 		float dtcoldetbrute;
 	}
 	inline float dt(const float f=1){return f*clk::dt;}
-	inline float rnd(const float from,const float tonotincluding){
-		return from+(tonotincluding-from)*rand()/RAND_MAX;
-	}
+	inline float rnd(const float from,const float tonotincluding){return from+(tonotincluding-from)*rand()/RAND_MAX;}
+	inline float rndo(const float tonotincluding){return tonotincluding*rand()/RAND_MAX;}
+	inline float rndon(const float s){return rnd(-s,s);}
 	const float pi=3.1415926f;
 	const float degtoradk=pi/180;
 	inline float degtorad(const float deg=1){return deg*degtoradk;}
@@ -105,21 +105,7 @@ public:
 	inline int num()const{return i;}
 	inline const char* str()const{return s;}
 };
-//
-//template<class T>class arai{
-//private:
-//	T*ar;
-//	int of,ln;
-//	inline void asrt(const int offset,const int len)const{if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinrw");}
-//public:
-//	inline arai(T a[],const int offset,const int len):ar(a),of(offset),ln(len){}
-//	inline T&operator[](const int i)const{asrt(i,1);return ar[of+i];}
-//	inline int ofs()const{return of;}
-//	inline int len()const{return ln;}
-//	inline void ro(const int offset,const int len,void(*f)(const T&e))const{if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinro");T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
-//	inline void rw(const int offset,const int len,void(*f)(T&e)){asrt(offset,len);T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
-//};
-//
+
 #ifdef __APPLE__
 #include <gl.h>
 #include <glu.h>
@@ -132,135 +118,6 @@ public:
 
 #define flf()l("  ",__FILE__,__LINE__,__FUNCTION__);
 static inline ostream&l(const char*s="",const char*file="",int lineno=0,const char*func=""){cerr<<file;if(lineno){cerr<<":"<<lineno;}cerr<<" "<<func<<"  "<<s;return cerr;}
-
-
-
-bool gluInvertMatrix(const float m[16],float invOut[16]){
-	double inv[16],det;
-	int i;
-
-	inv[0] = m[5]  * m[10] * m[15] -
-             m[5]  * m[11] * m[14] -
-             m[9]  * m[6]  * m[15] +
-             m[9]  * m[7]  * m[14] +
-             m[13] * m[6]  * m[11] -
-             m[13] * m[7]  * m[10];
-
-	inv[4] = -m[4]  * m[10] * m[15] +
-              m[4]  * m[11] * m[14] +
-              m[8]  * m[6]  * m[15] -
-              m[8]  * m[7]  * m[14] -
-              m[12] * m[6]  * m[11] +
-              m[12] * m[7]  * m[10];
-
-	inv[8] = m[4]  * m[9] * m[15] -
-             m[4]  * m[11] * m[13] -
-             m[8]  * m[5] * m[15] +
-             m[8]  * m[7] * m[13] +
-             m[12] * m[5] * m[11] -
-             m[12] * m[7] * m[9];
-
-	inv[12] = -m[4]  * m[9] * m[14] +
-               m[4]  * m[10] * m[13] +
-               m[8]  * m[5] * m[14] -
-               m[8]  * m[6] * m[13] -
-               m[12] * m[5] * m[10] +
-               m[12] * m[6] * m[9];
-
-	inv[1] = -m[1]  * m[10] * m[15] +
-              m[1]  * m[11] * m[14] +
-              m[9]  * m[2] * m[15] -
-              m[9]  * m[3] * m[14] -
-              m[13] * m[2] * m[11] +
-              m[13] * m[3] * m[10];
-
-	inv[5] = m[0]  * m[10] * m[15] -
-             m[0]  * m[11] * m[14] -
-             m[8]  * m[2] * m[15] +
-             m[8]  * m[3] * m[14] +
-             m[12] * m[2] * m[11] -
-             m[12] * m[3] * m[10];
-
-	inv[9] = -m[0]  * m[9] * m[15] +
-              m[0]  * m[11] * m[13] +
-              m[8]  * m[1] * m[15] -
-              m[8]  * m[3] * m[13] -
-              m[12] * m[1] * m[11] +
-              m[12] * m[3] * m[9];
-
-	inv[13] = m[0]  * m[9] * m[14] -
-              m[0]  * m[10] * m[13] -
-              m[8]  * m[1] * m[14] +
-              m[8]  * m[2] * m[13] +
-              m[12] * m[1] * m[10] -
-              m[12] * m[2] * m[9];
-
-	inv[2] = m[1]  * m[6] * m[15] -
-             m[1]  * m[7] * m[14] -
-             m[5]  * m[2] * m[15] +
-             m[5]  * m[3] * m[14] +
-             m[13] * m[2] * m[7] -
-             m[13] * m[3] * m[6];
-
-	inv[6] = -m[0]  * m[6] * m[15] +
-              m[0]  * m[7] * m[14] +
-              m[4]  * m[2] * m[15] -
-              m[4]  * m[3] * m[14] -
-              m[12] * m[2] * m[7] +
-              m[12] * m[3] * m[6];
-
-	inv[10] = m[0]  * m[5] * m[15] -
-              m[0]  * m[7] * m[13] -
-              m[4]  * m[1] * m[15] +
-              m[4]  * m[3] * m[13] +
-              m[12] * m[1] * m[7] -
-              m[12] * m[3] * m[5];
-
-	inv[14] = -m[0]  * m[5] * m[14] +
-               m[0]  * m[6] * m[13] +
-               m[4]  * m[1] * m[14] -
-               m[4]  * m[2] * m[13] -
-               m[12] * m[1] * m[6] +
-               m[12] * m[2] * m[5];
-
-	inv[3] = -m[1] * m[6] * m[11] +
-              m[1] * m[7] * m[10] +
-              m[5] * m[2] * m[11] -
-              m[5] * m[3] * m[10] -
-              m[9] * m[2] * m[7] +
-              m[9] * m[3] * m[6];
-
-	inv[7] = m[0] * m[6] * m[11] -
-             m[0] * m[7] * m[10] -
-             m[4] * m[2] * m[11] +
-             m[4] * m[3] * m[10] +
-             m[8] * m[2] * m[7] -
-             m[8] * m[3] * m[6];
-
-	inv[11] = -m[0] * m[5] * m[11] +
-               m[0] * m[7] * m[9] +
-               m[4] * m[1] * m[11] -
-               m[4] * m[3] * m[9] -
-               m[8] * m[1] * m[7] +
-               m[8] * m[3] * m[5];
-
-	inv[15] = m[0] * m[5] * m[10] -
-              m[0] * m[6] * m[9] -
-              m[4] * m[1] * m[10] +
-              m[4] * m[2] * m[9] +
-              m[8] * m[1] * m[6] -
-              m[8] * m[2] * m[5];
-
-	det=m[0]*inv[0]+m[1]*inv[4]+m[2]*inv[8]+m[3]*inv[12];
-	if(det==0)
-		return false;
-
-	det=1.0/det;
-	for(i=0;i<16;i++)
-		invOut[i]=(float)(inv[i]*det);
-	return true;
-}
-
 
 class m3{
 	float xx,yx,zx,ox;
@@ -336,23 +193,6 @@ public:
 		xo=m[12];yo=m[13];zo=m[14];oo=m[15];
 		return*this;
 	}
-//	m3&rottrnsl(const p3&p,const p3&a){
-//		return*this;
-//	}
-	m3 inv()const{
-		GLfloat m[16];
-		m[0 ]=xx;m[ 1]=yx;m[ 2]=zx;m[3]=ox;
-		m[4 ]=xy;m[ 5]=yy;m[ 6]=zy;m[7]=oy;
-		m[8 ]=xz;m[ 9]=yz;m[10]=zz;m[11]=oz;
-		m[12]=xo;m[13]=yo;m[14]=zo;m[15]=oo;
-
-		GLfloat mout[16];
-		gluInvertMatrix(m,mout);
-
-		m3 mx;
-		mx.set(mout);
-		return mx;
-	}
 	m3&mult(const m3&m){
 		metrics::mmmul++;
 		float nxx=m.xx*xx+m.yx*xy+m.zx*xz+m.ox*xo;
@@ -410,6 +250,20 @@ public:
 //		xo=nxo;yo=nyo;zo=nzo;oo=noo;
 //
 //		return*this;
+//	}
+//	m3 inv()const{
+//		GLfloat m[16];
+//		m[0 ]=xx;m[ 1]=yx;m[ 2]=zx;m[3]=ox;
+//		m[4 ]=xy;m[ 5]=yy;m[ 6]=zy;m[7]=oy;
+//		m[8 ]=xz;m[ 9]=yz;m[10]=zz;m[11]=oz;
+//		m[12]=xo;m[13]=yo;m[14]=zo;m[15]=oo;
+//
+//		GLfloat mout[16];
+//		gluInvertMatrix(m,mout);
+//
+//		m3 mx;
+//		mx.set(mout);
+//		return mx;
 //	}
 	friend ostream&operator<<(ostream&,const m3&);
 	friend istream&operator>>(istream&,m3&);
@@ -513,16 +367,15 @@ public:
 	}
 	virtual~glob(){metrics::globs--;for(auto g:chs)delete g;chs.clear();}
 	void rm(){if(rmed){flf();l("rmingarmedobj")<<endl;return;}rmed=true;g.chsrm.push_back(this);}
-	inline glob&getparent()const{return g;}
+	inline glob&parent()const{return g;}
 	inline int getid()const{return id;}
-	inline const list<glob*>getchs()const{return chs;}
-//	inline const bvol&bvol()const{return bv;}
+	inline const list<glob*>chls()const{return chs;}
 	inline float radius()const{return r;}
 	glob&radius(const float r){this->r=r;return*this;}
 	inline const p3&angle()const{return a;}
-	inline bool issolid(){return bits&1;}
+	inline bool issolid()const{return bits&1;}
 	inline glob&setsolid(const bool b){if(b)bits|=1;else bits&=0xfffffffe;return*this;}
-	inline bool isblt(){return bits&2;}
+	inline bool isblt()const{return bits&2;}
 	inline glob&setblt(const bool b){if(b)bits|=2;else bits&=0xfffffffd;return*this;}
 	inline bool iscoldetrec()const{return bits&4;}
 	inline glob&setcoldetrec(const bool b){if(b)bits|=4;else bits&=0xfffffffb;return*this;}
@@ -798,7 +651,17 @@ public:
 	void gldraw(){f.gldraw();}
 };
 
-static f3*fufo=0;
+namespace f3s{
+	f3*ufo=0;
+
+	void load(){
+		ufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
+	}
+	void clear(){
+		if(ufo)delete ufo;
+	}
+}
+
 class obufocluster:glob{
 public:
 	obufocluster(glob&g,const p3&p=p3()):glob(g,p){
@@ -810,7 +673,7 @@ public:
 					if(sqrtf(xx*xx+yy*yy+zz*zz)>s)
 						continue;
 					else
-						new globo(*this,*fufo,p3(p.getx()+xx,p.gety()+yy,p.getz()+zz));
+						new globo(*this,*f3s::ufo,p3(p.getx()+xx,p.gety()+yy,p.getz()+zz));
 	}
 };
 
@@ -873,6 +736,22 @@ protected:
 	}
 };
 
+//
+//template<class T>class arai{
+//private:
+//	T*ar;
+//	int of,ln;
+//	inline void asrt(const int offset,const int len)const{if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinrw");}
+//public:
+//	inline arai(T a[],const int offset,const int len):ar(a),of(offset),ln(len){}
+//	inline T&operator[](const int i)const{asrt(i,1);return ar[of+i];}
+//	inline int ofs()const{return of;}
+//	inline int len()const{return ln;}
+//	inline void ro(const int offset,const int len,void(*f)(const T&e))const{if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinro");T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
+//	inline void rw(const int offset,const int len,void(*f)(T&e)){asrt(offset,len);T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
+//};
+//
+
 class obcon:public obtex{
 	static unsigned short fnt_az[];
 	static unsigned short fnt_09[];
@@ -883,13 +762,10 @@ class obcon:public obtex{
 	GLubyte*pnl;
 	const char*title;
 public:
-	obcon(glob&g,const p3&p=p3(),const p3&a=p3(),const char*title="gnox ministry of consoles"):obtex(g,32*bp,1,p,a),p(rgba+wihi*bp+bp),title(title){}
+	obcon(glob&g,const p3&p=p3(),const p3&a=p3(),const char*title="gnox console"):obtex(g,32*bp,1,p,a),p(rgba+wihi*bp+bp),title(title){}
 	inline obcon&phom(){p=rgba+wihi*bp+bp;return*this;}
 	inline obcon&prnt(const char*s){return prnt(strlen(s),s);}
 	obcon&prnt(const size_t len,const char*s){
-//		const unsigned short fnt_az[]={0x0552,0x0771,0x0212,0x0774,0x0737,0x0137,0x0651,0x0571,0x0220,0x0122,0x0531,0x0610,0x0770,0x0530,0x0252,0x1770,0x4770,0x0160,0x0324,0x0270,0x0650,0x0250,0x0775,0x0525,0x0225,0x0630};
-//		const unsigned short fnt_09[]={0x0252,0x0220,0x0621,0x0642,0x0451,0x0324,0x0612,0x0247,0x2702,0x2452};
-
 		pnl=p;
 		for(size_t i=0;i<len;i++){
 			const char ch=s[i];
@@ -970,6 +846,7 @@ class grid{
 	list<glob*>ls;
 	grid*grds[4];
 	const size_t splitthresh=20;
+	const int subgridlevels=5;//? 4 givsbugy?
 public:
 	grid(const float size,const p3&p=p3()):po(p),s(size),grds({0,0,0,0}){metrics::ngrids++;}
 	~grid(){metrics::ngrids--;clear();}
@@ -1001,7 +878,7 @@ public:
 	void addall(const list<glob*>&ls){
 		for(auto g:ls)
 			putif(g,*g,g->radius());
-		splitif(6);
+		splitif(subgridlevels);
 	}
 	void coldet(){
 		if(!ls.empty()){
@@ -1081,7 +958,7 @@ class wold:public glob{
 	float t=0;
 	grid grd;
 	wold(const float r=15):glob(*(glob*)0,p3(),p3(),r),grd(r){}
-	~wold(){if(fufo)delete fufo;}
+	~wold(){f3s::clear();}
 public:
 	bool drawaxis=false,drawgrid=true,hidezplane=false,coldetbrute=false,coldetgrid=true;
 	inline static wold&get(){return wd;}
@@ -1193,16 +1070,16 @@ public:
 		t+=dt();
 		if(coldetgrid){
 			grd.clear();
-			grd.addall(getchs());
+			grd.addall(chls());
 			grd.coldet();
 		}
 		metrics::dtgrd=clk::timerdt();
 
 		clk::timerrestart();
 		if(coldetbrute){
-			auto i1=getchs().begin();
+			auto i1=chls().begin();
 			while(true){
-				auto i2=getchs().rbegin();
+				auto i2=chls().rbegin();
 				if(*i1==*i2)
 					break;
 				glob&g1=*(*i1);
@@ -1418,7 +1295,7 @@ public:
 		glGetFloatv(GL_MODELVIEW_MATRIX,af);
 		mxv.set(af);
 
-		getparent().draw();
+		parent().draw();
 		metrics::dtrend=clk::timerdt();
 
 		if(dodrawhud){
