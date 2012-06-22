@@ -1,3 +1,13 @@
+//	static void mainxit(){
+//		if(metrics::nglobs==0){
+//			cout<<" globs recycled"<<endl;
+//			return;
+//		}
+//		cout<<" !¡! globsdealloc  "<<metrics::nglobs<<" "<<endl;
+//	}
+	//		atexit(mainxit);
+
+
 
 CVector3 GetOGLPos(int x, int y)
 {

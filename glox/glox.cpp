@@ -723,61 +723,6 @@ public:
 
 
 
-class obball:public glob{
-	float lft;
-	p3 prv;
-public:
-	p3 dp;
-	obball(glob&g,const p3&p,const float r=.05f):glob(g,p,p3(90,0,0),r),lft(0),dp(p3()){
-		bits|=8;
-	}
-	inline p3&getdp(){return dp;}
-	float colr=1;
-	virtual void gldraw(){
-//		glShadeModel(GL_SMOOTH);
-//		glScalef(1,1,2);
-
-//		GLfloat matspec[]={127,0,0,1};
-//		glMaterialfv(GL_FRONT,GL_SPECULAR,matspec);
-//		GLfloat matshin[]={127};
-//		glMaterialfv(GL_FRONT,GL_SHININESS,matshin);
-
-//		glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
-		//		glColor3f(.5f,.5f,1);
-		//		glColor3b(0,0,127);
-
-//		glShadeModel(GL_FLAT);
-//		glEnable(GL_COLOR_MATERIAL);
-//		glColor3f(1,colr,colr);
-//		glutSolidSphere(bv.r,3,7);
-//		glutSolidSphere(bv.r,3,3);
-	}
-	virtual void tick(){
-		lft+=dt(1);
-		if(lft>10){
-			rm();
-			return;
-		}
-		colr=1;
-		prv.set(*this);
-		dp.transl(dt(),dt(-9.f),dt());
-		agl().transl(0,0,dt(1));
-		transl(dp,dt());
-		if(gety()<bv.r){
-			dp.scale(0,-.5f,0);
-			transl(0,bv.r-gety(),0);
-		}
-		glob::tick();
-	}
-	virtual bool oncol(glob&o){
-//		flf();l()<<typeid(o).name()<<endl;
-		if(!o.issolid())return true;
-		set(prv);
-		dp.neg().scale(.5f);
-		colr=0;
-		return true;
-	}
-};
 
 class obiglo:public glob{
 	float s;
@@ -1081,8 +1026,8 @@ class grid{
 	list<glob*>globs;
 	p3 ptl;
 	float s;
-public:
 	static const size_t nspl;
+public:
 	grid(const p3&topleft,const float size):subgrids({0,0,0,0}),ptl(topleft),s(size){
 //		flf();l()<<"grid(p("<<topleft<<")size("<<size<<")"<<endl;
 		metrics::ngrids++;
@@ -1104,31 +1049,9 @@ public:
 			gr->gldraw();
 		}
 	}
-	void clear(){
-		globs.clear();
-		for(auto&g:subgrids)
-			if(g){
-				g->clear();
-				delete g;
-				g=0;
-			}
-	}
-	bool chknput(glob*g,const p3&p,const float r){
-//		flf();l()<<typeid(*g).name()<<"(p("<<p<<"))r("<<r<<")  grid(p("<<ptl<<")s("<<s<<")"<<endl;
-		if((p.getx()+s+r)<ptl.getx())return false;
-		if((p.getx()-s-r)>ptl.getx())return false;
-		if((p.getz()+s+r)<ptl.getz())return false;
-		if((p.getz()-s-r)>ptl.getz())return false;
-//		if((p.getz()+r)<ptl.getz())return;
-//		if((p.getz()-r)>(ptl.getz()+s))return;
-//		cout<<" added"<<endl;
-		globs.push_back(g);
-//		flf();l()<<"grid(p("<<ptl<<")s("<<s<<"))add "<<typeid(*g).name()<<"(p("<<p<<")r("<<r<<"))"<<endl;
-		return true;
-	}
 	void addall(list<glob*>&ls){
 		for(auto g:ls)
-			chknput(g,*g,g->bv.r);
+			putif(g,*g,g->bv.r);
 		splitif(6);
 	}
 	void coldet(){
@@ -1151,7 +1074,29 @@ public:
 			if(g)
 				g->coldet();
 	}
+	void clear(){
+		globs.clear();
+		for(auto&g:subgrids)
+			if(g){
+				g->clear();
+				delete g;
+				g=0;
+			}
+	}
 private:
+	bool putif(glob*g,const p3&p,const float r){
+//		flf();l()<<typeid(*g).name()<<"(p("<<p<<"))r("<<r<<")  grid(p("<<ptl<<")s("<<s<<")"<<endl;
+		if((p.getx()+s+r)<ptl.getx())return false;
+		if((p.getx()-s-r)>ptl.getx())return false;
+		if((p.getz()+s+r)<ptl.getz())return false;
+		if((p.getz()-s-r)>ptl.getz())return false;
+//		if((p.getz()+r)<ptl.getz())return;
+//		if((p.getz()-r)>(ptl.getz()+s))return;
+//		cout<<" added"<<endl;
+		globs.push_back(g);
+//		flf();l()<<"grid(p("<<ptl<<")s("<<s<<"))add "<<typeid(*g).name()<<"(p("<<p<<")r("<<r<<"))"<<endl;
+		return true;
+	}
 	bool splitif(const int nrec){
 		if(globs.size()<nspl)
 			return false;
@@ -1167,7 +1112,7 @@ private:
 			int nglobs=0;
 			for(auto g:globs){
 				nglobs++;
-				if(gr->chknput(g,*g,g->bv.r))
+				if(gr->putif(g,*g,g->bv.r))
 					i++;
 			}
 			if(nrec==0)
@@ -1188,7 +1133,7 @@ private:
 		}
 		globs.clear();
 		return true;
-}
+	}
 };
 const size_t grid::nspl=20;
 
@@ -1365,8 +1310,6 @@ public:
 };
 wold wold::wd;
 
-//template<typename T>class lut;
-//template<typename T>ostream&operator<<(ostream&,const lut<T>&);
 template<typename T>class lut{
 private:
 	size_t size;
@@ -1384,7 +1327,6 @@ private:
 		el*nxt;
 		el(const char*key,T data):key(key),data(data),nxt(NULL){}
 		~el(){if(nxt)delete nxt;}
-//		friend ostream&operator<< <T>(ostream&,const lut<T>&);
 	};
 	el**array;
 public:
@@ -1455,28 +1397,320 @@ public:
 			array[i]=NULL;
 		}
 	}
-//	friend ostream&operator<< <T>(ostream&,const lut<T>&);
 };
-//template<typename T>ostream&operator<< <T>(ostream&,const lut<T>&){
-//
-//}
-//template<typename T>ostream&operator<<(ostream&os,const lut<T>&lt){
-//	for(size_t i=0;i<lt.size;i++){
-//		lut<T>::el*l=lt.array[i];
-//		if(!l)continue;
-//		while(l){
-////			os<<(l.key)<<"("<<l.data<<")";
-//			l=l->nxt;
-////		}
-//	}
-//	return os;
-//}
 
+
+class obball:public glob{
+	float lft;
+	p3 prv;
+	p3 dp;
+	float colr=1;
+public:
+	obball(glob&g,const p3&p,const float r=.05f):glob(g,p,p3(90,0,0),r),lft(0),dp(p3()){
+		bits|=8;
+	}
+	inline p3&getdp(){return dp;}
+	void gldraw(){}
+	virtual void tick(){
+		lft+=dt(1);
+		if(lft>10){
+			rm();
+			return;
+		}
+		colr=1;
+		prv.set(*this);
+		dp.transl(dt(),dt(-9.f),dt());
+		agl().transl(0,0,dt(1));
+		transl(dp,dt());
+		if(gety()<bv.r){
+			dp.scale(0,-.5f,0);
+			transl(0,bv.r-gety(),0);
+		}
+		glob::tick();
+	}
+	virtual bool oncol(glob&o){
+//		flf();l()<<typeid(o).name()<<endl;
+		if(!o.issolid())return true;
+		set(prv);
+		dp.neg().scale(.5f);
+		colr=0;
+		return true;
+	}
+};
 
 #include<sys/time.h>
-#include <iomanip>
+#include<iomanip>
 
 class windo:public glob{
+	char ccounter;
+	p3 pprv;
+	bool gravity;
+	float zoom;
+	p3 lookat;
+	float flappery;
+	float rocketry;
+	bool dodrawhud;
+	bool gamemode=true,fullscr=true;
+	bool consolemode=false;
+	int item;
+	p3 d;
+	p3 dd;
+	p3 f;
+	p3 fi;
+	lut<int>keysdn;
+	int wi,hi;
+	int __w,__h;
+	m3 mmv;
+public:
+	windo(glob&g=wold::get(),const int width=1024,const int height=512,const p3&p=p3(wold::get().bv.r,.2f,0),const p3&a=p3(),bool gravity=true,const float zoom=1,const float s=.1f,const p3&bx=p3())
+		:glob(g,p,a,s,bx),gravity(gravity),zoom(zoom),dodrawhud(true),wi(width),hi(height),__w(width),__h(height){}
+	inline bool isgamemode()const{return gamemode;}
+	inline bool isfullscreen()const{return fullscr;}
+	inline bool getwidth()const{return wi;}
+	inline bool getheight()const{return hi;}
+	windo&togglehud(){dodrawhud=!dodrawhud;return*this;}
+	void drawframe(){
+		cout<<"\rframe("<<metrics::frames++<<")";
+		clk::timerrestart();
+		glClearColor(.3f,.3f,1,1);
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
+		glClearDepth(1);
+		glShadeModel(GL_SMOOTH);
+
+		float ff=0,f=0;
+		GLfloat matspec[]={ff,ff,ff,1};
+		ff+=dt(1/10);if(ff>1)ff=0;
+		glMaterialfv(GL_FRONT,GL_SPECULAR,matspec);
+		GLfloat matshin[]={f};
+		f++;if(f>128)f=0;
+		glMaterialfv(GL_FRONT,GL_SHININESS,matshin);
+		glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE) ;
+		glEnable(GL_COLOR_MATERIAL) ;
+		glColor3b(127,127,127);
+
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+		glViewport(0,0,wi,hi);
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		gluPerspective(45*zoom,(GLdouble)wi/hi,.01,1000);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+		glRotatef(agl().getx(),1,0,0);
+		glRotatef(agl().gety(),0,1,0);
+		glRotatef(agl().getz(),0,0,1);
+		glTranslatef(-getx(),-gety(),-getz());
+		GLfloat af[16];
+		glGetFloatv(GL_MODELVIEW_MATRIX,af);
+		mmv.set(af);
+
+		getglob().draw();
+		metrics::dtrend=clk::timerdt();
+
+		if(dodrawhud){
+			glDisable(GL_DEPTH_TEST);
+			glDisable(GL_CULL_FACE);
+			glDisable(GL_LIGHTING);
+			glDisable(GL_BLEND);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glOrtho(0,wi,0,hi,0,1);
+			glColor3b(0x00,0x00,0x40);
+			drawhud();
+		}
+		cout<<flush;
+	}
+	virtual bool oncol(glob&g){
+		sts<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
+		if(g.isfood()){
+			g.rm();
+			item++;
+			return true;
+		}
+		set(pprv);
+		d.neg().scale(.2f);
+		return true;
+		if(g.isblt()){
+			set(0,40,0);
+			agl().set(45,0,0);
+		}
+		return true;
+	}
+	virtual void tick(){
+		glob::tick();
+		flappery+=dt(3);
+		if(flappery>1)flappery=1;
+		rocketry+=dt();
+		if(rocketry>3)rocketry=3;
+		if(gravity){
+			dd.set(0,-9.8f,0);
+			dd.transl(f);
+		}
+		dd.transl(fi);
+		fi.set(0,0,0);
+		d.transl(dd,dt());
+		pprv.set(*this);
+		transl(d,dt());
+		if(gety()<bv.r){
+//			flf();l()<<gety()<<" < "<<bv.r<<endl;
+			d.neg().scale(.2f);
+//			dd.set(0,0,0);
+			set(pprv);
+		}
+//		flf();l()<<dd<<endl;
+//		flf();l()<<endl;
+	}
+	virtual void gldraw(){}
+	void fire(){
+		p3 lv=mmv.zaxis();
+		const float sprd=.05f;
+		const float velocity=30;
+		const float extravelup=2;
+		const float scl=.01f;
+		p3 vel=p3(lv).transl(rnd(-sprd,sprd),rnd(-sprd,sprd),rnd(-sprd,sprd)).neg().scale(velocity).transl(0,extravelup,0);
+		obball&o=*new obball(wold::get(),lv.scale(bv.r/2).transl(*this),scl);
+		o.getdp().set(vel);
+	}
+	void timer(){
+		clk::tk++;
+		sts.str("");
+		static float a=0;
+		static float dr=2;
+		static float fromheight=wold::get().bv.r*2;
+		static float d=3;
+		a+=dt(360);
+		if(!consolemode){
+	//		if(iskeydn('r')&&iskeydn('u')){wn.transl(0,dt(1),0);}
+	//		if(iskeydn('v')&&iskeydn('n')){wn.transl(0,-dt(1),0);}
+			if(iskeydn('b')){
+				const float r=wold::get().bv.r/2;
+				const float dx=rnd(-r,r);
+				const float dz=rnd(-r,r);
+				for(int i=0;i<11;i++)
+					new obball(wold::get(),p3(dx+dr*cos(a)*rnd(-dr,dr),fromheight,dz+dr*sin(a)*rnd(-dr,dr)));
+			}
+	//		if(iskeydn('i')){wold::get().transl(0,0,dt(10));}
+	//		if(iskeydn('k')){wold::get().transl(0,0,-dt(10));}
+			if(iskeydn('w')){transl(mmv.zaxis(),dt(-d));}
+			if(iskeydn('s')){transl(mmv.zaxis(),dt(d));}
+			if(iskeydn('d')){transl(mmv.xaxis(),dt(d));}
+			if(iskeydn('a')){transl(mmv.xaxis(),dt(-d));}
+			if(iskeydn('t')){transl(mmv.yaxis(),dt(d));}
+			if(iskeydn('g')){transl(mmv.yaxis(),dt(-d));}
+			if(iskeydn('x')&&rocketry>0){f.set(0,20,0);rocketry-=dt(6);}else{f.set(0,0,0);}
+//			if(iskeydn('k')){wn.d.transl(0,dt(-1),0);}
+
+			if(iskeydn('l')){
+				agl().transl(0,dt(180),0);
+//				m3 m(wn.mmv);
+//				m.roty(-dt(3.1415f));
+//				wn.lookat.set(m.zaxis().neg()).scale(100);
+			}
+			if(iskeydn('j')){
+				agl().transl(0,-dt(180),0);
+//				m3 m(wn.mmv);
+//				m.roty(dt(3.1415f));
+//				wn.lookat.set(m.zaxis().neg()).scale(100);
+			}
+			if(iskeydn(' ')){fire();}
+		}
+		metrics::coldetsph=metrics::collisions=metrics::mwrefresh=metrics::mpmul=metrics::mmmul=0;
+		wold::get().tick();
+	}
+	bool iskeydn(const unsigned char key,const bool setifnot=0){
+		static char k[]={0,0};
+		k[0]=(char)key;
+		const bool b=keysdn[k]==1;
+		if(!b&&setifnot)
+			keysdn.put(strcpy(new char[2],k),1);//? bug leak
+		return b;
+	}
+	void keydn(const unsigned char key,const int x,const int y){
+		if(iskeydn(key,true))return;
+		if(consolemode){
+			if(key==13){
+				consolemode=false;
+				return;
+			}
+			inp<<key;
+			return;
+		}
+		sts<<"keydn("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
+//		nl=true;
+		wold&wd=wold::get();
+		if(key==0){throw "keyo";}
+//		else if(key=='j'){wd.ddegz-=360/60;}
+//		else if(key=='f'){wd.ddegz+=360/60;}
+//		else if(key=='t'){wd.ddegx-=360/60;}
+//		else if(key=='g'){wd.ddegx+=360/60;}
+//		else if(key=='y'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(270,0,0));}
+//		else if(key=='h'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(90.5,0,0));}
+		else if(key=='y'){zoom-=.1;}
+		else if(key=='h'){zoom+=.1;}
+		else if(key=='1'){glob::drawboundingspheres=!glob::drawboundingspheres;}
+		else if(key=='2'){wd.drawaxis=!wd.drawaxis;}
+		else if(key=='3'){wd.drawgrid=!wd.drawgrid;}
+		else if(key=='4'){wd.hidezplane=!wd.hidezplane;}
+		else if(key=='5'){wd.coldet=!wd.coldet;}
+		else if(key=='6'){wd.coldetgrid=!wd.coldetgrid;}
+		else if(key=='9'){set(p3(0,0,3));}
+		else if(key==13){inp<<endl;consolemode=!consolemode;}
+		else if(key==127){sts.str("");}// bkspc
+//		else if(key=='x'){if(wn.rocketry>0){wn.f.set(0,11,0);};wn.rocketry-=dt(30);}
+		else if(key=='q'){if(flappery>0){fi.set(0,300,0);flappery-=1;}}
+		else if(key=='e'){if(flappery>0){fi.set(0,600,0);flappery-=1;}}
+		else if(key=='c'){agl().transl(15,0,0);}
+		else if(key=='f'){agl().transl(-15,0,0);}
+		else if(key=='r'){agl().set(0,agl().gety(),agl().getz());}
+		else if(key==9){togglehud();}
+		else if(key==' '){fire();}
+		else if(key=='0'){togglefullscr();return;}
+	}
+	void keyup(const unsigned char key,const int x,const int y){
+		const char k[]={(char)key,0};
+		keysdn.rm(k);
+		sts<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
+		if(key==27)// esc
+			{if(fullscr)togglefullscr();cout<<endl;exit(0);}
+	}
+	void mouseclk(const int button,const int state,int x,const int y){
+		GLint viewport[4];
+		GLdouble modelview[16];
+		GLdouble projection[16];
+		GLfloat winX, winY, winZ;
+		GLdouble posX, posY, posZ;
+
+		glGetDoublev(GL_MODELVIEW_MATRIX,modelview);
+		glGetDoublev(GL_PROJECTION_MATRIX,projection);
+		glGetIntegerv(GL_VIEWPORT,viewport);
+
+		winX=(float)x;
+		winY=(float)viewport[3]-(float)y;
+		glReadPixels(x,int(winY),1,1,GL_DEPTH_COMPONENT,GL_FLOAT,&winZ);
+		gluUnProject(winX,winY,winZ,modelview,projection,viewport,&posX,&posY,&posZ);
+		sts<<"mousclk("<<state<<","<<button<<",["<<x<<","<<y<<",0])";
+		cout<<"unproj("<<posX<<" "<<posY<<" "<<posZ<<")";
+	}
+	void mousemov(const int x,const int y){sts<<"mousmov("<<x<<","<<y<<")";}
+	void reshape(const int width,const int height){
+		sts<<"reshape("<<wi<<"x"<<hi<<")";
+		wi=width;hi=height;
+	}
+	void togglefullscr(){
+		fullscr=!fullscr;
+		if(fullscr){
+			__w=wi;__h=hi;
+			glutFullScreen();
+			glutSetCursor(GLUT_CURSOR_NONE);
+		}else{
+			glutReshapeWindow(__w,__h);
+			glutSetCursor(GLUT_CURSOR_INHERIT);
+		}
+	}
+private:
 	void pl(const char*text,const GLfloat y=0,const GLfloat x=0,const GLfloat linewidth=1,const float scale=1){
 		const char*cp=text;
 		glPushMatrix();
@@ -1489,7 +1723,7 @@ class windo:public glob{
 		glPopMatrix();
 	}
 	void drawhud(){
-		const int dy=h>>5;
+		const int dy=hi>>5;
 		int y=-dy;
 
 //		pl("glox",y,0,1,.2f);
@@ -1533,335 +1767,22 @@ class windo:public glob{
 		y+=dy;pl(sts.str().c_str(),y,0,1,.1f);
 		sts.str("");
 	}
-	char ccounter;
-	p3 pprv;
-	bool gravity;
-public:
-	int w,h;
-	float zoom;
-	m3 mmv;
-	p3 lookat;
-	float flappery;
-	float rocketry;
-	bool dodrawhud;
-	windo&togglehud(){dodrawhud=!dodrawhud;return*this;}
-	windo(const p3&p=p3(),const p3&a=p3(),bool gravity=true,const float zoom=1,const float s=.1f,const p3&bx=p3()):glob(wold::get(),p,a,s,bx),gravity(gravity),zoom(zoom),dodrawhud(true){}
-	void drawframe(){
-		cout<<"\rframe("<<metrics::frames++<<")";
-//		glClearColor(0,0,0,1);
-		glClearColor(.3f,.3f,1,1);
-
-		glEnable(GL_CULL_FACE);
-//		glFrontFace(GL_CCW);
-//		glCullFace(GL_BACK);
-
-		glEnable(GL_DEPTH_TEST);
-		glClearDepth(1);
-
-		glShadeModel(GL_SMOOTH);
-//		glShadeModel(GL_FLAT);
-
-//		glEnable(GL_BLEND);
-//		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-
-//		glEnable(GL_LIGHTING);
-//		glEnable(GL_LIGHT0);
-//		static float lht;
-//		static float dlht=1;
-//		static float lha;
-//		static float dlha=60*3.1415f/180;
-//		const float lhx=lht*cos(lha);
-//		const float lhy=lht*sin(lha);
-//		const GLfloat lhtpos[]={lhx,lhy,0,1};
-//		lht+=dt(dlht);
-//		lha+=dt(dlha);
-//		glLightfv(GL_LIGHT0,GL_POSITION,lhtpos);
-//		const GLfloat lhtcol[]={0,0,0,1};
-//		glLightfv(GL_LIGHT0,GL_AMBIENT_AND_DIFFUSE,lhtcol);
-
-
-		float ff=0,f=0;
-		GLfloat matspec[]={ff,ff,ff,1};
-		ff+=dt(1/10);if(ff>1)ff=0;
-		glMaterialfv(GL_FRONT,GL_SPECULAR,matspec);
-		GLfloat matshin[]={f};
-		f++;if(f>128)f=0;
-		glMaterialfv(GL_FRONT,GL_SHININESS,matshin);
-		glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE) ;
-		glEnable(GL_COLOR_MATERIAL) ;
-		glColor3b(127,127,127);
-
-		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-		glViewport(0,0,w,h);
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		gluPerspective(45*zoom,(GLdouble)w/h,.01,1000);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-
-		glRotatef(agl().getx(),1,0,0);
-		glRotatef(agl().gety(),0,1,0);
-		glRotatef(agl().getz(),0,0,1);
-		glTranslatef(-getx(),-gety(),-getz());
-//		glutSolidSphere(1,5,4);
-//		const p3 up=mmv.yaxis().gety()==0?p3(0,1,0):mmv.yaxis();
-//		flf();l("upvec")<<up<<endl;
-//		gluLookAt(getx(),gety(),getz(), lookat.getx(),lookat.gety(),lookat.getz(), up.getx(),up.gety(),up.getz());
-		GLfloat af[16];
-		glGetFloatv(GL_MODELVIEW_MATRIX,af);
-		mmv.set(af);
-//		flf();l()<<lookat<<endl;
-//		lookat.set(mmv.zaxis().neg()).scale(100);
-//		flf();l()<<lookat<<endl;
-
-		getglob().draw();
-
-		if(dodrawhud){
-			glDisable(GL_DEPTH_TEST);
-			glDisable(GL_CULL_FACE);
-			glDisable(GL_LIGHTING);
-			glDisable(GL_BLEND);
-			glMatrixMode(GL_MODELVIEW);
-			glLoadIdentity();
-			glMatrixMode(GL_PROJECTION);
-			glLoadIdentity();
-			glOrtho(0,w,0,h,0,1);
-//			glColor3b(0x7f,0x7f,0x7f);
-			glColor3b(0x00,0x00,0x40);
-			drawhud();
-		}
-		cout<<flush;
-	}
-	int item;
-	virtual bool oncol(glob&g){
-		sts<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
-//		cout<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
-		if(g.isfood()){
-			g.rm();
-			item++;
-			return true;
-		}
-		set(pprv);
-		d.neg().scale(.2f);
-		return true;
-		if(g.isblt()){
-			set(0,40,0);
-			agl().set(45,0,0);
-		}
-		return true;
-	}
-	p3 d;
-	p3 dd;
-	p3 f;
-	p3 fi;
-	virtual void tick(){
-		glob::tick();
-		flappery+=dt(3);
-		if(flappery>1)flappery=1;
-		rocketry+=dt();
-		if(rocketry>3)rocketry=3;
-		if(gravity){
-			dd.set(0,-9.8f,0);
-			dd.transl(f);
-		}
-		dd.transl(fi);
-		fi.set(0,0,0);
-		d.transl(dd,dt());
-		pprv.set(*this);
-		transl(d,dt());
-		if(gety()<bv.r){
-//			flf();l()<<gety()<<" < "<<bv.r<<endl;
-			d.neg().scale(.2f);
-//			dd.set(0,0,0);
-			set(pprv);
-		}
-//		flf();l()<<dd<<endl;
-//		flf();l()<<endl;
-	}
-	virtual void gldraw(){}
 };
 
 extern void gnox();
 
 namespace glut{
-	int w=1024,h=512,__w=w,__h=h;
-	lut<int>keysdn;
-	bool gamemode=false,fullscr=false,consolemode=false;
-//	windo&wn=*new windo(p3(0,15,0),p3(90,0,0),false,2.1f);
-	windo&wn=*new windo(p3(0,.2f,-14),p3(0,180,0));
-	void reshape(const int width,const int height){
-		sts<<"reshape("<<w<<"x"<<h<<")";
-		w=width;h=height;
-	}
-	void draw(){
-		wn.w=w;wn.h=h;
-		clk::timerrestart();
-		wn.drawframe();
-		metrics::dtrend=clk::timerdt();
-		glutSwapBuffers();
-	}
-	bool iskeydn(const unsigned char key,const bool setifnot=0){
-		static char k[]={0,0};
-		k[0]=(char)key;
-		const bool b=keysdn[k]==1;
-		if(!b&&setifnot)
-			keysdn.put(strcpy(new char[2],k),1);//? bug leak
-		return b;
-	}
-	void togglefullscr(){
-		fullscr=!fullscr;
-		if(fullscr){
-			__w=w;__h=h;
-			glutFullScreen();
-			glutSetCursor(GLUT_CURSOR_NONE);
-		}else{
-			glutReshapeWindow(__w,__h);
-			glutSetCursor(GLUT_CURSOR_INHERIT);
-		}
-	}
-	void fire(){
-		p3 lv=wn.mmv.zaxis();
-		const float sprd=.05f;
-		const float velocity=30;
-		const float extravelup=2;
-		const float scl=.01f;
-		p3 vel=p3(lv).transl(rnd(-sprd,sprd),rnd(-sprd,sprd),rnd(-sprd,sprd)).neg().scale(velocity).transl(0,extravelup,0);
-		obball&o=*new obball(wold::get(),lv.scale(wn.bv.r/2).transl(wn),scl);
-		o.dp=vel;
-	}
-	void timer(const int value){
-		clk::tk++;
-		sts.str("");
-		static float a=0;
-		static float dr=2;
-		static float fromheight=wold::get().bv.r*2;
-		static float d=3;
-		a+=dt(360);
-		if(!consolemode){
-	//		if(iskeydn('r')&&iskeydn('u')){wn.transl(0,dt(1),0);}
-	//		if(iskeydn('v')&&iskeydn('n')){wn.transl(0,-dt(1),0);}
-			if(iskeydn('b')){
-				const float r=wold::get().bv.r/2;
-				const float dx=rnd(-r,r);
-				const float dz=rnd(-r,r);
-				for(int i=0;i<11;i++)
-					new obball(wold::get(),p3(dx+dr*cos(a)*rnd(-dr,dr),fromheight,dz+dr*sin(a)*rnd(-dr,dr)));
-			}
-	//		if(iskeydn('i')){wold::get().transl(0,0,dt(10));}
-	//		if(iskeydn('k')){wold::get().transl(0,0,-dt(10));}
-			if(iskeydn('w')){wn.transl(wn.mmv.zaxis(),dt(-d));}
-			if(iskeydn('s')){wn.transl(wn.mmv.zaxis(),dt(d));}
-			if(iskeydn('d')){wn.transl(wn.mmv.xaxis(),dt(d));}
-			if(iskeydn('a')){wn.transl(wn.mmv.xaxis(),dt(-d));}
-			if(iskeydn('t')){wn.transl(wn.mmv.yaxis(),dt(d));}
-			if(iskeydn('g')){wn.transl(wn.mmv.yaxis(),dt(-d));}
-			if(iskeydn('x')&&wn.rocketry>0){wn.f.set(0,20,0);wn.rocketry-=dt(6);}else{wn.f.set(0,0,0);}
-//			if(iskeydn('k')){wn.d.transl(0,dt(-1),0);}
-
-			if(iskeydn('l')){
-				wn.agl().transl(0,dt(180),0);
-//				m3 m(wn.mmv);
-//				m.roty(-dt(3.1415f));
-//				wn.lookat.set(m.zaxis().neg()).scale(100);
-			}
-			if(iskeydn('j')){
-				wn.agl().transl(0,-dt(180),0);
-//				m3 m(wn.mmv);
-//				m.roty(dt(3.1415f));
-//				wn.lookat.set(m.zaxis().neg()).scale(100);
-			}
-			if(iskeydn(' ')){fire();}
-		}
-		metrics::coldetsph=metrics::collisions=metrics::mwrefresh=metrics::mpmul=metrics::mmmul=0;
-		wold::get().tick();
-
-		glutPostRedisplay();
-		glutTimerFunc((unsigned)value,timer,value);
-	}
-	void keydn(const unsigned char key,const int x,const int y){
-		if(iskeydn(key,true))return;
-		if(consolemode){
-			if(key==13){
-				consolemode=false;
-				return;
-			}
-			inp<<key;
-			return;
-		}
-		sts<<"keydn("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
-//		nl=true;
-		wold&wd=wold::get();
-		if(key==0){throw "keyo";}
-//		else if(key=='j'){wd.ddegz-=360/60;}
-//		else if(key=='f'){wd.ddegz+=360/60;}
-//		else if(key=='t'){wd.ddegx-=360/60;}
-//		else if(key=='g'){wd.ddegx+=360/60;}
-//		else if(key=='y'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(270,0,0));}
-//		else if(key=='h'){wd.ddegz=wd.ddegx=0;wd.agl().set(p3(90.5,0,0));}
-		else if(key=='y'){wn.zoom-=.1;}
-		else if(key=='h'){wn.zoom+=.1;}
-		else if(key=='0'){togglefullscr();return;}
-		else if(key=='1'){glob::drawboundingspheres=!glob::drawboundingspheres;}
-		else if(key=='2'){wd.drawaxis=!wd.drawaxis;}
-		else if(key=='3'){wd.drawgrid=!wd.drawgrid;}
-		else if(key=='4'){wd.hidezplane=!wd.hidezplane;}
-		else if(key=='5'){wd.coldet=!wd.coldet;}
-		else if(key=='6'){wd.coldetgrid=!wd.coldetgrid;}
-		else if(key=='9'){wn.set(p3(0,0,3));}
-		else if(key==13){inp<<endl;consolemode=!consolemode;}
-		else if(key==127){sts.str("");}// bkspc
-//		else if(key=='x'){if(wn.rocketry>0){wn.f.set(0,11,0);};wn.rocketry-=dt(30);}
-		else if(key=='q'){if(wn.flappery>0){wn.fi.set(0,300,0);wn.flappery-=1;}}
-		else if(key=='e'){if(wn.flappery>0){wn.fi.set(0,600,0);wn.flappery-=1;}}
-		else if(key=='c'){wn.agl().transl(15,0,0);}
-		else if(key=='f'){wn.agl().transl(-15,0,0);}
-		else if(key=='r'){wn.agl().set(0,wn.agl().gety(),wn.agl().getz());}
-		else if(key==9){wn.togglehud();}
-		else if(key==' '){fire();}
-	}
-	void keyup(const unsigned char key,const int x,const int y){
-		const char k[]={(char)key,0};
-		keysdn.rm(k);
-		sts<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
-		if(key==27)// esc
-			{if(fullscr)togglefullscr();cout<<endl;exit(0);}
-	}
-	void mouseclk(const int button,const int state,int x,const int y){
-		GLint viewport[4];
-		GLdouble modelview[16];
-		GLdouble projection[16];
-		GLfloat winX, winY, winZ;
-		GLdouble posX, posY, posZ;
-
-		glGetDoublev(GL_MODELVIEW_MATRIX,modelview);
-		glGetDoublev(GL_PROJECTION_MATRIX,projection);
-		glGetIntegerv(GL_VIEWPORT,viewport);
-
-		winX=(float)x;
-		winY=(float)viewport[3]-(float)y;
-		glReadPixels(x,int(winY),1,1,GL_DEPTH_COMPONENT,GL_FLOAT,&winZ);
-		gluUnProject(winX,winY,winZ,modelview,projection,viewport,&posX,&posY,&posZ);
-		sts<<"mousclk("<<state<<","<<button<<",["<<x<<","<<y<<",0])";
-		cout<<"unproj("<<posX<<" "<<posY<<" "<<posZ<<")";
-	}
-	//void idle(){
-	//	printf("idle\n");
-	//	return;
-	//}
-	void mousemov(const int x,const int y){
-//		cout<<"mousemove"<<endl;
-		sts<<"mousmov("<<x<<","<<y<<")";
-	}
+	windo&wn=*new windo();
+	void reshape(const int width,const int height){wn.reshape(width,height);}
+	void draw(){wn.drawframe();glutSwapBuffers();}
+	void timer(const int value){wn.timer();glutPostRedisplay();glutTimerFunc((unsigned)value,timer,value);}
+//	void idle(){return;}
+	void keydn(const unsigned char key,const int x,const int y){wn.keydn(key,x,y);}
+	void keyup(const unsigned char key,const int x,const int y){wn.keyup(key,x,y);}
+	void mouseclk(const int button,const int state,int x,const int y){wn.mouseclk(button,state,x,y);}
+	void mousemov(const int x,const int y){wn.mousemov(x,y);}
 	static void mainsig(const int i){cerr<<" ••• terminated with signal "<<i<<endl;exit(i);}
-//	static void mainxit(){
-//		if(metrics::nglobs==0){
-//			cout<<" globs recycled"<<endl;
-//			return;
-//		}
-//		cout<<" !¡! globsdealloc  "<<metrics::nglobs<<" "<<endl;
-//	}
 	int main(int argc,char**argv){
-//		atexit(mainxit);
 		cout<<"glox"<<endl;
 		for(int i=0;i<32;i++)signal(i,mainsig);//?
 		srand(0);
@@ -1869,14 +1790,14 @@ namespace glut{
 		glutInit(&argc,argv);
 		glutIgnoreKeyRepeat(true);
 		glutInitDisplayMode(GLUT_DOUBLE|GLUT_DEPTH);
-		if(gamemode){
+		if(wn.isgamemode()){
 			glutGameModeString("1366x768:32");
 			glutEnterGameMode();
 			glutSetCursor(GLUT_CURSOR_NONE);
 		}else{
-			glutInitWindowSize(w,h);
+			glutInitWindowSize(wn.getwidth(),wn.getheight());
 			glutCreateWindow("glox");
-			if(fullscr){
+			if(wn.isfullscreen()){
 				glutFullScreen();
 				glutSetCursor(GLUT_CURSOR_NONE);
 			}
