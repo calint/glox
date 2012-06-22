@@ -684,7 +684,6 @@ class obiglo:public glob{
 	p3 pprv;
 public:
 	obiglo(glob&g,const p3&p,const float size=.05f):glob(g,p,p3(90,0,0),size),s(size),dp(0,-1,0){}
-	void gldraw(){}
 	void tick(){
 		pprv.set(*this);
 		transl(dp,dt());
@@ -723,7 +722,7 @@ public:
 		metrics::f3s--;
 	}
 	inline const p3&scale()const{return scl;}
-	virtual void gldraw(){
+	void gldraw(){
 		if(glpt){
 			glBindBuffer(GL_ARRAY_BUFFER,glpt);
 			glVertexAttribPointer(0,vtxdim,GL_FLOAT,GL_FALSE,0,0);
@@ -744,7 +743,6 @@ protected:
 		glDrawElements(GL_TRIANGLES,ixbufsizebytes,GL_UNSIGNED_BYTE,0);
 	}
 private:
-
 	f3&load(ifstream&is){
 		is>>skipws;
 		int n;
@@ -839,22 +837,6 @@ public:
 		updtx();
 	}
 	~obtex(){delete rgba;}
-	void updtx(){
-		glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,wihi,wihi,0,GL_RGBA,GL_UNSIGNED_BYTE,rgba);
-	}
-	void zap(){
-		int n=wihi*wihi;
-		GLubyte*pp=rgba;
-		while(n--){
-			GLubyte b=(GLubyte)rnd(0,50);
-			if(b<49)
-				b=0;
-			*pp++=b;
-			*pp++=b;
-			*pp++=b;
-			*pp++=255;
-		}
-	}
 	void gldraw(){
 		glDisable(GL_CULL_FACE);
 		glEnable(GL_TEXTURE_2D);
@@ -871,6 +853,23 @@ public:
 		glVertex3f(-s,s,0);
 		glEnd();
 		glDisable(GL_TEXTURE_2D);
+	}
+protected:
+	void updtx(){
+		glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,wihi,wihi,0,GL_RGBA,GL_UNSIGNED_BYTE,rgba);
+	}
+	void zap(){
+		int n=wihi*wihi;
+		GLubyte*pp=rgba;
+		while(n--){
+			GLubyte b=(GLubyte)rnd(0,50);
+			if(b<49)
+				b=0;
+			*pp++=b;
+			*pp++=b;
+			*pp++=b;
+			*pp++=255;
+		}
 	}
 };
 
@@ -936,7 +935,7 @@ public:
 		return *this;
 	}
 	inline obcon&nl(){p=pnl+=wihi*bp;return*this;}
-	virtual void tick(){
+	void tick(){
 		obtex::tick();
 		int n=wihi*wihi*bp/4;
 		GLubyte*pp=rgba;
@@ -964,33 +963,40 @@ unsigned short obcon::fnt_az[]={0x0552,0x0771,0x0212,0x0774,0x0737,0x0137,0x0651
 unsigned short obcon::fnt_09[]={0x0252,0x0220,0x0621,0x0642,0x0451,0x0324,0x0612,0x0247,0x2702,0x2452};
 
 #include<typeinfo>
+
 class grid{
-	grid*subgrids[4];
-	list<glob*>globs;
-	p3 ptl;
+	p3 po;
 	float s;
-	static const size_t nspl;
+	list<glob*>ls;
+	grid*grds[4];
+	const size_t splitthresh=20;
 public:
-	grid(const float size,const p3&p=p3()):subgrids({0,0,0,0}),ptl(p),s(size){
-//		flf();l()<<"grid(p("<<topleft<<")size("<<size<<")"<<endl;
-		metrics::ngrids++;
-	}
+	grid(const float size,const p3&p=p3()):po(p),s(size),grds({0,0,0,0}){metrics::ngrids++;}
 	~grid(){metrics::ngrids--;clear();}
 	void gldraw(){
 		glColor3b(0,0,0x40);
 		const float yoff=0;//.1f;
 		glBegin(GL_LINE_STRIP);
-		glVertex3f(ptl.getx()-s,yoff,ptl.getz()-s);
-		glVertex3f(ptl.getx()+s,yoff,ptl.getz()-s);
-		glVertex3f(ptl.getx()+s,yoff,ptl.getz()+s);
-		glVertex3f(ptl.getx()-s,yoff,ptl.getz()+s);
-		glVertex3f(ptl.getx()-s,yoff,ptl.getz()-s);
+		glVertex3f(po.getx()-s,yoff,po.getz()-s);
+		glVertex3f(po.getx()+s,yoff,po.getz()-s);
+		glVertex3f(po.getx()+s,yoff,po.getz()+s);
+		glVertex3f(po.getx()-s,yoff,po.getz()+s);
+		glVertex3f(po.getx()-s,yoff,po.getz()-s);
 		glEnd();
-		for(auto gr:subgrids){
+		for(auto gr:grds){
 			if(!gr)
 				continue;
 			gr->gldraw();
 		}
+	}
+	void clear(){
+		ls.clear();
+		for(auto&g:grds)
+			if(g){
+				g->clear();
+				delete g;
+				g=0;
+			}
 	}
 	void addall(const list<glob*>&ls){
 		for(auto g:ls)
@@ -998,10 +1004,10 @@ public:
 		splitif(6);
 	}
 	void coldet(){
-		if(!globs.empty()){
-			auto i1=globs.begin();
+		if(!ls.empty()){
+			auto i1=ls.begin();
 			while(true){
-				auto i2=globs.rbegin();
+				auto i2=ls.rbegin();
 				if(*i1==*i2)
 					break;
 				glob&g1=*(*i1);
@@ -1013,47 +1019,38 @@ public:
 				i1++;
 			}
 		}
-		for(auto g:subgrids)
+		for(auto g:grds)
 			if(g)
 				g->coldet();
-	}
-	void clear(){
-		globs.clear();
-		for(auto&g:subgrids)
-			if(g){
-				g->clear();
-				delete g;
-				g=0;
-			}
 	}
 private:
 	bool putif(glob*g,const p3&p,const float r){
 //		flf();l()<<typeid(*g).name()<<"(p("<<p<<"))r("<<r<<")  grid(p("<<ptl<<")s("<<s<<")"<<endl;
-		if((p.getx()+s+r)<ptl.getx())return false;
-		if((p.getx()-s-r)>ptl.getx())return false;
-		if((p.getz()+s+r)<ptl.getz())return false;
-		if((p.getz()-s-r)>ptl.getz())return false;
+		if((p.getx()+s+r)<po.getx())return false;
+		if((p.getx()-s-r)>po.getx())return false;
+		if((p.getz()+s+r)<po.getz())return false;
+		if((p.getz()-s-r)>po.getz())return false;
 //		if((p.getz()+r)<ptl.getz())return;
 //		if((p.getz()-r)>(ptl.getz()+s))return;
 //		cout<<" added"<<endl;
-		globs.push_back(g);
+		ls.push_back(g);
 //		flf();l()<<"grid(p("<<ptl<<")s("<<s<<"))add "<<typeid(*g).name()<<"(p("<<p<<")r("<<r<<"))"<<endl;
 		return true;
 	}
 	bool splitif(const int nrec){
-		if(globs.size()<nspl)
+		if(ls.size()<splitthresh)
 			return false;
 		const float ns=s/2;
 //		flf();l()<<"split  "<<globs.size()<<"   size("<<ns<<")"<<endl;
-		subgrids[0]=new grid(ns,p3(ptl).transl(-ns,0,-ns));
-		subgrids[1]=new grid(ns,p3(ptl).transl( ns,0,-ns));
-		subgrids[2]=new grid(ns,p3(ptl).transl(-ns,0, ns));
-		subgrids[3]=new grid(ns,p3(ptl).transl( ns,0, ns));
+		grds[0]=new grid(ns,p3(po).transl(-ns,0,-ns));
+		grds[1]=new grid(ns,p3(po).transl( ns,0,-ns));
+		grds[2]=new grid(ns,p3(po).transl(-ns,0, ns));
+		grds[3]=new grid(ns,p3(po).transl( ns,0, ns));
 		bool done=false;
-		for(auto gr:subgrids){
+		for(auto gr:grds){
 			int i=0;
 			int nglobs=0;
-			for(auto g:globs){
+			for(auto g:ls){
 				nglobs++;
 				if(gr->putif(g,*g,g->radius()))
 					i++;
@@ -1068,17 +1065,16 @@ private:
 		}
 		if(done){
 //			flf();l()<<" allsubgridscontainallobjects, recursiondone  at "<<s<<"   contains "<<globs.size()<<" globs"<<endl;
-			for(auto&g:subgrids){
+			for(auto&g:grds){
 				delete g;
 				g=0;
 			}
 			return true;
 		}
-		globs.clear();
+		ls.clear();
 		return true;
 	}
 };
-const size_t grid::nspl=20;
 
 class wold:public glob{
 	static wold wd;
@@ -1091,16 +1087,6 @@ public:
 	inline static wold&get(){return wd;}
 	inline float gett(){return t;}
 	void load(){
-//		new obcorp(*this,p3(0,9,4.2f),p3(90,0,0));
-//		new obball(*this,p3(0,1,0));
-//		new obball(*this,p3(.1f,1,0));
-
-//		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
-//		fufo=new f3("ufo.f3",p3(1,1,1));//? leak
-//		new obufocluster(*this,p3(50,0,0));
-//		hidezplane=true;
-//		for(float xx=-bv.r;xx<=bv.r;xx+=s*4)
-//		for(float zz=-bv.r;zz<=bv.r;zz+=s*4)
 		const float s=1;
 		const float spread=-radius()/2;
 		for(int n=0;n<50;n++){
@@ -1135,30 +1121,15 @@ public:
 		}
 		new obcon(*this,p3(radius(),0,radius()));
 //		new obcorp(*this,p3(0,4.2f,0));
-//		new obcorp(*this,p3(0,4.2f,8));
-//		new obwom(*this,1,p3(10,.8f,-5));
-//		new obwom(*this,3,p3(10,0,-5));
-
-//		for(float xx=-bv.r;xx<=bv.r;xx+=5)
-//			for(float zz=-bv.r;zz<=bv.r;zz+=5)
-//				new obwom(*this,5,p3(xx,0,zz));
+//		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
+//		new obufocluster(*this,p3(50,0,0));
 	}
 	void gldraw(){
 		glDisable(GL_LIGHTING);
 		glDisable(GL_CULL_FACE);
-		const float s=radius();
-		if(drawgrid){
+		const float r=radius();
+		if(drawgrid)
 			grd.gldraw();
-//			glColor3b(0,0,0x7f);
-//	//		//glutWireCube(s);
-//			glBegin(GL_LINE_STRIP);
-//			glVertex2f(-s,-s);
-//			glVertex2f( s,-s);
-//			glVertex2f( s, s);
-//			glVertex2f(-s, s);
-//			glVertex2f(-s,-s);
-//			glEnd();
-		}
 		if(drawaxis){
 			//glPolygonOffset
 			glBegin(GL_LINE_STRIP);
@@ -1167,24 +1138,23 @@ public:
 			glVertex3f(0,0,0);
 
 			glColor3b(127,0,0);
-			glVertex3f(s,0,0);
+			glVertex3f(r,0,0);
 			glVertex3f(0,0,0);
 
 			glColor3b(0,0,0);
 			glVertex3f(0,0,0);
 
 			glColor3b(0,0,0);
-			glVertex3f(0,s,0);
+			glVertex3f(0,r,0);
 
 			glColor3b(0,0,127);
 			glVertex3f(0,0,0);
 
 			glColor3b(0,0,127);
-			glVertex3f(0,0,s);
+			glVertex3f(0,0,r);
 			glEnd();
 		}
 		if(!hidezplane){
-			const float r=s;
 			glPushMatrix();
 	//		glTranslatef(0,0,01f);
 			const float a=float(sin(.1*t));
@@ -1345,12 +1315,12 @@ public:
 
 
 class obball:public glob{
-	float lft;
-	p3 prv;
+	p3 pp;
 	p3 dp;
+	float lft=0;
 	float colr=1;
 public:
-	obball(glob&g,const p3&p,const float r=.05f):glob(g,p,p3(90,0,0),r),lft(0),dp(p3()){
+	obball(glob&g,const p3&p,const float r=.05f):glob(g,p,p3(90,0,0),r){
 		setblt(true).setitem(true);
 	}
 	inline p3&getdp(){return dp;}
@@ -1362,7 +1332,7 @@ public:
 			return;
 		}
 		colr=1;
-		prv.set(*this);
+		pp.set(*this);
 		dp.transl(dt(),dt(-9.f),dt());
 		agl().transl(0,0,dt(1));
 		transl(dp,dt());
@@ -1375,7 +1345,7 @@ public:
 	virtual bool oncol(glob&o){
 //		flf();l()<<typeid(o).name()<<endl;
 		if(!o.issolid())return true;
-		set(prv);
+		set(pp);
 		dp.neg().scale(.5f);
 		colr=0;
 		return true;
@@ -1393,7 +1363,7 @@ class windo:public glob{
 	p3 pp;
 	m3 mxv;
 	lut<int>keysdn;
-	bool gravity=true,dodrawhud=true,gamemode=true,fullscr=true,consolemode=false;
+	bool gravity=true,dodrawhud=true,gamemode=false,fullscr=true,consolemode=false;
 	float zoom=1;
 	int wi=1024,hi=512;
 	int wiprv=wi,hiprv=hi;
@@ -1402,11 +1372,13 @@ class windo:public glob{
 	int items;
 public:
 	windo(glob&g=wold::get(),const p3&p=p3(0,wold::get().radius(),0),const p3&a=p3(30,0,0),const float s=.1f):glob(g,p,a,s){}
+
 	inline bool isgamemode()const{return gamemode;}
 	inline bool isfullscreen()const{return fullscr;}
-	inline bool getwidth()const{return wi;}
-	inline bool getheight()const{return hi;}
-	windo&togglehud(){dodrawhud=!dodrawhud;return*this;}
+	inline bool width()const{return wi;}
+	inline bool height()const{return hi;}
+	inline windo&togglehud(){dodrawhud=!dodrawhud;return*this;}
+
 	void reshape(const int width,const int height){
 		sts<<"reshape("<<wi<<"x"<<hi<<")";wi=width;hi=height;
 	}
@@ -1573,7 +1545,6 @@ private:
 		const bool b=keysdn[k]==1;
 		if(!b&&setifnot)
 			keysdn.put(strcpy(new char[2],k),1);//? bug leak
-		cout<<key<<"  "<<b<<endl;
 		return b;
 	}
 	void rain(){
@@ -1674,7 +1645,7 @@ namespace glut{
 			glutEnterGameMode();
 			glutSetCursor(GLUT_CURSOR_NONE);
 		}else{
-			glutInitWindowSize(wn.getwidth(),wn.getheight());
+			glutInitWindowSize(wn.width(),wn.height());
 			glutCreateWindow("glox");
 			if(wn.isfullscreen()){
 				glutFullScreen();
