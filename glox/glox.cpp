@@ -693,12 +693,10 @@ public:
 	}
 	bool oncol(glob&o){
 		if(o.isblt()){
-			flf();l("iglo")<<endl;
 			radius(radius()-.01f);
 			return true;
 		}
 		set(pprv);
-		dp.set(0,0,0);
 		return &o!=0;
 	}
 };
@@ -1409,6 +1407,9 @@ public:
 	inline bool getwidth()const{return wi;}
 	inline bool getheight()const{return hi;}
 	windo&togglehud(){dodrawhud=!dodrawhud;return*this;}
+	void reshape(const int width,const int height){
+		sts<<"reshape("<<wi<<"x"<<hi<<")";wi=width;hi=height;
+	}
 	void drawframe(){
 		cout<<"\rframe("<<metrics::frames++<<")";
 		clk::timerrestart();
@@ -1463,47 +1464,6 @@ public:
 		}
 		cout<<flush;
 	}
-	virtual bool oncol(glob&g){
-		sts<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
-		if(g.isitem()){
-			g.rm();
-			items++;
-			return true;
-		}
-		set(pp);
-		d.neg().scale(.2f);
-		return true;
-		if(g.isblt()){
-			set(0,40,0);
-			agl().set(45,0,0);
-		}
-		return true;
-	}
-	virtual void tick(){
-		glob::tick();
-		flappery+=dt(3);
-		if(flappery>1)flappery=1;
-		rocketry+=dt();
-		if(rocketry>3)rocketry=3;
-		if(gravity){
-			dd.set(0,-9.8f,0);
-			dd.transl(f);
-		}
-		dd.transl(fi);
-		fi.set(0,0,0);
-		d.transl(dd,dt());
-		pp.set(*this);
-		transl(d,dt());
-		if(gety()<radius()){
-//			flf();l()<<gety()<<" < "<<bv.r<<endl;
-			d.neg().scale(.2f);
-//			dd.set(0,0,0);
-			set(pp);
-		}
-//		flf();l()<<dd<<endl;
-//		flf();l()<<endl;
-	}
-	virtual void gldraw(){}
 	void timer(){
 		clk::tk++;
 		sts.str("");
@@ -1515,7 +1475,7 @@ public:
 			if(iskeydn('a')){transl(mxv.xaxis(),-dt(d));}
 			if(iskeydn('l')){agl().transl(0,dt(180),0);}
 			if(iskeydn('j')){agl().transl(0,-dt(180),0);}
-			if(iskeydn('m')&&rocketry>0){f.set(0,20,0);rocketry-=dt(6);}else{f.set(0,0,0);}
+			if(iskeydn(',')&&rocketry>0){f.set(0,20,0);rocketry-=dt(6);}else{f.set(0,0,0);}
 			if(iskeydn(' ')){fire();}
 			if(iskeydn('b')){rain();}
 
@@ -1537,7 +1497,7 @@ public:
 		else if(key=='k'){if(flappery>0){fi.set(0,600,0);flappery-=1;}}
 		else if(key=='c'){agl().transl(15,0,0);}
 		else if(key=='f'){agl().transl(-15,0,0);}
-		else if(key=='r'){agl().setx(0);}
+		else if(key=='v'){agl().setx(0);}
 		else if(key=='1'){glob::drawboundingspheres=!glob::drawboundingspheres;}
 		else if(key=='2'){wold::get().drawaxis=!wold::get().drawaxis;}
 		else if(key=='3'){wold::get().drawgrid=!wold::get().drawgrid;}
@@ -1555,26 +1515,45 @@ public:
 		if(key==27)// esc
 			{if(fullscr)togglefullscr();cout<<endl;exit(0);}
 	}
-	void mouseclk(const int button,const int state,int x,const int y){
-		GLint viewport[4];
-		GLdouble modelview[16];
-		GLdouble projection[16];
-		GLfloat winX, winY, winZ;
-		GLdouble posX, posY, posZ;
-
-		glGetDoublev(GL_MODELVIEW_MATRIX,modelview);
-		glGetDoublev(GL_PROJECTION_MATRIX,projection);
-		glGetIntegerv(GL_VIEWPORT,viewport);
-
-		winX=(float)x;
-		winY=(float)viewport[3]-(float)y;
-		glReadPixels(x,int(winY),1,1,GL_DEPTH_COMPONENT,GL_FLOAT,&winZ);
-		gluUnProject(winX,winY,winZ,modelview,projection,viewport,&posX,&posY,&posZ);
-		sts<<"mousclk("<<state<<","<<button<<",["<<x<<","<<y<<",0])";
-		cout<<"unproj("<<posX<<" "<<posY<<" "<<posZ<<")";
-	}
+	void mouseclk(const int button,const int state,int x,const int y){sts<<"mousclk("<<state<<","<<button<<",["<<x<<","<<y<<",0])";}
 	void mousemov(const int x,const int y){sts<<"mousmov("<<x<<","<<y<<")";}
-	void reshape(const int width,const int height){sts<<"reshape("<<wi<<"x"<<hi<<")";wi=width;hi=height;}
+	void tick(){
+		flappery+=dt(3);
+		if(flappery>1)flappery=1;
+		rocketry+=dt();
+		if(rocketry>3)rocketry=3;
+		if(gravity){
+			dd.set(0,-9.8f,0);
+			dd.transl(f);
+		}
+		dd.transl(fi);
+		fi.set(0,0,0);
+		d.transl(dd,dt());
+		pp.set(*this);
+		transl(d,dt());
+		if(gety()<radius()){
+			d.neg().scale(.2f);
+			set(pp);
+		}
+		glob::tick();
+	}
+	bool oncol(glob&g){
+		sts<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
+		if(g.isitem()){
+			g.rm();
+			items++;
+			return true;
+		}
+		set(pp);
+		d.neg().scale(.2f);
+		return true;
+		if(g.isblt()){
+			set(0,40,0);
+			agl().set(45,0,0);
+		}
+		return true;
+	}
+private:
 	void togglefullscr(){
 		if(gamemode)
 			return;
@@ -1588,13 +1567,13 @@ public:
 			glutSetCursor(GLUT_CURSOR_INHERIT);
 		}
 	}
-private:
 	bool iskeydn(const char key,const bool setifnot=false){
 		static char k[]={0,0};
-		k[0]=(char)key;
+		k[0]=key;
 		const bool b=keysdn[k]==1;
 		if(!b&&setifnot)
 			keysdn.put(strcpy(new char[2],k),1);//? bug leak
+		cout<<key<<"  "<<b<<endl;
 		return b;
 	}
 	void rain(){
@@ -1630,10 +1609,7 @@ private:
 		glPopMatrix();
 	}
 	void drawhud(){
-		const int dy=hi>>5;
-		int y=-dy;
-
-//		pl("glox",y,0,1,.2f);
+		const int dy=hi>>5;int y=-dy;
 
 		timeval tv;gettimeofday(&tv,0);
 		const tm&t=*localtime(&tv.tv_sec);
@@ -1676,14 +1652,11 @@ private:
 	}
 };
 
-extern void gnox();
-
 namespace glut{
 	windo&wn=*new windo();
 	void reshape(const int width,const int height){wn.reshape(width,height);}
 	void draw(){wn.drawframe();glutSwapBuffers();}
 	void timer(const int value){wn.timer();glutPostRedisplay();glutTimerFunc((unsigned)value,timer,value);}
-//	void idle(){return;}
 	void keydn(const unsigned char key,const int x,const int y){wn.keydn((char)key,x,y);}
 	void keyup(const unsigned char key,const int x,const int y){wn.keyup((char)key,x,y);}
 	void mouseclk(const int button,const int state,int x,const int y){wn.mouseclk(button,state,x,y);}
@@ -1693,7 +1666,6 @@ namespace glut{
 		cout<<"glox"<<endl;
 		for(int i=0;i<32;i++)signal(i,mainsig);//?
 		srand(0);
-		gnox();
 		glutInit(&argc,argv);
 		glutIgnoreKeyRepeat(true);
 		glutInitDisplayMode(GLUT_DOUBLE|GLUT_DEPTH);
@@ -1736,8 +1708,5 @@ namespace glut{
 		return 0;
 	}
 }
-
 int main(){return glut::main(0,NULL);}
-
-extern void gnox(){}
 #endif
