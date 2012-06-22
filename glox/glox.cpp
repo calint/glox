@@ -39,7 +39,7 @@ namespace glox{
 	inline float dt(const float f=1){return f*clk::dt;}
 	inline float rnd(const float from,const float tonotincluding){return from+(tonotincluding-from)*rand()/RAND_MAX;}
 	inline float rndo(const float tonotincluding){return tonotincluding*rand()/RAND_MAX;}
-	inline float rndon(const float s){return rnd(-s,s);}
+	inline float rndn(const float s){return rnd(-s,s);}
 	const float pi=3.1415926f;
 	const float degtoradk=pi/180;
 	inline float degtorad(const float deg=1){return deg*degtoradk;}
@@ -70,6 +70,7 @@ public:
 	inline p3&set(const p3&p){x=p.x;y=p.y;z=p.z;return*this;}
 	inline p3&set(const float x,const float y,const float z){this->x=x;this->y=y;this->z=z;return*this;}
 	inline p3&neg(){x=-x;y=-y;z=-z;return*this;}
+	inline p3&negy(){y=-y;return*this;}
 	inline p3&scale(const float s){x*=s;y*=s;z*=s;return*this;}
 	inline p3&scale(const float sx,const float sy,const float sz){x*=sx;y*=sy;z*=sz;return*this;}
 	inline bool operator==(const p3&p)const{return x==p.x&&y==p.y&&z==p.z;}
@@ -996,7 +997,7 @@ public:
 			const float zz=rnd(-spread,spread);
 			new obiglo(*this,p3(xx,yy,zz),s);
 		}
-		new obcon(*this,p3(radius(),0,radius()));
+		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
 //		new obcorp(*this,p3(0,4.2f,0));
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
@@ -1344,8 +1345,9 @@ public:
 		else if(key=='h'){zoom+=.1;}
 		else if(key=='i'){if(flappery>0){fi.set(0,300,0);flappery-=1;}}
 		else if(key=='k'){if(flappery>0){fi.set(0,600,0);flappery-=1;}}
-		else if(key=='c'){agl().transl(15,0,0);}
-		else if(key=='f'){agl().transl(-15,0,0);}
+		else if(key=='m'){if(flappery>0){fi.set(mxv.zaxis().neg().negy().scale(600));flappery-=1;}}
+		else if(key=='c'){agl().transl(7,0,0);}
+		else if(key=='f'){agl().transl(-7,0,0);}
 		else if(key=='v'){agl().setx(0);}
 		else if(key=='1'){glob::drawboundingspheres=!glob::drawboundingspheres;}
 		else if(key=='2'){wold::get().drawaxis=!wold::get().drawaxis;}
@@ -1425,15 +1427,17 @@ private:
 		return b;
 	}
 	void rain(){
-		static float a=0;
 		static float dr=2;
 		static float fromheight=wold::get().radius()*2;
+		static float a=0;
 		const float r=wold::get().radius()/2;
 		const float dx=rnd(-r,r);
 		const float dz=rnd(-r,r);
 		a+=dt(60);
 		for(int i=0;i<11;i++)
 			new obball(wold::get(),p3(dx+dr*cos(a)*rnd(-dr,dr),fromheight,dz+dr*sin(a)*rnd(-dr,dr)));
+//		for(int i=0;i<11;i++)
+//			new obball(wold::get(),p3(getx()+rndn(dr),fromheight+rndn(dr/4),getz()+rndn(dr)));
 	}
 	void fire(){
 		p3 lv=mxv.zaxis();
