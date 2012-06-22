@@ -1248,12 +1248,12 @@ class windo:public glob{
 	float rocketry;
 	int items;
 public:
-	windo(glob&g=wold::get(),const p3&p=p3(0,wold::get().radius(),0),const p3&a=p3(30,0,0),const float r=.1f,const int width=1024,const int height=512):glob(g,p,a,r),wi(width),hi(height){}
+	windo(glob&g=wold::get(),const p3&p=p3(0,wold::get().radius(),0),const p3&a=p3(30,0,0),const float s=.1f):glob(g,p,a,s){}
 
 	inline bool isgamemode()const{return gamemode;}
 	inline bool isfullscreen()const{return fullscr;}
-	inline int width()const{return wi;}
-	inline int height()const{return hi;}
+	inline bool width()const{return wi;}
+	inline bool height()const{return hi;}
 	inline windo&togglehud(){dodrawhud=!dodrawhud;return*this;}
 
 	void reshape(const int width,const int height){
