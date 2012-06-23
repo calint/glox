@@ -845,22 +845,19 @@ class grid{
 	p3 po;
 	float s;
 	list<glob*>ls;
-	grid*grds[4];
+	grid*grds[8];
 	const size_t splitthresh=20;
 	const int subgridlevels=5;
 public:
-	grid(const float size,const p3&p=p3()):po(p),s(size),grds({0,0,0,0}){metrics::ngrids++;}
+	grid(const float size,const p3&p=p3()):po(p),s(size),grds({0,0,0,0,0,0,0,0}){metrics::ngrids++;}
 	~grid(){metrics::ngrids--;clear();}
 	void gldraw(){
-		glColor3b(0,0,0x40);
-		const float yoff=0;//.1f;
-		glBegin(GL_LINE_STRIP);
-		glVertex3f(po.getx()-s,yoff,po.getz()-s);
-		glVertex3f(po.getx()+s,yoff,po.getz()-s);
-		glVertex3f(po.getx()+s,yoff,po.getz()+s);
-		glVertex3f(po.getx()-s,yoff,po.getz()+s);
-		glVertex3f(po.getx()-s,yoff,po.getz()-s);
-		glEnd();
+		const GLbyte c=(GLbyte)(po.gety()/15*127);
+		glColor3b(0,0,c);
+		glPushMatrix();
+		glTranslatef(po.getx(),po.gety(),po.getz());
+		glutWireCube(s*2);
+		glPopMatrix();
 		for(auto gr:grds){
 			if(!gr)
 				continue;
@@ -879,7 +876,7 @@ public:
 	void addall(const list<glob*>&ls){
 		for(auto g:ls)
 			putif(g,*g,g->radius());
-		splitif(subgridlevels);
+		splitif(subgridlevels);//? alg simplitonthefly
 	}
 	void coldet(){
 		if(!ls.empty()){
@@ -889,8 +886,7 @@ public:
 				if(*i1==*i2)
 					break;
 				glob&g1=*(*i1);
-				do{
-					glob&g2=*(*i2);
+				do{	glob&g2=*(*i2);
 					g1.coldet(g2);
 					i2++;
 				}while(*i1!=*i2);
@@ -903,16 +899,13 @@ public:
 	}
 private:
 	bool putif(glob*g,const p3&p,const float r){
-//		flf();l()<<typeid(*g).name()<<"(p("<<p<<"))r("<<r<<")  grid(p("<<ptl<<")s("<<s<<")"<<endl;
 		if((p.getx()+s+r)<po.getx())return false;
 		if((p.getx()-s-r)>po.getx())return false;
 		if((p.getz()+s+r)<po.getz())return false;
 		if((p.getz()-s-r)>po.getz())return false;
-//		if((p.getz()+r)<ptl.getz())return;
-//		if((p.getz()-r)>(ptl.getz()+s))return;
-//		cout<<" added"<<endl;
+		if((p.gety()+s+r)<po.gety())return false;
+		if((p.gety()-s-r)>po.gety())return false;
 		ls.push_back(g);
-//		flf();l()<<"grid(p("<<ptl<<")s("<<s<<"))add "<<typeid(*g).name()<<"(p("<<p<<")r("<<r<<"))"<<endl;
 		return true;
 	}
 	bool splitif(const int nrec){
@@ -921,33 +914,20 @@ private:
 		if(nrec==0)
 			return false;
 		const float ns=s/2;
-//		flf();l()<<"split  "<<globs.size()<<"   size("<<ns<<")"<<endl;
-		grds[0]=new grid(ns,p3(po).transl(-ns,0,-ns));
-		grds[1]=new grid(ns,p3(po).transl( ns,0,-ns));
-		grds[2]=new grid(ns,p3(po).transl(-ns,0, ns));
-		grds[3]=new grid(ns,p3(po).transl( ns,0, ns));
-		bool done=false;
+		grds[0]=new grid(ns,p3(po).transl(-ns,ns,-ns));
+		grds[1]=new grid(ns,p3(po).transl( ns,ns,-ns));
+		grds[2]=new grid(ns,p3(po).transl(-ns,ns, ns));
+		grds[3]=new grid(ns,p3(po).transl( ns,ns, ns));
+
+		grds[4]=new grid(ns,p3(po).transl(-ns,-ns,-ns));
+		grds[5]=new grid(ns,p3(po).transl( ns,-ns,-ns));
+		grds[6]=new grid(ns,p3(po).transl(-ns,-ns, ns));
+		grds[7]=new grid(ns,p3(po).transl( ns,-ns, ns));
+
 		for(auto g:grds){
-			int i=0;
-			int nglobs=0;
-			for(auto o:ls){
-				nglobs++;
-				if(g->putif(o,*o,o->radius()))
-					i++;
-			}
-//			if(i==nglobs){
-//				done=true;
-//				break;
-//			}
+			for(auto o:ls)
+				g->putif(o,*o,o->radius());
 			g->splitif(nrec-1);
-		}
-		if(done){
-//			flf();l()<<" allsubgridscontainallobjects, recursiondone  at "<<s<<"   contains "<<globs.size()<<" globs"<<endl;
-			for(auto&g:grds){
-				delete g;
-				g=0;
-			}
-			return true;
 		}
 		ls.clear();
 		return true;
@@ -965,6 +945,13 @@ public:
 	inline static wold&get(){return wd;}
 	inline float gett(){return t;}
 	void load(){
+		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
+//		new obcorp(*this,p3(0,4.2f,0));
+//		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
+//		new obufocluster(*this,p3(50,0,0));
+		mkiglos();
+	}
+	void mkiglos(){
 		const float s=1;
 		const float spread=-radius()/2;
 		for(int n=0;n<50;n++){
@@ -997,10 +984,6 @@ public:
 			const float zz=rnd(-spread,spread);
 			new obiglo(*this,p3(xx,yy,zz),s);
 		}
-		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
-//		new obcorp(*this,p3(0,4.2f,0));
-//		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
-//		new obufocluster(*this,p3(50,0,0));
 	}
 	void gldraw(){
 		glDisable(GL_LIGHTING);
@@ -1427,15 +1410,15 @@ private:
 		return b;
 	}
 	void rain(){
-		static float dr=2;
 		static float fromheight=wold::get().radius()*2;
 		static float a=0;
 		const float r=wold::get().radius()/2;
+		const float dr=r/2;
 		const float dx=rnd(-r,r);
 		const float dz=rnd(-r,r);
 		a+=dt(60);
 		for(int i=0;i<11;i++)
-			new obball(wold::get(),p3(dx+dr*cos(a)*rnd(-dr,dr),fromheight,dz+dr*sin(a)*rnd(-dr,dr)));
+			new obball(wold::get(),p3(dx+r*cos(a)*rnd(-dr,dr),fromheight,dz+r*sin(a)*rnd(-dr,dr)));
 //		for(int i=0;i<11;i++)
 //			new obball(wold::get(),p3(getx()+rndn(dr),fromheight+rndn(dr/4),getz()+rndn(dr)));
 	}
