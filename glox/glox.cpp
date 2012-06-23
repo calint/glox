@@ -523,7 +523,7 @@ public:
 		const float dx=rnd(-s,s);
 		const float dy=rnd(-s,s);
 		const float dz=0;
-		const float r=radius();
+		const float r=1;
 		transl(dt(dx),dt(dy),dt(dz));
 		dr=drscl*sin(a);
 		radius(r+dr);
@@ -538,7 +538,7 @@ class obcorp:public glob{
 	float f,ff;
 public:
 	obcorp(glob&pt,const p3&p=p3(),const p3&a=p3()):glob(pt,p,a){
-		radius(s+1.57f).setsolid(false);
+//		radius(s+1.57f).setsolid(false);
 		const float ds=.1f*s;
 		const float dz=.5f*s;
 		for(float zz=-s;zz<=s;zz+=dz)
@@ -546,7 +546,7 @@ public:
 				for(float yy=-s;yy<=s;yy+=ds){
 					if(sqrt(xx*xx+yy*yy+zz*zz)>s)
 						continue;
-					new obcorpqb(*this,p3(xx,yy,zz),p3(90,0,0));
+					new obcorpqb(pt,p3(xx,yy,zz).transl(p),p3(90,0,0));
 				}
 	}
 	void gldraw(){
@@ -866,7 +866,7 @@ class grid{
 	float s;
 	list<glob*>ls;
 	grid*grds[8];
-	const size_t splitthresh=30;
+	const size_t splitthresh=100;
 	const int subgridlevels=4;
 public:
 	grid(const float size,const p3&p=p3()):po(p),s(size),grds({0,0,0,0,0,0,0,0}){metrics::ngrids++;}
@@ -1001,12 +1001,13 @@ public:
 	inline static wold&get(){return wd;}
 	inline float gett(){return t;}
 	void load(){
-//		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
-//		new obcorp(*this,p3(0,4.2f,0));
+		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
+		new obcorp(*this,p3(0,4.2f,0));
+//		new obcorp(*this,p3(10,4.2f,0));
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
-		mkiglos();
-		new obball(*this,p3(0,5,0),1);
+//		mkiglos();
+//		new obball(*this,p3(0,5,0),1);
 	}
 	void mkiglos(){
 		const float s=1;
@@ -1243,14 +1244,14 @@ class windo:public globx{
 	m3 mxv;
 	lut<int>keysdn;
 	bool gravity=true,dodrawhud=true,gamemode=false,fullscr=false,consolemode=false;
-	float zoom=1;
-	int wi=1024,hi=512;
+	float zoom;
+	int wi,hi;
 	int wiprv=wi,hiprv=hi;
 	float flappery;
 	float rocketry;
 	int items;
 public:
-	windo(glob&g=wold::get(),const p3&p=p3(11.6f,.1f,-9.3f),const p3&a=p3(0,-142,0),const float r=.1f,const int width=1024,const int height=512):globx(g,p,a,r,10,.3f),wi(width),hi(height){}
+	windo(glob&g=wold::get(),const p3&p=p3(10.4f,.1f,10.5f),const p3&a=p3(-21,-44.8f,0),const float r=.1f,const int width=1024,const int height=512,const float zoom=1.5):globx(g,p,a,r,10,.3f),zoom(zoom),wi(width),hi(height){}
 
 	inline bool isgamemode()const{return gamemode;}
 	inline bool isfullscreen()const{return fullscr;}
@@ -1329,7 +1330,7 @@ public:
 			if(iskeydn(',')&&rocketry>0){f.set(0,dt(150*m),0);rocketry-=dt(6);}else{f.set(0,0,0);}
 			if(iskeydn(' ')){fire();}
 			if(iskeydn('b')){rain();}
-			rain();
+//			rain();
 
 			if(iskeydn('t')){transl(mxv.yaxis(),dt(d));}
 			if(iskeydn('g')){transl(mxv.yaxis(),dt(-d));}
