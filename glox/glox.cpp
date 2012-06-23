@@ -1038,7 +1038,7 @@ public:
 	void load(){
 //		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
 		new obcorp(*this,p3(0,4.2f,-6.5f));
-		new obcorp(*this,p3(0,4.2f, 6.5f));
+		new obcorp(*this,p3(0,0, 6.5f));
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
 //		mkiglos();
