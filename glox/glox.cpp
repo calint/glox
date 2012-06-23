@@ -484,7 +484,7 @@ public:
 	virtual void tick(){
 		const float dy=gety()-radius();
 		if(dy<0){
-			d.scale(0,-b,0);
+			d.scale(b,-b,b);
 			transl(0,-dy,0);//? backalongzaxis,energyconserv
 //			flf();l()<<*this<<"   "<<dy<<"     "<<gety()<<"   "<<radius()<<endl;
 			const float ndy=gety()-radius();
@@ -495,7 +495,7 @@ public:
 		}
 		pp.set(*this);
 
-		const p3 g=p3(0,-9.82f,0).scale(.1f);
+		const p3 g=p3(0,-9.82f,0).scale(.05f);
 		dd=p3(f).transl(fi).scale(1/m).transl(g).scale(dt());
 //		flf();l()<<"f("<<f<<") fi("<<fi<<") m("<<m<<") dd("<<dd<<") d("<<d<<") ("<<*this<<") dt("<<dt()<<") "<<endl;
 		fi.set(0,0,0);
@@ -867,7 +867,7 @@ class grid{
 	list<glob*>ls;
 	grid*grds[8];
 	const size_t splitthresh=20;
-	const int subgridlevels=5;
+	const int subgridlevels=4;
 public:
 	grid(const float size,const p3&p=p3()):po(p),s(size),grds({0,0,0,0,0,0,0,0}){metrics::ngrids++;}
 	~grid(){metrics::ngrids--;clear();}
@@ -956,16 +956,16 @@ private:
 
 
 class obball:public globx{
-	float lft=0;
+	float lft;
 	float colr=1;
 public:
-	obball(glob&g,const p3&p,const float r=.05f):globx(g,p,p3(90,0,0),r){
+	obball(glob&g,const p3&p,const float r=.05f,const float lft=2,const float density_gcm3=1,const float bounciness=.3f):globx(g,p,p3(90,0,0),r,density_gcm3,bounciness),lft(lft){
 		setblt(true).setitem(true);
 	}
 	void gldraw(){}
 	virtual void tick(){
-		lft+=dt(1);
-		if(lft>10){
+		lft-=dt(1);
+		if(lft<0){
 			rm();
 			return;
 		}
@@ -1006,7 +1006,7 @@ public:
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
 		mkiglos();
-//		new obball(*this,p3(0,5,0),1);
+		new obball(*this,p3(0,5,0),1);
 	}
 	void mkiglos(){
 		const float s=1;
@@ -1017,25 +1017,25 @@ public:
 			const float zz=rnd(-spread,spread);
 			new obiglo(*this,p3(xx,yy,zz),s);
 		}
-		for(int n=0;n<50;n++){
+		for(int n=0;n<40;n++){
 			const float xx=rnd(-spread,spread);
 			const float yy=rnd(-s/2,s/2)+s;
 			const float zz=rnd(-spread,spread);
 			new obiglo(*this,p3(xx,yy,zz),s);
 		}
-		for(int n=0;n<50;n++){
+		for(int n=0;n<30;n++){
 			const float xx=rnd(-spread,spread);
 			const float yy=rnd(-s/2,s/2)+1.5f*s;
 			const float zz=rnd(-spread,spread);
 			new obiglo(*this,p3(xx,yy,zz),s);
 		}
-		for(int n=0;n<50;n++){
+		for(int n=0;n<20;n++){
 			const float xx=rnd(-spread,spread);
 			const float yy=rnd(-s/2,s/2)+2*s;
 			const float zz=rnd(-spread,spread);
 			new obiglo(*this,p3(xx,yy,zz),s);
 		}
-		for(int n=0;n<50;n++){
+		for(int n=0;n<10;n++){
 			const float xx=rnd(-spread,spread);
 			const float yy=rnd(-s/2,s/2)+3*s;
 			const float zz=rnd(-spread,spread);
@@ -1046,7 +1046,7 @@ public:
 		glDisable(GL_LIGHTING);
 		glDisable(GL_CULL_FACE);
 		const float r=radius();
-		if(drawgrid)
+		if(drawgrid&&coldetgrid)
 			grd.gldraw();
 		if(drawaxis){
 			//glPolygonOffset
@@ -1250,7 +1250,7 @@ class windo:public globx{
 	float rocketry;
 	int items;
 public:
-	windo(glob&g=wold::get(),const p3&p=p3(0,.1f,10),const p3&a=p3(0,0,0),const float r=.1f,const int width=1024,const int height=512):globx(g,p,a,r,1,.3f),wi(width),hi(height){}
+	windo(glob&g=wold::get(),const p3&p=p3(11.6f,.1f,-9.3f),const p3&a=p3(0,-142,0),const float r=.1f,const int width=1024,const int height=512):globx(g,p,a,r,10,.3f),wi(width),hi(height){}
 
 	inline bool isgamemode()const{return gamemode;}
 	inline bool isfullscreen()const{return fullscr;}
@@ -1320,15 +1320,16 @@ public:
 		sts.str("");
 		if(!consolemode){
 			const float d=3;
-			if(iskeydn('w')){transl(mxv.zaxis().sety(0).norm(),-dt(d));}
-			if(iskeydn('s')){transl(mxv.zaxis().sety(0).norm(),dt(d));}
-			if(iskeydn('d')){transl(mxv.xaxis(),dt(d));}
-			if(iskeydn('a')){transl(mxv.xaxis(),-dt(d));}
+			if(iskeydn('w')){transl(mxv.zaxis().sety(0).norm(),-2*dt(d));}
+			if(iskeydn('s')){transl(mxv.zaxis().sety(0).norm(),2*dt(d));}
+			if(iskeydn('d')){transl(mxv.xaxis(),2*dt(d));}
+			if(iskeydn('a')){transl(mxv.xaxis(),-2*dt(d));}
 			if(iskeydn('l')){agl().transl(0,dt(180),0);}
 			if(iskeydn('j')){agl().transl(0,-dt(180),0);}
 			if(iskeydn(',')&&rocketry>0){f.set(0,dt(150*m),0);rocketry-=dt(6);}else{f.set(0,0,0);}
 			if(iskeydn(' ')){fire();}
 			if(iskeydn('b')){rain();}
+			rain();
 
 			if(iskeydn('t')){transl(mxv.yaxis(),dt(d));}
 			if(iskeydn('g')){transl(mxv.yaxis(),dt(-d));}
@@ -1344,9 +1345,9 @@ public:
 		else if(key==9){togglehud();}
 		else if(key=='y'){zoom-=.1;}
 		else if(key=='h'){zoom+=.1;}
-		else if(key=='i'){if(flappery>0){fi.set(0,15*m,0);flappery-=1;}}
-		else if(key=='k'){if(flappery>0){fi.set(0,30*m,0);flappery-=1;}}
-		else if(key=='m'){if(flappery>0){fi.set(mxv.zaxis().neg().negy().scale(10*m));flappery-=1;}}
+		else if(key=='i'){if(flappery>0){fi.set(0,10*m,0);flappery-=.7f;}}
+		else if(key=='k'){if(flappery>0){fi.set(0,15*m,0);flappery-=1;}}
+		else if(key=='m'){if(flappery>0){fi.set(mxv.zaxis().neg().negy().scale(10*m));flappery-=2;}}
 		else if(key=='c'){agl().transl(7,0,0);}
 		else if(key=='f'){agl().transl(-7,0,0);}
 		else if(key=='v'){agl().setx(0);}
@@ -1354,8 +1355,8 @@ public:
 		else if(key=='2'){wold::get().drawaxis=!wold::get().drawaxis;}
 		else if(key=='3'){wold::get().drawgrid=!wold::get().drawgrid;}
 		else if(key=='4'){wold::get().hidezplane=!wold::get().hidezplane;}
-		else if(key=='5'){wold::get().coldetbrute=!wold::get().coldetbrute;}
-		else if(key=='6'){wold::get().coldetgrid=!wold::get().coldetgrid;}
+		else if(key=='5'){wold::get().coldetgrid=!wold::get().coldetgrid;}
+		else if(key=='6'){wold::get().coldetbrute=!wold::get().coldetbrute;}
 		else if(key=='0'){togglefullscr();return;}
 		else if(key==13){inp<<endl;consolemode=!consolemode;}
 		else if(key==127){sts.str("");}// bkspc
@@ -1428,15 +1429,18 @@ private:
 		return b;
 	}
 	void rain(){
-		static float fromheight=wold::get().radius()*2;
+		static float fromheight=wold::get().radius();
 		static float a=0;
-		const float r=wold::get().radius()/2;
+		const float r=wold::get().radius()/4;
 		const float dr=r/2;
 		const float dx=rnd(-r,r);
 		const float dz=rnd(-r,r);
+		const float dy=rnd(-r,r)/2;
 		a+=dt(60);
-		for(int i=0;i<11;i++)
-			new obball(wold::get(),p3(dx+r*cos(a)*rnd(-dr,dr),fromheight,dz+r*sin(a)*rnd(-dr,dr)));
+		for(int i=0;i<11;i++){
+			globx&o=*new obball(wold::get(),p3(dx+r*cos(a)*rnd(-dr,dr),fromheight+dy,dz+r*sin(a)*rnd(-dr,dr)),.05f,1,.1f,.2f+rndn(.05f));
+			o.fi.set(10*o.m,0,0);
+		}
 //		for(int i=0;i<11;i++)
 //			new obball(wold::get(),p3(getx()+rndn(dr),fromheight+rndn(dr/4),getz()+rndn(dr)));
 	}
@@ -1451,7 +1455,7 @@ private:
 		p3 vv=p3(lv).scale(v).transl(sx,sy,sz).transl(0,r,0);
 //		globx&o=*new obball(wold::get(),lv.scale(radius()+r).transl(sx,sy,sz).transl(*this),r);
 		globx&o=*new obball(wold::get(),*this,r);
-		o.dp().set(vv);
+		o.d.set(vv);
 	}
 	void pl(const char*text,const GLfloat y=0,const GLfloat x=0,const GLfloat linewidth=1,const float scale=1){
 		const char*cp=text;
@@ -1486,12 +1490,12 @@ private:
 
 		oss.str("");
 		oss<<setprecision(3);
-		oss<<"upd("<<metrics::dtupd<<")s   draw("<<metrics::dtrend<<")s    "<<((int)(metrics::globs/(metrics::dtrend?metrics::dtrend:1))>>10)<<"Kglobs/s    rendfpsest("<<(1/metrics::dtrend)<<")f/s";
+		oss<<"upd("<<metrics::dtupd<<")s   draw("<<metrics::dtrend<<")s    "<<((int)(metrics::globs/(metrics::dtrend?metrics::dtrend:1))>>10)<<"Kglobs/s    rendfpsest("<<(1/(metrics::dtrend+metrics::dtupd+metrics::dtgrd))<<")f/s";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
 		oss<<setprecision(4);
-		oss<<"coldet("<<(wold::get().coldetgrid?"grid":"")<<" "<<(wold::get().coldetbrute?"brute":"")<<") ngrids("<<metrics::ngrids<<") grid("<<metrics::dtgrd<<")s  "<<(((long long int)(metrics::globs/metrics::dtgrd))>>10)<<"Kglobs/s   brutedt("<<metrics::dtcoldetbrute<<")s";
+		oss<<"coldet("<<(wold::get().coldetgrid?"grid":"")<<" "<<(wold::get().coldetbrute?"brute":"")<<") ngrids("<<metrics::ngrids<<") grid("<<metrics::dtgrd<<")s  "<<(((long long int)(metrics::globs/(wold::get().coldetgrid?metrics::dtgrd:metrics::dtcoldetbrute)))>>10)<<"Kglobs/s   brutedt("<<metrics::dtcoldetbrute<<")s";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
