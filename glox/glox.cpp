@@ -1360,8 +1360,8 @@ public:
 			if(iskeydn('s')){transl(mxv.zaxis().sety(0).norm(),2*dt(d));}
 			if(iskeydn('d')){transl(mxv.xaxis(),2*dt(d));}
 			if(iskeydn('a')){transl(mxv.xaxis(),-2*dt(d));}
-			if(iskeydn('l')){agl().transl(0,dt(180),0);}
-			if(iskeydn('j')){agl().transl(0,-dt(180),0);}
+			if(iskeydn('l')){agl().transl(0,dt(360),0);}
+			if(iskeydn('j')){agl().transl(0,-dt(360),0);}
 			if(iskeydn(',')&&rocketry>0){f.set(0,dt(150*m),0);rocketry-=dt(6);}else{f.set(0,0,0);}
 			if(iskeydn(' ')){fire();}
 			if(iskeydn('b')){rain();}
