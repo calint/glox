@@ -866,7 +866,7 @@ class grid{
 	float s;
 	list<glob*>ls;
 	grid*grds[8];
-	const size_t splitthresh=30;
+	const size_t splitthresh=20;
 	const int subgridlevels=4;
 public:
 	grid(const float size,const p3&p=p3()):po(p),s(size),grds({0,0,0,0,0,0,0,0}){metrics::ngrids++;}
@@ -1345,7 +1345,7 @@ public:
 		else if(key==9){togglehud();}
 		else if(key=='y'){zoom-=.1;}
 		else if(key=='h'){zoom+=.1;}
-		else if(key=='i'){if(flappery>0){fi.set(0,7*m,0);flappery-=.7f;}}
+		else if(key=='i'){if(flappery>0){fi.set(0,10*m,0);flappery-=.7f;}}
 		else if(key=='k'){if(flappery>0){fi.set(0,15*m,0);flappery-=1;}}
 		else if(key=='m'){if(flappery>0){fi.set(mxv.zaxis().neg().negy().scale(10*m));flappery-=2;}}
 		else if(key=='c'){agl().transl(7,0,0);}
@@ -1433,13 +1433,13 @@ private:
 		static float a=0;
 		const float r=wold::get().radius()/4;
 		const float dr=r/2;
-		const float dx=-2+rnd(-r,r);
+		const float dx=rnd(-r,r);
 		const float dz=rnd(-r,r);
-		const float dy=-2+rnd(-r,r)/2;
+		const float dy=rnd(-r,r)/2;
 		a+=dt(60);
-		for(int i=0;i<13;i++){
-			globx&o=*new obball(wold::get(),p3(dx+r*cos(a)*rnd(-dr,dr),fromheight+dy,dz+r*sin(a)*rnd(-dr,dr)),.04f+rndn(.02f),1,1,.2f+rndn(.1f));
-			o.fi.set(10*o.m,0,5*o.m);
+		for(int i=0;i<11;i++){
+			globx&o=*new obball(wold::get(),p3(dx+r*cos(a)*rnd(-dr,dr),fromheight+dy,dz+r*sin(a)*rnd(-dr,dr)),.05f,1,.1f,.2f+rndn(.05f));
+			o.fi.set(10*o.m,0,0);
 		}
 //		for(int i=0;i<11;i++)
 //			new obball(wold::get(),p3(getx()+rndn(dr),fromheight+rndn(dr/4),getz()+rndn(dr)));
