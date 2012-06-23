@@ -869,14 +869,14 @@ public:
 		for(auto&g:grds)
 			if(g){
 				g->clear();
-				delete g;
+				delete g;//? recycle
 				g=0;
 			}
 	}
 	void addall(const list<glob*>&ls){
 		for(auto g:ls)
 			putif(g,*g,g->radius());
-		splitif(subgridlevels);//? alg simplitonthefly
+		splitif(subgridlevels);//? splititonthefly
 	}
 	void coldet(){
 		if(!ls.empty()){
@@ -914,7 +914,7 @@ private:
 		if(nrec==0)
 			return false;
 		const float ns=s/2;
-		grds[0]=new grid(ns,p3(po).transl(-ns,ns,-ns));
+		grds[0]=new grid(ns,p3(po).transl(-ns,ns,-ns));//?
 		grds[1]=new grid(ns,p3(po).transl( ns,ns,-ns));
 		grds[2]=new grid(ns,p3(po).transl(-ns,ns, ns));
 		grds[3]=new grid(ns,p3(po).transl( ns,ns, ns));
@@ -926,8 +926,8 @@ private:
 
 		for(auto g:grds){
 			for(auto o:ls)
-				g->putif(o,*o,o->radius());
-			g->splitif(nrec-1);
+				g->putif(o,*o,o->radius());//?
+			g->splitif(nrec-1);//?
 		}
 		ls.clear();
 		return true;
