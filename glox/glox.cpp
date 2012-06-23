@@ -471,6 +471,44 @@ protected:
 bool glob::drawboundingspheres=true;
 int glob::drawboundingspheresdetail=6;
 
+class globx:public glob{
+public:
+	p3 d,dd;
+	p3 f;
+	p3 fi;
+	p3 pp;
+	float m;
+	globx(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,const float density_gcm3=1):glob(g,p,a,r),f(p3()),fi(p3()),pp(p),m(density_gcm3*4/3*pi*r*r*r){}
+	virtual void tick(){
+		const float dy=gety()-radius();
+		if(dy<0){
+//			flf();l()<<*this<<"   "<<dy<<endl;
+			d.scale(0,-.5f,0);
+			transl(0,-dy,0);//? backalongzaxis
+			if(gety()<0){
+				flf();l("!!!!")<<endl;
+				sety(0);
+			}
+		}
+		pp.set(*this);
+
+		const p3 g=p3(0,-9.82f,0).scale(.1f);
+		dd=p3(f).transl(fi).scale(1/m).transl(g).scale(dt());
+//		flf();l()<<"f("<<f<<") fi("<<fi<<") m("<<m<<") dd("<<dd<<") d("<<d<<") ("<<*this<<") dt("<<dt()<<") "<<endl;
+		fi.set(0,0,0);
+		d.transl(dd);
+		this->transl(d);
+		glob::tick();
+	}
+	virtual bool oncol(glob&o){
+//		flf();l()<<"cols"<<endl;
+//		if(!o.issolid())return true;
+//		set(pp);
+//		d.scale(-.5f);
+		return &o==&o;
+	}
+};
+
 class obcorpqb:public glob{
 	static int n;
 	float a,drscl,dr;
@@ -934,6 +972,32 @@ private:
 	}
 };
 
+
+class obball:public globx{
+	p3 pp;
+	p3 dp;
+	float lft=0;
+	float colr=1;
+public:
+	obball(glob&g,const p3&p,const float r=.05f):globx(g,p,p3(90,0,0),r){
+		setblt(true).setitem(true);
+	}
+	inline p3&getdp(){return dp;}
+	void gldraw(){}
+	virtual void tick(){
+		lft+=dt(1);
+		if(lft>10){
+			rm();
+			return;
+		}
+		colr=1;
+		globx::tick();
+	}
+	virtual bool oncol(glob&o){
+		return globx::oncol(o);
+	}
+};
+
 class wold:public glob{
 	static wold wd;
 	float t=0;
@@ -945,11 +1009,12 @@ public:
 	inline static wold&get(){return wd;}
 	inline float gett(){return t;}
 	void load(){
-		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
+//		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
 //		new obcorp(*this,p3(0,4.2f,0));
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
-		mkiglos();
+//		mkiglos();
+		new obball(*this,p3(0,5,0),1);
 	}
 	void mkiglos(){
 		const float s=1;
@@ -1174,45 +1239,6 @@ public:
 	}
 };
 
-
-class obball:public glob{
-	p3 pp;
-	p3 dp;
-	float lft=0;
-	float colr=1;
-public:
-	obball(glob&g,const p3&p,const float r=.05f):glob(g,p,p3(90,0,0),r){
-		setblt(true).setitem(true);
-	}
-	inline p3&getdp(){return dp;}
-	void gldraw(){}
-	virtual void tick(){
-		lft+=dt(1);
-		if(lft>10){
-			rm();
-			return;
-		}
-		colr=1;
-		pp.set(*this);
-		dp.transl(dt(),dt(-9.f),dt());
-		agl().transl(0,0,dt(1));
-		transl(dp,dt());
-		if(gety()<radius()){
-			dp.scale(0,-.5f,0);
-			transl(0,radius()-gety(),0);
-		}
-		glob::tick();
-	}
-	virtual bool oncol(glob&o){
-//		flf();l()<<typeid(o).name()<<endl;
-		if(!o.issolid())return true;
-		set(pp);
-		dp.neg().scale(.5f);
-		colr=0;
-		return true;
-	}
-};
-
 #include<sys/time.h>
 #include<iomanip>
 
@@ -1232,7 +1258,7 @@ class windo:public glob{
 	float rocketry;
 	int items;
 public:
-	windo(glob&g=wold::get(),const p3&p=p3(0,wold::get().radius(),0),const p3&a=p3(30,0,0),const float r=.1f,const int width=1024,const int height=512):glob(g,p,a,r),wi(width),hi(height){}
+	windo(glob&g=wold::get(),const p3&p=p3(0,.1f,10),const p3&a=p3(0,0,0),const float r=.1f,const int width=1024,const int height=512):glob(g,p,a,r),wi(width),hi(height){}
 
 	inline bool isgamemode()const{return gamemode;}
 	inline bool isfullscreen()const{return fullscr;}
