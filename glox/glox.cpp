@@ -478,16 +478,19 @@ public:
 	p3 fi;
 	p3 pp;
 	float m;
-	globx(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,const float density_gcm3=1):glob(g,p,a,r),f(p3()),fi(p3()),pp(p),m(density_gcm3*4/3*pi*r*r*r){}
+	float b;
+	globx(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,const float density_gcm3=1,float bounciness=.5f):glob(g,p,a,r),f(p3()),fi(p3()),pp(p),m(density_gcm3*4/3*pi*r*r*r),b(bounciness){}
+	inline p3&dp(){return d;}
 	virtual void tick(){
 		const float dy=gety()-radius();
 		if(dy<0){
-//			flf();l()<<*this<<"   "<<dy<<endl;
-			d.scale(0,-.5f,0);
-			transl(0,-dy,0);//? backalongzaxis
-			if(gety()<0){
-				flf();l("!!!!")<<endl;
-				sety(0);
+			d.scale(0,-b,0);
+			transl(0,-dy,0);//? backalongzaxis,energyconserv
+//			flf();l()<<*this<<"   "<<dy<<"     "<<gety()<<"   "<<radius()<<endl;
+			const float ndy=gety()-radius();
+			if(ndy<0){
+//				flf();l("!!!! dy(")<<gety()-radius()<<")"<<endl;
+				transl(0,-ndy,0);
 			}
 		}
 		pp.set(*this);
@@ -502,9 +505,9 @@ public:
 	}
 	virtual bool oncol(glob&o){
 //		flf();l()<<"cols"<<endl;
-//		if(!o.issolid())return true;
-//		set(pp);
-//		d.scale(-.5f);
+		if(!o.issolid())return true;
+		set(pp);//? energyconserv
+		d.scale(-b);
 		return &o==&o;
 	}
 };
@@ -570,27 +573,6 @@ public:
 };
 
 
-class obiglo:public glob{
-	float s;
-	p3 dp;
-	p3 pprv;
-public:
-	obiglo(glob&g,const p3&p,const float size=.05f):glob(g,p,p3(90,0,0),size),s(size),dp(0,-1,0){}
-	void tick(){
-		pprv.set(*this);
-		transl(dp,dt());
-		if(gety()<radius())
-			dp.set(0,0,0);
-	}
-	bool oncol(glob&o){
-		if(o.isblt()){
-			radius(radius()-.01f);
-			return true;
-		}
-		set(pprv);
-		return &o!=0;
-	}
-};
 
 #include<fstream>
 
@@ -974,15 +956,12 @@ private:
 
 
 class obball:public globx{
-	p3 pp;
-	p3 dp;
 	float lft=0;
 	float colr=1;
 public:
 	obball(glob&g,const p3&p,const float r=.05f):globx(g,p,p3(90,0,0),r){
 		setblt(true).setitem(true);
 	}
-	inline p3&getdp(){return dp;}
 	void gldraw(){}
 	virtual void tick(){
 		lft+=dt(1);
@@ -994,6 +973,19 @@ public:
 		globx::tick();
 	}
 	virtual bool oncol(glob&o){
+		return globx::oncol(o);
+	}
+};
+
+
+class obiglo:public globx{
+public:
+	obiglo(glob&g,const p3&p,const float size=.05f):globx(g,p,p3(90,0,0),size){}
+	bool oncol(glob&o){
+		if(o.isblt()){
+			radius(radius()-.01f);
+			return true;
+		}
 		return globx::oncol(o);
 	}
 };
@@ -1013,8 +1005,8 @@ public:
 //		new obcorp(*this,p3(0,4.2f,0));
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
-//		mkiglos();
-		new obball(*this,p3(0,5,0),1);
+		mkiglos();
+//		new obball(*this,p3(0,5,0),1);
 	}
 	void mkiglos(){
 		const float s=1;
@@ -1242,12 +1234,12 @@ public:
 #include<sys/time.h>
 #include<iomanip>
 
-class windo:public glob{
-	p3 d;
-	p3 dd;
-	p3 f;
-	p3 fi;
-	p3 pp;
+class windo:public globx{
+//	p3 d;
+//	p3 dd;
+//	p3 f;
+//	p3 fi;
+//	p3 pp;
 	m3 mxv;
 	lut<int>keysdn;
 	bool gravity=true,dodrawhud=true,gamemode=false,fullscr=false,consolemode=false;
@@ -1258,7 +1250,7 @@ class windo:public glob{
 	float rocketry;
 	int items;
 public:
-	windo(glob&g=wold::get(),const p3&p=p3(0,.1f,10),const p3&a=p3(0,0,0),const float r=.1f,const int width=1024,const int height=512):glob(g,p,a,r),wi(width),hi(height){}
+	windo(glob&g=wold::get(),const p3&p=p3(0,.1f,10),const p3&a=p3(0,0,0),const float r=.1f,const int width=1024,const int height=512):globx(g,p,a,r,1,.3f),wi(width),hi(height){}
 
 	inline bool isgamemode()const{return gamemode;}
 	inline bool isfullscreen()const{return fullscr;}
@@ -1334,7 +1326,7 @@ public:
 			if(iskeydn('a')){transl(mxv.xaxis(),-dt(d));}
 			if(iskeydn('l')){agl().transl(0,dt(180),0);}
 			if(iskeydn('j')){agl().transl(0,-dt(180),0);}
-			if(iskeydn(',')&&rocketry>0){f.set(0,20,0);rocketry-=dt(6);}else{f.set(0,0,0);}
+			if(iskeydn(',')&&rocketry>0){f.set(0,dt(150*m),0);rocketry-=dt(6);}else{f.set(0,0,0);}
 			if(iskeydn(' ')){fire();}
 			if(iskeydn('b')){rain();}
 
@@ -1352,9 +1344,9 @@ public:
 		else if(key==9){togglehud();}
 		else if(key=='y'){zoom-=.1;}
 		else if(key=='h'){zoom+=.1;}
-		else if(key=='i'){if(flappery>0){fi.set(0,300,0);flappery-=1;}}
-		else if(key=='k'){if(flappery>0){fi.set(0,600,0);flappery-=1;}}
-		else if(key=='m'){if(flappery>0){fi.set(mxv.zaxis().neg().negy().scale(600));flappery-=1;}}
+		else if(key=='i'){if(flappery>0){fi.set(0,15*m,0);flappery-=1;}}
+		else if(key=='k'){if(flappery>0){fi.set(0,30*m,0);flappery-=1;}}
+		else if(key=='m'){if(flappery>0){fi.set(mxv.zaxis().neg().negy().scale(10*m));flappery-=1;}}
 		else if(key=='c'){agl().transl(7,0,0);}
 		else if(key=='f'){agl().transl(-7,0,0);}
 		else if(key=='v'){agl().setx(0);}
@@ -1382,20 +1374,20 @@ public:
 		if(flappery>1)flappery=1;
 		rocketry+=dt();
 		if(rocketry>3)rocketry=3;
-		if(gravity){
-			dd.set(0,-9.8f,0);
-			dd.transl(f);
-		}
-		dd.transl(fi);
-		fi.set(0,0,0);
-		d.transl(dd,dt());
-		pp.set(*this);
-		transl(d,dt());
-		if(gety()<radius()){
-			d.neg().scale(.2f);
-			set(pp);
-		}
-		glob::tick();
+//		if(gravity){
+//			dd.set(0,-9.8f,0);
+//			dd.transl(f);
+//		}
+//		dd.transl(fi);
+//		fi.set(0,0,0);
+//		d.transl(dd,dt());
+//		pp.set(*this);
+//		transl(d,dt());
+//		if(gety()<radius()){
+//			d.neg().scale(.2f);
+//			set(pp);
+//		}
+		globx::tick();
 	}
 	bool oncol(glob&g){
 		sts<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
@@ -1449,14 +1441,17 @@ private:
 //			new obball(wold::get(),p3(getx()+rndn(dr),fromheight+rndn(dr/4),getz()+rndn(dr)));
 	}
 	void fire(){
-		p3 lv=mxv.zaxis();
-		const float sprd=.05f;
-		const float velocity=30;
-		const float extravelup=2;
-		const float scl=.01f;
-		p3 vel=p3(lv).transl(rnd(-sprd,sprd),rnd(-sprd,sprd),rnd(-sprd,sprd)).neg().scale(velocity).transl(0,extravelup,0);
-		obball&o=*new obball(wold::get(),lv.scale(radius()/2).transl(*this),scl);
-		o.getdp().set(vel);
+		p3 lv=mxv.zaxis().neg();
+		const float r=.05f;
+		const float sprd=r/2;
+		const float sx=rnd(-sprd,sprd);
+		const float sy=rnd(-sprd,sprd);
+		const float sz=rnd(-sprd,sprd);
+		const float v=.5f;
+		p3 vv=p3(lv).scale(v).transl(sx,sy,sz).transl(0,r,0);
+//		globx&o=*new obball(wold::get(),lv.scale(radius()+r).transl(sx,sy,sz).transl(*this),r);
+		globx&o=*new obball(wold::get(),*this,r);
+		o.dp().set(vv);
 	}
 	void pl(const char*text,const GLfloat y=0,const GLfloat x=0,const GLfloat linewidth=1,const float scale=1){
 		const char*cp=text;
