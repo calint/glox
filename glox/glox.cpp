@@ -36,6 +36,7 @@ namespace glox{
 		int ngrids;
 		float dtcoldetgrd;
 		float dtcoldetbrute;
+		float dtnet;
 	}
 	inline float dt(const float f=1){return f*clk::dt;}
 	inline float rnd(const float from,const float tonotincluding){return from+(tonotincluding-from)*rand()/RAND_MAX;}
@@ -1038,8 +1039,8 @@ public:
 	inline float gett(){return t;}
 	void load(){
 //		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
-		new obcorp(*this,p3(0,4.2f,-6.5f));
-		new obcorp(*this,p3(0,0, 6.5f));
+//		new obcorp(*this,p3(0,4.2f,-6.5f));
+//		new obcorp(*this,p3(0,0, 6.5f));
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
 //		mkiglos();
@@ -1301,6 +1302,7 @@ class windo:public globx{
 	float flappery=initflappery;
 	float rocketry=initrocketry;
 	int items;
+public:
 	void handlekeys(){
 		if(hdlkeydn('w')){transl(mxv.zaxis().sety(0).norm(),-dt(fwdbckrate));}
 		if(hdlkeydn('s')){transl(mxv.zaxis().sety(0).norm(),dt(fwdbckrate));}
@@ -1568,6 +1570,11 @@ private:
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
+		oss<<setprecision(4);
+		oss<<"dtnet("<<metrics::dtnet<<")";
+		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
+
+		oss.str("");
 		oss<<setprecision(1);
 		oss<<"flappery("<<flappery<<") "<<"rocketry("<<rocketry<<") "<<"snowballs("<<items<<")";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
@@ -1627,8 +1634,8 @@ namespace gloxnet{
 	}
 	void reckeys(){
 		const ssize_t reclen=recv(sockfd,keys,keyslen,0);
-		if(reclen==0){flf();l("closed")<<endl;throw signl(1,"closed");}
-		if(reclen==-1){flf();l(strerror(errno))<<endl;throw signl(2,"sendkeys");}
+		if(reclen==0){flf();l("closed")<<endl;exit(1);}
+		if(reclen==-1){flf();l(strerror(errno))<<endl;exit(2);}
 		if(reclen!=keyslen)throw signl(3,"uncompleterec");//?
 	}
 	void stop(){
@@ -1638,7 +1645,7 @@ namespace gloxnet{
 	void print(){
 		cout<<hex;
 		for(int i=0;i<nplayers;i++){
-			cout<<"player["<<i<<"](";
+			cout<<"k["<<i<<"](";
 			for(int j=0;j<nkeys;j++){
 				if(j>0)cout<<" ";
 				cout<<int(keys[i][j]);
@@ -1649,45 +1656,68 @@ namespace gloxnet{
 	}
 }
 namespace glut{
-	windo&wn=*new windo();
-	void reshape(const int width,const int height){wn.reshape(width,height);}
-	void draw(){wn.drawframe();glutSwapBuffers();}
-	void timer(const int value){wn.timer();glutPostRedisplay();glutTimerFunc((unsigned)value,timer,value);}
-	void keydn(const unsigned char key,const int x,const int y){wn.keydn((char)key,x,y);}
-	void keyup(const unsigned char key,const int x,const int y){wn.keyup((char)key,x,y);}
-	void mouseclk(const int button,const int state,int x,const int y){wn.mouseclk(button,state,x,y);}
-	void mousemov(const int x,const int y){wn.mousemov(x,y);}
+	const int nplayers=2;
+	bool multiplayer=false;
+	int player=0;
+	windo players[nplayers];
+//	windo&wn=*new windo();
+	void reshape(const int width,const int height){players[player].reshape(width,height);}
+	void draw(){
+		players[player].drawframe();
+		glutSwapBuffers();
+	}
+	void timer(const int value){
+		clk::tk++;
+		sts.str("");
+		if(multiplayer){
+			clk::timerrestart();
+			gloxnet::sendkeys();
+			gloxnet::reckeys();
+			metrics::dtnet=clk::timerdt();
+			gloxnet::print();
+		}
+		players[player].handlekeys();
+//		rain();
+		metrics::coldetsph=metrics::collisions=metrics::mwrefresh=metrics::mpmul=metrics::mmmul=0;
+		wold::get().tick();
+//		wn.timer();
+		glutPostRedisplay();
+		glutTimerFunc((unsigned)value,timer,value);
+	}
+	void keydn(const unsigned char key,const int x,const int y){players[player].keydn((char)key,x,y);}
+	void keyup(const unsigned char key,const int x,const int y){players[player].keyup((char)key,x,y);}
+	void mouseclk(const int button,const int state,int x,const int y){players[player].mouseclk(button,state,x,y);}
+	void mousemov(const int x,const int y){players[player].mousemov(x,y);}
 	static void mainsig(const int i){cerr<<" ••• terminated with signal "<<i<<endl;exit(i);}
 	int main(int argc,char**argv){
+//		if(argc>1){
+//			multiplayer=true;
+//		}
 		cout<<"glox"<<endl;
-//		gloxnet::start();
-//		gloxnet::reckeys();
-//		gloxnet::print();
-//		gloxnet::keys[0][0]='c';
-//		gloxnet::sendkeys();
-//		gloxnet::reckeys();
-//		gloxnet::print();
-//		gloxnet::stop();
-//		return 0;
+		if(multiplayer)
+			gloxnet::start();
 		for(int i=0;i<32;i++)signal(i,mainsig);//?
 		srand(0);
 		glutInit(&argc,argv);
 		glutIgnoreKeyRepeat(true);
 		glutInitDisplayMode(GLUT_DOUBLE|GLUT_DEPTH);
-		if(wn.isgamemode()){
+		if(players[player].isgamemode()){
 			glutGameModeString("1366x768:32");
 			glutEnterGameMode();
 			glutSetCursor(GLUT_CURSOR_NONE);
 		}else{
-			glutInitWindowSize(wn.width(),wn.height());
+			glutInitWindowSize(players[player].width(),players[player].height());
 			glutCreateWindow("glox");
-			if(wn.isfullscreen()){
+			if(players[player].isfullscreen()){
 				glutFullScreen();
 				glutSetCursor(GLUT_CURSOR_NONE);
 			}
 		}
 
+		players[0].set(-wold::get().radius()+1,0,0);
+		players[1].set(wold::get().radius()-1,0,0);
 		wold::get().load();
+
 
 		glutDisplayFunc(draw);
 		glutReshapeFunc(reshape);
