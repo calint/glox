@@ -23,4 +23,4 @@ ls -la $src&&
 cat $src|wc&&
 gzip  -c $src|wc&&
 echo&&
-./$bin
+./$bin $*

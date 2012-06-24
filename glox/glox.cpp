@@ -98,7 +98,7 @@ class signl{
 	const int i;
 	const char*s;
 public:
-	signl(const int i,const char*s):i(i),s(s){
+	signl(const int i=0,const char*s="signal"):i(i),s(s){
 		cerr<<" ••• signl "<<i<<" · "<<s<<endl;
 		const int nva=10;
 		void*va[nva];
@@ -1146,6 +1146,10 @@ public:
 	}
 	void tick(){
 		clk::timerrestart();
+		glob::tick();
+		metrics::dtupd=clk::timerdt();
+
+		clk::timerrestart();
 		t+=dt();
 		if(coldetgrid){
 			grd.clear();
@@ -1171,110 +1175,185 @@ public:
 			}
 		}
 		metrics::dtcoldetbrute=clk::timerdt();
-
-		clk::timerrestart();
-		glob::tick();
-		metrics::dtupd=clk::timerdt();
 	}
 };
 wold wold::wd;
 
 
-template<typename T>class lut{
-private:
-	size_t size;
-	static int hash(const char*key,const size_t roll){
-		int i=0;
-		const char*p=key;
-		while(*p)i+=*p++;
-		i%=roll;
-		return i;
-	}
-	class el{
-	public:
-		const char*key;
-		T data;
-		el*nxt;
-		el(const char*key,T data):key(key),data(data),nxt(NULL){}
-		~el(){if(nxt)delete nxt;}
-	};
-	el**array;
-public:
-	lut(const size_t size=8):size(size){array=(el**)calloc(size,sizeof(el*));}
-	~lut(){clear();delete array;}
-	T operator[](const char*key)const{
-		const int h=hash(key,size);
-		el*l=array[h];
-		if(!l)
-			return (T)NULL;
-		while(1){
-			if(!strcmp(l->key,(char*)key))return l->data;
-			if(l->nxt){l=l->nxt;continue;}
-			return (T)NULL;
-		}
-		return (T)NULL;//?
-	}
-	void rm(const char*key){
-		const int h=hash(key,size);
-		el*l=array[h];
-		if(!l)
-			return;
-		el*lp=NULL;
-		while(1){
-			if(!strcmp(l->key,key)){
-				if(lp)
-					lp->nxt=l->nxt;
-				else
-					array[h]=NULL;
-				l->nxt=NULL;
-				delete l;
-				return;
-			}
-			lp=l;
-			if(l->nxt){
-				l=l->nxt;
-				continue;
-			}
-			return;
-		}
-	}
-	void put(const char*key,T data){
-		const int h=hash(key,size);
-		el*l=array[h];
-		if(!l){
-			array[h]=new el(key,data);
-			return;
-		}
-		while(1){
-			if(!strcmp(l->key,key)){
-				l->data=data;
-				return;
-			}
-			if(l->nxt){
-				l=l->nxt;
-				continue;
-			}
-			l->nxt=new el(key,data);
-			return;
-		}
-	}
-	void clear(){
-		for(size_t i=0;i<size;i++){
-			el*e=array[i];
-			if(!e)
-				continue;
-			delete e;
-			array[i]=NULL;
-		}
-	}
-};
+//template<typename T>class lut{
+//private:
+//	size_t size;
+//	static int hash(const char*key,const size_t roll){
+//		int i=0;
+//		const char*p=key;
+//		while(*p)i+=*p++;
+//		i%=roll;
+//		return i;
+//	}
+//	class el{
+//	public:
+//		const char*key;
+//		T data;
+//		el*nxt;
+//		el(const char*key,T data):key(key),data(data),nxt(NULL){}
+//		~el(){if(nxt)delete nxt;}
+//	};
+//	el**array;
+//public:
+//	lut(const size_t size=8):size(size){array=(el**)calloc(size,sizeof(el*));}
+//	~lut(){clear();delete array;}
+//	T operator[](const char*key)const{
+//		const int h=hash(key,size);
+//		el*l=array[h];
+//		if(!l)
+//			return (T)NULL;
+//		while(1){
+//			if(!strcmp(l->key,(char*)key))return l->data;
+//			if(l->nxt){l=l->nxt;continue;}
+//			return (T)NULL;
+//		}
+//		return (T)NULL;//?
+//	}
+//	void rm(const char*key){
+//		const int h=hash(key,size);
+//		el*l=array[h];
+//		if(!l)
+//			return;
+//		el*lp=NULL;
+//		while(1){
+//			if(!strcmp(l->key,key)){
+//				if(lp)
+//					lp->nxt=l->nxt;
+//				else
+//					array[h]=NULL;
+//				l->nxt=NULL;
+//				delete l;
+//				return;
+//			}
+//			lp=l;
+//			if(l->nxt){
+//				l=l->nxt;
+//				continue;
+//			}
+//			return;
+//		}
+//	}
+//	void put(const char*key,T data){
+//		const int h=hash(key,size);
+//		el*l=array[h];
+//		if(!l){
+//			array[h]=new el(key,data);
+//			return;
+//		}
+//		while(1){
+//			if(!strcmp(l->key,key)){
+//				l->data=data;
+//				return;
+//			}
+//			if(l->nxt){
+//				l=l->nxt;
+//				continue;
+//			}
+//			l->nxt=new el(key,data);
+//			return;
+//		}
+//	}
+//	void clear(){
+//		for(size_t i=0;i<size;i++){
+//			el*e=array[i];
+//			if(!e)
+//				continue;
+//			delete e;
+//			array[i]=NULL;
+//		}
+//	}
+//};
 
 #include<sys/time.h>
 #include<iomanip>
 
+#include<errno.h>
+#include<sys/socket.h>
+#include<sys/types.h>
+#include<netdb.h>
+
+namespace gloxnet{
+	const int nplayers=2;
+	const int nkeys=32;
+	const int keyslen=nplayers*nkeys;
+	const char*host="127.0.0.1";
+	const char*port="8085";
+	const char*playername="noname";
+
+	char keys[nplayers][nkeys];
+	int player=0;
+	int sockfd=0;
+	struct addrinfo*ai=0;
+	void sendkeys(){
+//		flf();l("sending keys for player ")<<player<<endl;
+		const ssize_t bytes_sent=send(sockfd,keys[player],nkeys,0);
+		if(bytes_sent==-1){flf();l(strerror(errno))<<endl;throw signl(1,"sendkeys");}
+	}
+	void print(){
+		cout<<hex;
+		for(int i=0;i<nplayers;i++){
+			cout<<"k["<<i<<"](";
+			for(int j=0;j<nkeys;j++){
+				if(j>0)cout<<" ";
+				cout<<int(keys[i][j]);
+			}
+			cout<<")"<<endl;
+		}
+
+	}
+	void reckeys(){
+		const ssize_t reclen=recv(sockfd,keys,keyslen,0);
+		if(reclen==0){flf();l("closed")<<endl;exit(1);}
+		if(reclen==-1){flf();l(strerror(errno))<<endl;exit(2);}
+		if(reclen!=keyslen)throw signl(3,"uncompleterec");//?
+		print();
+	}
+	void start(){
+		flf();l()<<"connect "<<host<<":"<<port<<endl;
+
+		struct addrinfo hints;
+		memset(&hints,0,sizeof hints);
+		hints.ai_family=AF_UNSPEC;
+		hints.ai_socktype=SOCK_STREAM;
+		if(getaddrinfo(host,port,&hints,&ai)){flf();l(strerror(errno))<<endl;throw signl();}
+		sockfd=socket(ai->ai_family,ai->ai_socktype,ai->ai_protocol);
+		if(sockfd==-1){flf();l(strerror(errno))<<endl;return;}
+	//	flf();l()<<"socket "<<sockfd<<"  errno("<<errno<<")"<<endl;
+		if(connect(sockfd,ai->ai_addr,ai->ai_addrlen)){flf();l(strerror(errno))<<endl;throw signl();}
+		flf();l("connected")<<endl;
+
+		memset(keys,0,sizeof keys);
+		strncpy(keys[player],playername,nkeys);
+		sendkeys();
+		flf();l("connected. waiting for other players.")<<endl;
+		reckeys();
+		flf();l("all players connected.")<<endl;
+		int i=0;
+		for(auto s:keys){
+			if(!strcmp(playername,s)){
+				player=i;
+				break;
+			}
+			i++;
+		}
+		flf();l("u r player #")<<player<<endl;
+		print();
+		memset(keys,0,sizeof keys);
+	}
+	void stop(){
+		if(sockfd&&close(sockfd)){flf();l(strerror(errno))<<endl;}
+		if(ai)freeaddrinfo(ai);
+	}
+}
+
 class windo:public globx{
 	m3 mxv;
-	lut<int>keysdn;
+//	lut<int>keysdn;
 	bool gravity=true,dodrawhud=true,gamemode=false,fullscr=false,consolemode=false;
 	float zoom;
 	int wi,hi;
@@ -1304,6 +1383,8 @@ class windo:public globx{
 	int items;
 public:
 	void handlekeys(){
+		mxv.mw(*this,agl());
+//		flf();l("handlekeys")<<player<<endl;
 		if(hdlkeydn('w')){transl(mxv.zaxis().sety(0).norm(),-dt(fwdbckrate));}
 		if(hdlkeydn('s')){transl(mxv.zaxis().sety(0).norm(),dt(fwdbckrate));}
 		if(hdlkeydn('d')){transl(mxv.xaxis(),dt(straferate));}
@@ -1336,6 +1417,7 @@ public:
 		if(hdlkeytg(27)){if(fullscr)togglefullscr();cout<<endl;exit(0);}// esc
 	}
 public:
+	int player=0;
 	windo(glob&g=wold::get(),const p3&p=p3(10.4f,.1f,10.5f),const p3&a=p3(-21,-44.8f,0),const float r=.1f,const int width=1024,const int height=512,const float zoom=1.5):globx(g,p,a,r,10,.3f),zoom(zoom),wi(width),hi(height){}
 	inline bool isgamemode()const{return gamemode;}
 	inline bool isfullscreen()const{return fullscr;}
@@ -1379,7 +1461,7 @@ public:
 		glTranslatef(-getx(),-gety(),-getz());
 		GLfloat af[16];
 		glGetFloatv(GL_MODELVIEW_MATRIX,af);
-		mxv.set(af);
+//		mxv.set(af);
 
 		parent().draw();
 		metrics::dtrend=clk::timerdt();
@@ -1399,32 +1481,46 @@ public:
 		}
 		cout<<flush;
 	}
-	void timer(){
-		clk::tk++;
-		sts.str("");
-		handlekeys();
-//		rain();
-		metrics::coldetsph=metrics::collisions=metrics::mwrefresh=metrics::mpmul=metrics::mmmul=0;
-		wold::get().tick();
-	}
+//	void timer(){
+//		clk::tk++;
+//		sts.str("");
+//		handlekeys();
+////		rain();
+//		metrics::coldetsph=metrics::collisions=metrics::mwrefresh=metrics::mpmul=metrics::mmmul=0;
+//		wold::get().tick();
+//	}
 	void keydn(const char key,const int x,const int y){
-		static char k[]={0,0};
-		k[0]=key;
-		const int ks=keysdn[k];
-		if(ks==1)return;
-		if(ks!=0){flf();return;}
-		keysdn.put(strcpy(new char[2],k),1);//? bug leak
+		const int i=keyix(key);
+		if(!i)return;
+		int s=gloxnet::keys[player][i];
+		if(s==1)return;
+//		if(s!=0)throw signl(2,"lostkeybordsynch");
+		gloxnet::keys[player][i]=1;
 		sts<<"keydn("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
+//
+//		static char k[]={0,0};
+//		k[0]=key;
+//		const int ks=keysdn[k];
+//		if(ks==1)return;
+//		if(ks!=0){flf();return;}
+//		keysdn.put(strcpy(new char[2],k),1);//? bug leak
 	}
 	void keyup(const char key,const int x,const int y){
-		static char k[]={0,0};
+		const int i=keyix(key);
+		int s=gloxnet::keys[player][i];
+		if(s==0)return;
+		if(s==1)return;
+		if(s!=2)throw signl(2,"unknownstate");
+		gloxnet::keys[player][i]=0;
 		sts<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
-		k[0]=key;
-		const int ks=keysdn[k];
-		if(ks==0){flf();return;}
-		if(ks==1)return;
-		if(ks!=2){flf();return;};
-		keysdn.rm(k);
+//
+//		static char k[]={0,0};
+//		k[0]=key;
+//		const int ks=keysdn[k];
+//		if(ks==0){flf();return;}
+//		if(ks==1)return;
+//		if(ks!=2){flf();return;};
+//		keysdn.rm(k);
 	}
 	void mouseclk(const int button,const int state,int x,const int y){sts<<"mousclk("<<state<<","<<button<<",["<<x<<","<<y<<",0])";}
 	void mousemov(const int x,const int y){sts<<"mousmov("<<x<<","<<y<<")";}
@@ -1465,25 +1561,54 @@ private:
 			glutSetCursor(GLUT_CURSOR_INHERIT);
 		}
 	}
+	int keyix(const char key){
+		switch(key){
+		case 'w':return 1;
+		case 'j':return 2;
+		case 's':return 3;
+		case 'l':return 4;
+		default:return 0;
+		}
+	}
 	bool hdlkeydn(const char key){
-		static char k[]={0,0};
-		k[0]=key;
-		const int ks=keysdn[k];
-		if(ks==0)return false;
-		if(ks==2)return true;
-		if(ks!=1)throw signl(2,"unknownstate");
-		keysdn.put(strcpy(new char[2],k),2);//? bug leak
+		const int i=keyix(key);
+		if(!i)return false;
+		int s=gloxnet::keys[player][i];
+		if(s==0)return false;
+		if(s==2)return true;
+		if(s!=1)throw signl(2,"unknownstate");
+		gloxnet::keys[player][i]=2;
 		return true;
+//
+//		static char k[]={0,0};
+//		k[0]=key;
+//		const int ks=keysdn[k];
+//		if(ks==0)return false;
+//		if(ks==2)return true;
+//		if(ks!=1)throw signl(2,"unknownstate");
+//		keysdn.put(strcpy(new char[2],k),2);//? bug leak
+//		return true;
 	}
 	bool hdlkeytg(const char key){
-		static char k[]={0,0};
-		k[0]=key;
-		const int ks=keysdn[k];
-		if(ks==0)return false;
-		if(ks==2)return false;
-		if(ks!=1){flf();return false;}
-		keysdn.put(strcpy(new char[2],k),2);//? bug leak
+		const int i=keyix(key);
+		if(!i)return false;
+		int s=gloxnet::keys[player][i];
+		if(s==0)return false;
+		if(s==2)return false;
+		if(s!=1)return false;
+		gloxnet::keys[player][i]=2;
 		return true;
+//
+//
+//
+//		static char k[]={0,0};
+//		k[0]=key;
+//		const int ks=keysdn[k];
+//		if(ks==0)return false;
+//		if(ks==2)return false;
+//		if(ks!=1){flf();return false;}
+//		keysdn.put(strcpy(new char[2],k),2);//? bug leak
+//		return true;
 	}
 
 //	bool iskeydn(const char key,const bool setifnot=false,const bool handled=false){
@@ -1571,7 +1696,7 @@ private:
 
 		oss.str("");
 		oss<<setprecision(4);
-		oss<<"dtnet("<<metrics::dtnet<<")";
+		oss<<"player("<<player<<") dtnet("<<metrics::dtnet<<")";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
@@ -1584,138 +1709,80 @@ private:
 	}
 };
 
-#include<sys/socket.h>
-#include<sys/types.h>
-#include<netdb.h>
-#include<errno.h>
-
-namespace gloxnet{
-	const int nplayers=2;
-	const int nkeys=32;
-	const int keyslen=nplayers*nkeys;
-	char keys[nplayers][nkeys];
-	int playerid=0;
-	int sockfd=0;
-	struct addrinfo*ai=0;
-	void start(){
-		const char*host="127.0.0.1";
-		const char*port="8085";
-		flf();l()<<"connect "<<host<<":"<<port<<endl;
-
-		struct addrinfo hints;
-		memset(&hints,0,sizeof hints);
-		hints.ai_family=AF_UNSPEC;
-		hints.ai_socktype=SOCK_STREAM;
-		if(getaddrinfo(host,port,&hints,&ai)){flf();l(strerror(errno))<<endl;return;}
-		sockfd=socket(ai->ai_family,ai->ai_socktype,ai->ai_protocol);
-		if(sockfd==-1){flf();l(strerror(errno))<<endl;return;}
-	//	flf();l()<<"socket "<<sockfd<<"  errno("<<errno<<")"<<endl;
-		if(connect(sockfd,ai->ai_addr,ai->ai_addrlen)){flf();l(strerror(errno))<<endl;return;}
-		flf();l("connected")<<endl;
-
-		memset(keys,0,sizeof keys);
-
-		char msg[nkeys]="john doe";
-		const ssize_t bytes_sent=send(sockfd,msg,nkeys,0);
-		if(bytes_sent==-1){flf();l(strerror(errno))<<endl;return;}
-//		flf();l("sent ")<<bytes_sent<<" of "<<len<<endl;
-//		const int buflen=1024;
-//		char buf[buflen];
-//		const ssize_t reclen=recv(sockfd,buf,buflen,0);
-//		if(reclen==0){flf();l("closed")<<endl;return;}
-//		if(reclen==-1){flf();l(strerror(errno))<<endl;return;}
-//		flf();l("received ")<<reclen<<endl;
-//		flf();l(buf);
-//
-	}
-	void sendkeys(){
-		const ssize_t bytes_sent=send(sockfd,keys[playerid],nkeys,0);
-		if(bytes_sent==-1){flf();l(strerror(errno))<<endl;throw signl(1,"sendkeys");}
-	}
-	void reckeys(){
-		const ssize_t reclen=recv(sockfd,keys,keyslen,0);
-		if(reclen==0){flf();l("closed")<<endl;exit(1);}
-		if(reclen==-1){flf();l(strerror(errno))<<endl;exit(2);}
-		if(reclen!=keyslen)throw signl(3,"uncompleterec");//?
-	}
-	void stop(){
-		if(sockfd&&close(sockfd)){flf();l(strerror(errno))<<endl;}
-		if(ai)freeaddrinfo(ai);
-	}
-	void print(){
-		cout<<hex;
-		for(int i=0;i<nplayers;i++){
-			cout<<"k["<<i<<"](";
-			for(int j=0;j<nkeys;j++){
-				if(j>0)cout<<" ";
-				cout<<int(keys[i][j]);
-			}
-			cout<<")"<<endl;
-		}
-
-	}
-}
 namespace glut{
 	const int nplayers=2;
 	bool multiplayer=false;
-	int player=0;
 	windo players[nplayers];
 //	windo&wn=*new windo();
-	void reshape(const int width,const int height){players[player].reshape(width,height);}
+	void reshape(const int width,const int height){players[gloxnet::player].reshape(width,height);}
 	void draw(){
-		players[player].drawframe();
+		players[gloxnet::player].drawframe();
 		glutSwapBuffers();
 	}
 	void timer(const int value){
 		clk::tk++;
 		sts.str("");
+		metrics::coldetsph=metrics::collisions=metrics::mwrefresh=metrics::mpmul=metrics::mmmul=0;
+		wold::get().tick();
 		if(multiplayer){
 			clk::timerrestart();
 			gloxnet::sendkeys();
 			gloxnet::reckeys();
 			metrics::dtnet=clk::timerdt();
-			gloxnet::print();
+//			gloxnet::print();
 		}
-		players[player].handlekeys();
+//		players[player].handlekeys();
+		players[0].handlekeys();
+		players[1].handlekeys();
+//		for(auto o:players)
+//			o.handlekeys();
 //		rain();
-		metrics::coldetsph=metrics::collisions=metrics::mwrefresh=metrics::mpmul=metrics::mmmul=0;
-		wold::get().tick();
 //		wn.timer();
 		glutPostRedisplay();
 		glutTimerFunc((unsigned)value,timer,value);
 	}
-	void keydn(const unsigned char key,const int x,const int y){players[player].keydn((char)key,x,y);}
-	void keyup(const unsigned char key,const int x,const int y){players[player].keyup((char)key,x,y);}
-	void mouseclk(const int button,const int state,int x,const int y){players[player].mouseclk(button,state,x,y);}
-	void mousemov(const int x,const int y){players[player].mousemov(x,y);}
+	void keydn(const unsigned char key,const int x,const int y){cout<<"key"<<endl;players[gloxnet::player].keydn((char)key,x,y);}
+	void keyup(const unsigned char key,const int x,const int y){players[gloxnet::player].keyup((char)key,x,y);}
+	void mouseclk(const int button,const int state,int x,const int y){players[gloxnet::player].mouseclk(button,state,x,y);}
+	void mousemov(const int x,const int y){players[gloxnet::player].mousemov(x,y);}
 	static void mainsig(const int i){cerr<<" ••• terminated with signal "<<i<<endl;exit(i);}
 	int main(int argc,char**argv){
-//		if(argc>1){
-//			multiplayer=true;
-//		}
-		cout<<"glox"<<endl;
-		if(multiplayer)
-			gloxnet::start();
 		for(int i=0;i<32;i++)signal(i,mainsig);//?
 		srand(0);
+
+		cout<<"glox";
+		if(argc>2){
+			cout<<" multiplayer"<<endl;
+			multiplayer=true;
+			gloxnet::host=argv[1];
+			gloxnet::port=argv[2];
+			gloxnet::playername=argv[3];
+			cout<<"· connect to "<<gloxnet::host<<":"<<gloxnet::port<<endl;
+		}
+		cout<<endl;
+		if(multiplayer)
+			gloxnet::start();
+		players[0].player=0;
+		players[0].set(-3,0,0);
+		players[1].player=1;
+		players[1].set(3,0,0);
+
 		glutInit(&argc,argv);
 		glutIgnoreKeyRepeat(true);
 		glutInitDisplayMode(GLUT_DOUBLE|GLUT_DEPTH);
-		if(players[player].isgamemode()){
+		if(players[gloxnet::player].isgamemode()){
 			glutGameModeString("1366x768:32");
 			glutEnterGameMode();
 			glutSetCursor(GLUT_CURSOR_NONE);
 		}else{
-			glutInitWindowSize(players[player].width(),players[player].height());
+			glutInitWindowSize(players[gloxnet::player].width(),players[gloxnet::player].height());
 			glutCreateWindow("glox");
-			if(players[player].isfullscreen()){
+			if(players[gloxnet::player].isfullscreen()){
 				glutFullScreen();
 				glutSetCursor(GLUT_CURSOR_NONE);
 			}
 		}
 
-		players[0].set(-wold::get().radius()+1,0,0);
-		players[1].set(wold::get().radius()-1,0,0);
 		wold::get().load();
 
 
@@ -1743,5 +1810,5 @@ namespace glut{
 		return 0;
 	}
 }
-int main(){return glut::main(0,NULL);}
+int main(int argc,char**argv){return glut::main(argc,argv);}
 #endif
