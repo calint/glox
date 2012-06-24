@@ -8,7 +8,8 @@ using namespace std;
 
 namespace glox{
 	namespace clk{
-		int dtms=10;
+		int fps=100;
+		int dtms=1000/fps;
 		float dt=dtms/1000.f;
 		clock_t t0=clock();
 		clock_t t1=t0;
@@ -33,7 +34,7 @@ namespace glox{
 		int mpmul;
 		int mmmul;
 		int ngrids;
-		float dtgrd;
+		float dtcoldetgrd;
 		float dtcoldetbrute;
 	}
 	inline float dt(const float f=1){return f*clk::dt;}
@@ -117,7 +118,7 @@ public:
 #include <GL/glut.h>
 #endif
 
-#define flf()l("  ",__FILE__,__LINE__,__FUNCTION__);
+#define flf()l("···",__FILE__,__LINE__,__FUNCTION__);
 static inline ostream&l(const char*s="",const char*file="",int lineno=0,const char*func=""){cerr<<file;if(lineno){cerr<<":"<<lineno;}cerr<<" "<<func<<"  "<<s;return cerr;}
 
 class m3{
@@ -1150,7 +1151,7 @@ public:
 			grd.addall(chls());
 			grd.coldet();
 		}
-		metrics::dtgrd=clk::timerdt();
+		metrics::dtcoldetgrd=clk::timerdt();
 
 		clk::timerrestart();
 		if(coldetbrute){
@@ -1271,29 +1272,74 @@ public:
 #include<iomanip>
 
 class windo:public globx{
-//	p3 d;
-//	p3 dd;
-//	p3 f;
-//	p3 fi;
-//	p3 pp;
 	m3 mxv;
 	lut<int>keysdn;
 	bool gravity=true,dodrawhud=true,gamemode=false,fullscr=false,consolemode=false;
 	float zoom;
 	int wi,hi;
 	int wiprv=wi,hiprv=hi;
-	float flappery;
-	float rocketry;
+
+	//? newclass
+	float fwdbckrate=6;
+	float straferate=6;
+	float turnrate=360;
+	float rocketforce=150*m;
+	float rocketfuelburnrate=6;
+	float smallflapimpulseforce=7*m;
+	float smallflapfuelburn=.4f;
+	float bigflapimpulseforce=15*m;
+	float bigflapfuelburn=1;
+	float leapimpulseforce=17*m;
+	float leapfuelburn=2;
+	float flapperyrecoveryrate=3;
+	float flapperymax=1;
+	float rocketryrecoveryrate=1;
+	float rocketrymax=3;
+	float initflappery=0;
+	float initrocketry=0;
+
+	float flappery=initflappery;
+	float rocketry=initrocketry;
 	int items;
+	void handlekeys(){
+		if(hdlkeydn('w')){transl(mxv.zaxis().sety(0).norm(),-dt(fwdbckrate));}
+		if(hdlkeydn('s')){transl(mxv.zaxis().sety(0).norm(),dt(fwdbckrate));}
+		if(hdlkeydn('d')){transl(mxv.xaxis(),dt(straferate));}
+		if(hdlkeydn('a')){transl(mxv.xaxis(),-dt(straferate));}
+		if(hdlkeydn('l')){agl().transl(0,dt(turnrate),0);}
+		if(hdlkeydn('j')){agl().transl(0,-dt(turnrate),0);}
+		if(hdlkeydn(',')&&rocketry>0){f.set(0,dt(rocketforce),0);rocketry-=dt(rocketfuelburnrate);}else{f.set(0,0,0);}
+		if(hdlkeydn(' ')){fire();}
+		if(hdlkeydn('b')){rain();}
+		if(hdlkeydn('t')){transl(mxv.yaxis(),dt(fwdbckrate));}
+		if(hdlkeydn('g')){transl(mxv.yaxis(),dt(-fwdbckrate));}
+		if(hdlkeytg(9)){togglehud();}// tab
+		if(hdlkeytg('y')){zoom-=.1;}
+		if(hdlkeytg('h')){zoom+=.1;}
+		if(hdlkeytg('i')){if(flappery>0){fi.set(0,smallflapimpulseforce,0);flappery-=smallflapfuelburn;}}
+		if(hdlkeytg('k')){if(flappery>0){fi.set(0,bigflapimpulseforce,0);flappery-=bigflapfuelburn;}}
+		if(hdlkeytg('m')){if(flappery>0){fi.set(mxv.zaxis().neg().negy().scale(leapimpulseforce));flappery-=leapfuelburn;}}
+		if(hdlkeytg('x')){agl().transl(7,0,0);}
+		if(hdlkeytg('c')){agl().transl(-7,0,0);}
+		if(hdlkeytg('z')){agl().setx(0);}
+		if(hdlkeytg('1')){glob::drawboundingspheres=!glob::drawboundingspheres;}
+		if(hdlkeytg('2')){wold::get().drawaxis=!wold::get().drawaxis;}
+		if(hdlkeytg('3')){wold::get().drawgrid=!wold::get().drawgrid;}
+		if(hdlkeytg('4')){wold::get().hidezplane=!wold::get().hidezplane;}
+		if(hdlkeytg('5')){wold::get().coldetgrid=!wold::get().coldetgrid;}
+		if(hdlkeytg('6')){wold::get().coldetbrute=!wold::get().coldetbrute;}
+		if(hdlkeytg('0')){togglefullscr();return;}
+//		if(hdlkeytg(13)){inp<<endl;consolemode=!consolemode;}
+//		if(hdlkeytg(127)){sts.str("");}// bkspc
+		if(hdlkeytg(27)){if(fullscr)togglefullscr();cout<<endl;exit(0);}// esc
+	}
 public:
 	windo(glob&g=wold::get(),const p3&p=p3(10.4f,.1f,10.5f),const p3&a=p3(-21,-44.8f,0),const float r=.1f,const int width=1024,const int height=512,const float zoom=1.5):globx(g,p,a,r,10,.3f),zoom(zoom),wi(width),hi(height){}
-
 	inline bool isgamemode()const{return gamemode;}
 	inline bool isfullscreen()const{return fullscr;}
 	inline int width()const{return wi;}
 	inline int height()const{return hi;}
 	inline windo&togglehud(){dodrawhud=!dodrawhud;return*this;}
-
 	void reshape(const int width,const int height){
 		sts<<"reshape("<<wi<<"x"<<hi<<")";wi=width;hi=height;
 	}
@@ -1354,76 +1400,37 @@ public:
 	void timer(){
 		clk::tk++;
 		sts.str("");
-		if(!consolemode){
-			const float d=3;
-			if(iskeydn('w')){transl(mxv.zaxis().sety(0).norm(),-2*dt(d));}
-			if(iskeydn('s')){transl(mxv.zaxis().sety(0).norm(),2*dt(d));}
-			if(iskeydn('d')){transl(mxv.xaxis(),2*dt(d));}
-			if(iskeydn('a')){transl(mxv.xaxis(),-2*dt(d));}
-			if(iskeydn('l')){agl().transl(0,dt(360),0);}
-			if(iskeydn('j')){agl().transl(0,-dt(360),0);}
-			if(iskeydn(',')&&rocketry>0){f.set(0,dt(150*m),0);rocketry-=dt(6);}else{f.set(0,0,0);}
-			if(iskeydn(' ')){fire();}
-			if(iskeydn('b')){rain();}
-//			rain();
-
-			if(iskeydn('t')){transl(mxv.yaxis(),dt(d));}
-			if(iskeydn('g')){transl(mxv.yaxis(),dt(-d));}
-		}
+		handlekeys();
+//		rain();
 		metrics::coldetsph=metrics::collisions=metrics::mwrefresh=metrics::mpmul=metrics::mmmul=0;
 		wold::get().tick();
 	}
 	void keydn(const char key,const int x,const int y){
-		if(iskeydn(key,true))return;
-		if(consolemode){if(key==13){consolemode=false;return;}inp<<key;return;}
+		static char k[]={0,0};
+		k[0]=key;
+		const int ks=keysdn[k];
+		if(ks==1)return;
+		if(ks!=0){flf();return;}
+		keysdn.put(strcpy(new char[2],k),1);//? bug leak
 		sts<<"keydn("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
-		if(key==0){throw"keyo";}
-		else if(key==9){togglehud();}
-		else if(key=='y'){zoom-=.1;}
-		else if(key=='h'){zoom+=.1;}
-		else if(key=='i'){if(flappery>0){fi.set(0,7*m,0);flappery-=.4f;}}
-		else if(key=='k'){if(flappery>0){fi.set(0,15*m,0);flappery-=1;}}
-		else if(key=='m'){if(flappery>0){fi.set(mxv.zaxis().neg().negy().scale(10*m));flappery-=2;}}
-		else if(key=='x'){agl().transl(7,0,0);}
-		else if(key=='c'){agl().transl(-7,0,0);}
-		else if(key=='z'){agl().setx(0);}
-		else if(key=='1'){glob::drawboundingspheres=!glob::drawboundingspheres;}
-		else if(key=='2'){wold::get().drawaxis=!wold::get().drawaxis;}
-		else if(key=='3'){wold::get().drawgrid=!wold::get().drawgrid;}
-		else if(key=='4'){wold::get().hidezplane=!wold::get().hidezplane;}
-		else if(key=='5'){wold::get().coldetgrid=!wold::get().coldetgrid;}
-		else if(key=='6'){wold::get().coldetbrute=!wold::get().coldetbrute;}
-		else if(key=='0'){togglefullscr();return;}
-		else if(key==13){inp<<endl;consolemode=!consolemode;}
-		else if(key==127){sts.str("");}// bkspc
 	}
 	void keyup(const char key,const int x,const int y){
+		static char k[]={0,0};
 		sts<<"keyup("<<(int)key<<",["<<x<<","<<y<<"],"<<key<<")";
-		const char k[]={key,0};
+		k[0]=key;
+		const int ks=keysdn[k];
+		if(ks==0){flf();return;}
+		if(ks==1)return;
+		if(ks!=2){flf();return;};
 		keysdn.rm(k);
-		if(key==27)// esc
-			{if(fullscr)togglefullscr();cout<<endl;exit(0);}
 	}
 	void mouseclk(const int button,const int state,int x,const int y){sts<<"mousclk("<<state<<","<<button<<",["<<x<<","<<y<<",0])";}
 	void mousemov(const int x,const int y){sts<<"mousmov("<<x<<","<<y<<")";}
 	void tick(){
-		flappery+=dt(3);
-		if(flappery>1)flappery=1;
-		rocketry+=dt();
-		if(rocketry>3)rocketry=3;
-//		if(gravity){
-//			dd.set(0,-9.8f,0);
-//			dd.transl(f);
-//		}
-//		dd.transl(fi);
-//		fi.set(0,0,0);
-//		d.transl(dd,dt());
-//		pp.set(*this);
-//		transl(d,dt());
-//		if(gety()<radius()){
-//			d.neg().scale(.2f);
-//			set(pp);
-//		}
+		flappery+=dt(flapperyrecoveryrate);
+		if(flappery>flapperymax)flappery=flapperymax;
+		rocketry+=dt(rocketryrecoveryrate);
+		if(rocketry>rocketrymax)rocketry=rocketrymax;
 		globx::tick();
 	}
 	bool oncol(glob&g){
@@ -1456,14 +1463,36 @@ private:
 			glutSetCursor(GLUT_CURSOR_INHERIT);
 		}
 	}
-	bool iskeydn(const char key,const bool setifnot=false){
+	bool hdlkeydn(const char key){
 		static char k[]={0,0};
 		k[0]=key;
-		const bool b=keysdn[k]==1;
-		if(!b&&setifnot)
-			keysdn.put(strcpy(new char[2],k),1);//? bug leak
-		return b;
+		const int ks=keysdn[k];
+		if(ks==0)return false;
+		if(ks==2)return true;
+		if(ks!=1)throw signl(2,"unknownstate");
+		keysdn.put(strcpy(new char[2],k),2);//? bug leak
+		return true;
 	}
+	bool hdlkeytg(const char key){
+		static char k[]={0,0};
+		k[0]=key;
+		const int ks=keysdn[k];
+		if(ks==0)return false;
+		if(ks==2)return false;
+		if(ks!=1){flf();return false;}
+		keysdn.put(strcpy(new char[2],k),2);//? bug leak
+		return true;
+	}
+
+//	bool iskeydn(const char key,const bool setifnot=false,const bool handled=false){
+//		static char k[]={0,0};
+//		k[0]=key;
+//		const bool b=(keysdn[k]==1);
+//		const int s;
+//		if(!b&&setifnot)
+//			keysdn.put(strcpy(new char[2],k),handled?2:1);//? bug leak
+//		return b;
+//	}
 	void rain(){
 		static float fromheight=wold::get().radius()*1.5f;
 		static float a=0;
@@ -1526,12 +1555,12 @@ private:
 
 		oss.str("");
 		oss<<setprecision(3);
-		oss<<"upd("<<metrics::dtupd<<")s   draw("<<metrics::dtrend<<")s    "<<((int)(metrics::globs/(metrics::dtrend?metrics::dtrend:1))>>10)<<"Kglobs/s    rendfpsest("<<(1/(metrics::dtrend+metrics::dtupd+metrics::dtgrd))<<")f/s";
+		oss<<"upd("<<metrics::dtupd<<")s   draw("<<metrics::dtrend<<")s    "<<((int)(metrics::globs/(metrics::dtrend?metrics::dtrend:1))>>10)<<"Kglobs/s    rendfpsest("<<(1/(metrics::dtrend+metrics::dtupd+metrics::dtcoldetgrd))<<")f/s";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
 		oss<<setprecision(4);
-		oss<<"coldet("<<(wold::get().coldetgrid?"grid":"")<<" "<<(wold::get().coldetbrute?"brute":"")<<") ngrids("<<metrics::ngrids<<") grid("<<metrics::dtgrd<<")s  "<<(((long long int)(metrics::globs/(wold::get().coldetgrid?metrics::dtgrd:metrics::dtcoldetbrute)))>>10)<<"Kglobs/s   brutedt("<<metrics::dtcoldetbrute<<")s";
+		oss<<"coldet("<<(wold::get().coldetgrid?"grid":"")<<" "<<(wold::get().coldetbrute?"brute":"")<<") ngrids("<<metrics::ngrids<<") grid("<<metrics::dtcoldetgrd<<")s  "<<(((long long int)(metrics::globs/(wold::get().coldetgrid?metrics::dtcoldetgrd:metrics::dtcoldetbrute)))>>10)<<"Kglobs/s   brutedt("<<metrics::dtcoldetbrute<<")s";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
@@ -1548,6 +1577,77 @@ private:
 	}
 };
 
+#include<sys/socket.h>
+#include<sys/types.h>
+#include<netdb.h>
+#include<errno.h>
+
+namespace gloxnet{
+	const int nplayers=2;
+	const int nkeys=32;
+	const int keyslen=nplayers*nkeys;
+	char keys[nplayers][nkeys];
+	int playerid=0;
+	int sockfd=0;
+	struct addrinfo*ai=0;
+	void start(){
+		const char*host="127.0.0.1";
+		const char*port="8085";
+		flf();l()<<"connect "<<host<<":"<<port<<endl;
+
+		struct addrinfo hints;
+		memset(&hints,0,sizeof hints);
+		hints.ai_family=AF_UNSPEC;
+		hints.ai_socktype=SOCK_STREAM;
+		if(getaddrinfo(host,port,&hints,&ai)){flf();l(strerror(errno))<<endl;return;}
+		sockfd=socket(ai->ai_family,ai->ai_socktype,ai->ai_protocol);
+		if(sockfd==-1){flf();l(strerror(errno))<<endl;return;}
+	//	flf();l()<<"socket "<<sockfd<<"  errno("<<errno<<")"<<endl;
+		if(connect(sockfd,ai->ai_addr,ai->ai_addrlen)){flf();l(strerror(errno))<<endl;return;}
+		flf();l("connected")<<endl;
+
+		memset(keys,0,sizeof keys);
+
+		char msg[nkeys]="john doe";
+		const ssize_t bytes_sent=send(sockfd,msg,nkeys,0);
+		if(bytes_sent==-1){flf();l(strerror(errno))<<endl;return;}
+//		flf();l("sent ")<<bytes_sent<<" of "<<len<<endl;
+//		const int buflen=1024;
+//		char buf[buflen];
+//		const ssize_t reclen=recv(sockfd,buf,buflen,0);
+//		if(reclen==0){flf();l("closed")<<endl;return;}
+//		if(reclen==-1){flf();l(strerror(errno))<<endl;return;}
+//		flf();l("received ")<<reclen<<endl;
+//		flf();l(buf);
+//
+	}
+	void sendkeys(){
+		const ssize_t bytes_sent=send(sockfd,keys[playerid],nkeys,0);
+		if(bytes_sent==-1){flf();l(strerror(errno))<<endl;throw signl(1,"sendkeys");}
+	}
+	void reckeys(){
+		const ssize_t reclen=recv(sockfd,keys,keyslen,0);
+		if(reclen==0){flf();l("closed")<<endl;throw signl(1,"closed");}
+		if(reclen==-1){flf();l(strerror(errno))<<endl;throw signl(2,"sendkeys");}
+		if(reclen!=keyslen)throw signl(3,"uncompleterec");//?
+	}
+	void stop(){
+		if(sockfd&&close(sockfd)){flf();l(strerror(errno))<<endl;}
+		if(ai)freeaddrinfo(ai);
+	}
+	void print(){
+		cout<<hex;
+		for(int i=0;i<nplayers;i++){
+			cout<<"player["<<i<<"](";
+			for(int j=0;j<nkeys;j++){
+				if(j>0)cout<<" ";
+				cout<<int(keys[i][j]);
+			}
+			cout<<")"<<endl;
+		}
+
+	}
+}
 namespace glut{
 	windo&wn=*new windo();
 	void reshape(const int width,const int height){wn.reshape(width,height);}
@@ -1560,6 +1660,15 @@ namespace glut{
 	static void mainsig(const int i){cerr<<" ••• terminated with signal "<<i<<endl;exit(i);}
 	int main(int argc,char**argv){
 		cout<<"glox"<<endl;
+//		gloxnet::start();
+//		gloxnet::reckeys();
+//		gloxnet::print();
+//		gloxnet::keys[0][0]='c';
+//		gloxnet::sendkeys();
+//		gloxnet::reckeys();
+//		gloxnet::print();
+//		gloxnet::stop();
+//		return 0;
 		for(int i=0;i<32;i++)signal(i,mainsig);//?
 		srand(0);
 		glutInit(&argc,argv);
