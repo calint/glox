@@ -1038,9 +1038,9 @@ public:
 	inline static wold&get(){return wd;}
 	inline float gett(){return t;}
 	void load(){
-//		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
-//		new obcorp(*this,p3(0,4.2f,-6.5f));
-//		new obcorp(*this,p3(0,0, 6.5f));
+		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
+		new obcorp(*this,p3(0,4.2f,-6.5f));
+		new obcorp(*this,p3(0,0, 6.5f));
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
 //		mkiglos();
@@ -1311,7 +1311,7 @@ namespace gloxnet{
 		if(reclen==0){flf();l("closed")<<endl;exit(1);}
 		if(reclen==-1){flf();l(strerror(errno))<<endl;exit(2);}
 		if(reclen!=keyslen)throw signl(3,"uncompleterec");//?
-		print();
+//		print();
 	}
 	void start(){
 		flf();l()<<"connect "<<host<<":"<<port<<endl;
@@ -1418,7 +1418,7 @@ public:
 	}
 public:
 	int player=0;
-	windo(glob&g=wold::get(),const p3&p=p3(10.4f,.1f,10.5f),const p3&a=p3(-21,-44.8f,0),const float r=.1f,const int width=1024,const int height=512,const float zoom=1.5):globx(g,p,a,r,10,.3f),zoom(zoom),wi(width),hi(height){}
+	windo(glob&g=wold::get(),const p3&p=p3(10.4f,.1f,10.5f),const p3&a=p3(-21,-44.8f,0),const float r=.1f,const int width=512,const int height=512,const float zoom=1.5):globx(g,p,a,r,10,.3f),zoom(zoom),wi(width),hi(height){}
 	inline bool isgamemode()const{return gamemode;}
 	inline bool isfullscreen()const{return fullscr;}
 	inline int width()const{return wi;}
@@ -1567,6 +1567,33 @@ private:
 		case 'j':return 2;
 		case 's':return 3;
 		case 'l':return 4;
+		case 'a':return 5;
+		case 'd':return 6;
+		case 'i':return 7;
+		case 'k':return 8;
+		case 'm':return 9;
+		case ',':return 10;
+		case 'z':return 11;
+		case 'x':return 12;
+		case 'c':return 13;
+		case ' ':return 14;
+		case 'b':return 15;
+		case 9:return 16;
+		case 27:return 17;
+		case 't':return 18;
+		case 'g':return 19;
+		case 'y':return 20;
+		case 'h':return 21;
+		case '1':return 22;
+		case '2':return 23;
+		case '3':return 24;
+		case '4':return 25;
+		case '5':return 26;
+		case '6':return 27;
+		case '7':return 28;
+		case '8':return 29;
+		case '9':return 30;
+		case '0':return 31;
 		default:return 0;
 		}
 	}
@@ -1724,6 +1751,9 @@ namespace glut{
 		sts.str("");
 		metrics::coldetsph=metrics::collisions=metrics::mwrefresh=metrics::mpmul=metrics::mmmul=0;
 		wold::get().tick();
+//		for(auto&o:players){
+//			cout<<"p("<<o<<") a("<<o.angle()<<")"<<endl;
+//		}
 		if(multiplayer){
 			clk::timerrestart();
 			gloxnet::sendkeys();
@@ -1732,10 +1762,10 @@ namespace glut{
 //			gloxnet::print();
 		}
 //		players[player].handlekeys();
-		players[0].handlekeys();
-		players[1].handlekeys();
-//		for(auto o:players)
-//			o.handlekeys();
+//		players[0].handlekeys();
+//		players[1].handlekeys();
+		for(windo&o:players)
+			o.handlekeys();
 //		rain();
 //		wn.timer();
 		glutPostRedisplay();
