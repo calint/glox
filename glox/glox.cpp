@@ -359,7 +359,6 @@ class glob:public p3{
 	float r;
 protected:
 	list<glob*>chs;
-	inline p3&agl(){return a;}
 public:
 	static bool drawboundingspheres;
 	static int drawboundingspheresdetail;
@@ -369,7 +368,14 @@ public:
 		g.chsadd.push_back(this);
 	}
 	virtual~glob(){metrics::globs--;for(auto g:chs)delete g;chs.clear();}
-	void rm(){if(rmed){flf();l("rmingarmedobj")<<endl;return;}rmed=true;g.chsrm.push_back(this);}
+	void rm(){
+		if(rmed){
+//			flf();l("rmingarmedobj")<<endl;
+			return;
+		}
+		rmed=true;g.chsrm.push_back(this);
+	}
+	inline p3&agl(){return a;}
 	inline glob&parent()const{return g;}
 	inline int getid()const{return id;}
 	inline const list<glob*>chls()const{return chs;}
@@ -476,6 +482,8 @@ bool glob::drawboundingspheres=true;
 int glob::drawboundingspheresdetail=6;
 
 class globx:public glob{
+protected:
+	bool ppsaved;
 public:
 	p3 d,dd;
 	p3 f;
@@ -497,8 +505,10 @@ public:
 				transl(0,-ndy,0);
 			}
 		}
-		pp.set(*this);
-
+		if(!ppsaved){
+			pp.set(*this);
+			ppsaved=false;
+		}
 		const p3 g=p3(0,-9.82f,0).scale(.05f);
 		dd=p3(f).transl(fi).scale(1/m).transl(g).scale(dt());
 //		flf();l()<<"f("<<f<<") fi("<<fi<<") m("<<m<<") dd("<<dd<<") d("<<d<<") ("<<*this<<") dt("<<dt()<<") "<<endl;
@@ -1383,6 +1393,7 @@ class windo:public globx{
 	int items;
 public:
 	void handlekeys(){
+		pp.set(*this);ppsaved=true;
 		mxv.mw(*this,agl());
 //		flf();l("handlekeys")<<player<<endl;
 		if(hdlkeydn('w')){transl(mxv.zaxis().sety(0).norm(),-dt(fwdbckrate));}
@@ -1418,7 +1429,7 @@ public:
 	}
 public:
 	int player=0;
-	windo(glob&g=wold::get(),const p3&p=p3(10.4f,.1f,10.5f),const p3&a=p3(-21,-44.8f,0),const float r=.1f,const int width=512,const int height=512,const float zoom=1.5):globx(g,p,a,r,10,.3f),zoom(zoom),wi(width),hi(height){}
+	windo(glob&g=wold::get(),const p3&p=p3(10.4f,.1f,10.5f),const p3&a=p3(-21,-44.8f,0),const float r=.1f,const int width=1024,const int height=512,const float zoom=1.5):globx(g,p,a,r,10,.3f),zoom(zoom),wi(width),hi(height){}
 	inline bool isgamemode()const{return gamemode;}
 	inline bool isfullscreen()const{return fullscr;}
 	inline int width()const{return wi;}
@@ -1455,12 +1466,14 @@ public:
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
-		glRotatef(angle().getx(),1,0,0);
-		glRotatef(angle().gety(),0,1,0);
-		glRotatef(angle().getz(),0,0,1);
-		glTranslatef(-getx(),-gety(),-getz());
-		GLfloat af[16];
-		glGetFloatv(GL_MODELVIEW_MATRIX,af);
+		const p3 lookat=p3(mxv.zaxis().neg()).transl(*this);
+		gluLookAt(getx(),gety(),getz(), lookat.getx(),lookat.gety(),lookat.getz(), 0,1,0);
+//		glRotatef(angle().getx(),1,0,0);
+//		glRotatef(angle().gety(),0,1,0);
+//		glRotatef(angle().getz(),0,0,1);
+//		glTranslatef(-getx(),-gety(),-getz());
+//		GLfloat af[16];
+//		glGetFloatv(GL_MODELVIEW_MATRIX,af);
 //		mxv.set(af);
 
 		parent().draw();
@@ -1489,6 +1502,9 @@ public:
 //		metrics::coldetsph=metrics::collisions=metrics::mwrefresh=metrics::mpmul=metrics::mmmul=0;
 //		wold::get().tick();
 //	}
+	void presskey(const char key){
+		keydn(key,0,0);
+	}
 	void keydn(const char key,const int x,const int y){
 		const int i=keyix(key);
 		if(!i)return;
@@ -1532,20 +1548,13 @@ public:
 		globx::tick();
 	}
 	bool oncol(glob&g){
-		sts<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
+//		cout<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
 		if(g.isitem()){
 			g.rm();
 			items++;
 			return true;
 		}
-		set(pp);
-		d.neg().scale(.2f);
-		return true;
-		if(g.isblt()){
-			set(0,40,0);
-			agl().set(45,0,0);
-		}
-		return true;
+		return globx::oncol(g);
 	}
 private:
 	void togglefullscr(){
@@ -1736,10 +1745,23 @@ private:
 	}
 };
 
+class windobot{
+public:
+	windo*wn;
+	void tick(){
+//		flf();
+		wn->keydn('j',0,0);
+		wn->keydn('w',0,0);
+		wn->keydn(' ',0,0);
+		wn->keydn('c',0,0);
+	}
+};
+
 namespace glut{
 	const int nplayers=2;
 	bool multiplayer=false;
 	windo players[nplayers];
+	windobot bot;
 //	windo&wn=*new windo();
 	void reshape(const int width,const int height){players[gloxnet::player].reshape(width,height);}
 	void draw(){
@@ -1749,8 +1771,6 @@ namespace glut{
 	void timer(const int value){
 		clk::tk++;
 		sts.str("");
-		metrics::coldetsph=metrics::collisions=metrics::mwrefresh=metrics::mpmul=metrics::mmmul=0;
-		wold::get().tick();
 //		for(auto&o:players){
 //			cout<<"p("<<o<<") a("<<o.angle()<<")"<<endl;
 //		}
@@ -1760,6 +1780,8 @@ namespace glut{
 			gloxnet::reckeys();
 			metrics::dtnet=clk::timerdt();
 //			gloxnet::print();
+		}else{
+			bot.tick();
 		}
 //		players[player].handlekeys();
 //		players[0].handlekeys();
@@ -1768,10 +1790,12 @@ namespace glut{
 			o.handlekeys();
 //		rain();
 //		wn.timer();
+		metrics::coldetsph=metrics::collisions=metrics::mwrefresh=metrics::mpmul=metrics::mmmul=0;
+		wold::get().tick();
 		glutPostRedisplay();
 		glutTimerFunc((unsigned)value,timer,value);
 	}
-	void keydn(const unsigned char key,const int x,const int y){cout<<"key"<<endl;players[gloxnet::player].keydn((char)key,x,y);}
+	void keydn(const unsigned char key,const int x,const int y){players[gloxnet::player].keydn((char)key,x,y);}
 	void keyup(const unsigned char key,const int x,const int y){players[gloxnet::player].keyup((char)key,x,y);}
 	void mouseclk(const int button,const int state,int x,const int y){players[gloxnet::player].mouseclk(button,state,x,y);}
 	void mousemov(const int x,const int y){players[gloxnet::player].mousemov(x,y);}
@@ -1788,15 +1812,19 @@ namespace glut{
 			gloxnet::port=argv[2];
 			gloxnet::playername=argv[3];
 			cout<<"· connect to "<<gloxnet::host<<":"<<gloxnet::port<<endl;
-		}
-		cout<<endl;
-		if(multiplayer)
 			gloxnet::start();
+		}
+		const float r=wold::get().radius();
 		players[0].player=0;
-		players[0].set(-3,0,0);
+		players[0].set(-r,r,0);
+		players[0].agl().set(0,90,0);
 		players[1].player=1;
-		players[1].set(3,0,0);
-
+		players[1].set(r,r,0);
+		players[1].agl().set(0,-90,0);
+		if(!multiplayer){
+			bot.wn=&players[0];
+			gloxnet::player=1;
+		}
 		glutInit(&argc,argv);
 		glutIgnoreKeyRepeat(true);
 		glutInitDisplayMode(GLUT_DOUBLE|GLUT_DEPTH);
