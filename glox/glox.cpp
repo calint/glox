@@ -89,6 +89,12 @@ public:
 		return*this;
 	}
 	inline float dotprod(const p3&p)const{return x*p.x+y*p.y+z*p.z;}
+	p3&vecprod(const p3&v1,const p3&v2){
+		x=v1.y*v2.z-v1.z*v2.y;
+		y=v1.z*v2.x-v1.x*v2.z;
+		z=v1.x*v2.y-v1.y*v2.x;
+		return*this;
+	}
 	friend ostream&operator<<(ostream&,const p3&);
 	friend istream&operator>>(istream&,p3&);
 };
@@ -346,9 +352,10 @@ istream&operator>>(istream&is,m3&m){
 //
 //#include<vector>
 
-class p3n:public p3{
+class p3p:public p3{
 public:
 	p3 n;
+	p3p(const p3&p,const p3&n):p3(p),n(n){}
 };
 
 #include <list>
@@ -432,13 +439,13 @@ public:
 			return;
 		}
 	}
-	void culldraw(const int npl,const p3n pl[]){
+	void culldraw(const int npl,const p3p pl[]){
 //		flf();l("consider ")<<typeid(*this).name()<<"["<<id<<"]"<<endl;
 		const float r=radius();
 		for(int i=0;i<npl;i++){
-			const p3n&p=pl[i];
-			const p3 v(p,*this);
-			const float t=v.dotprod(p.n);
+			const p3p&pp=pl[i];
+			const p3 v(pp,*this);
+			const float t=v.dotprod(pp.n);
 //			flf();l("t=")<<t<<"  "<<"v("<<v<<")"<<endl;
 			if(t>0){// infront
 				if(t>r){
@@ -454,16 +461,17 @@ public:
 		glRotatef(a.getx(),1,0,0);
 		glRotatef(a.gety(),0,1,0);
 		glRotatef(a.getz(),0,0,1);
+		if(drawboundingspheres)drawboundingsphere();
 		gldraw();
-		if(drawboundingspheres){
-			const GLbyte i=127;
-			glColor3b(i,i,i);
-			int detail=(int)(1.f*radius()*drawboundingspheresdetail);
-			if(detail<drawboundingspheresdetail)
-				detail=drawboundingspheresdetail;
-			glutSolidSphere(radius(),detail,detail);
-		}
 		for(auto g:chs){glPushMatrix();g->culldraw(npl,pl);glPopMatrix();}
+	}
+	void drawboundingsphere(){
+		const GLbyte i=127;
+		glColor3b(i,i,i);
+		int detail=(int)(.1f*radius()*drawboundingspheresdetail);
+		if(detail<drawboundingspheresdetail)
+			detail=drawboundingspheresdetail;
+		glutSolidSphere(radius(),detail,detail);
 	}
 	void draw(){
 		metrics::globsrend++;
@@ -471,15 +479,8 @@ public:
 		glRotatef(a.getx(),1,0,0);
 		glRotatef(a.gety(),0,1,0);
 		glRotatef(a.getz(),0,0,1);
+		if(drawboundingspheres)drawboundingsphere();
 		gldraw();
-		if(drawboundingspheres){
-			const GLbyte i=127;
-			glColor3b(i,i,i);
-			int detail=(int)(1.f*radius()*drawboundingspheresdetail);
-			if(detail<drawboundingspheresdetail)
-				detail=drawboundingspheresdetail;
-			glutSolidSphere(radius(),detail,detail);
-		}
 		for(auto g:chs){glPushMatrix();g->draw();glPopMatrix();}
 	}
 	virtual void gldraw(){};
@@ -1469,6 +1470,7 @@ public:
 //		if(hdlkeytg(13)){inp<<endl;consolemode=!consolemode;}
 //		if(hdlkeytg(127)){sts.str("");}// bkspc
 		if(hdlkeytg(27)){if(fullscr)togglefullscr();cout<<endl;exit(0);}// esc
+		rain();
 	}
 public:
 	int player=0;
@@ -1488,8 +1490,8 @@ public:
 		glClearColor(.3f,.3f,1,1);
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
-		glClearDepth(1);
-		glShadeModel(GL_SMOOTH);
+//		glClearDepth(1);
+//		glShadeModel(GL_SMOOTH);
 
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 		glViewport(0,0,wi,hi);
@@ -1508,7 +1510,8 @@ public:
 
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
-		gluPerspective(45*zoom,(GLdouble)wi/hi,.01,1000);
+		const float viewangle_deg=45*zoom;
+		gluPerspective(viewangle_deg,(GLdouble)wi/hi,.01,1000);
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 
@@ -1522,14 +1525,91 @@ public:
 		glGetFloatv(GL_MODELVIEW_MATRIX,mf);
 		m3 m;
 		m.set(mf);
-		p3n backplane;
-		backplane.set(*this);
-		backplane.n.set(m.zaxis());
 
-		p3n cullplanes[]{backplane};
+		const p3 xaxis=m.xaxis();
+		const p3 yaxis=m.yaxis();
+		const p3 zaxis=m.zaxis();
+
+
+		p3p backplane(*this,m.zaxis());
+
+		const float viewangle_rad=degtorad(viewangle_deg);
+		const float scrdst=(wi/2)/tan(viewangle_rad)/zoom;
+		const float ww=wi/8;
+		const float hh=hi/8;
+
+//		flf();l()<<"scrdst="<<scrdst<<"   zaxis("<<zaxis<<")"<<endl;
+		p3 ptr(*this);
+		ptr.transl(p3(zaxis).neg().scale(scrdst));
+		ptr.transl(p3(xaxis).scale(ww));
+		ptr.transl(p3(yaxis).scale(hh));
+//		flf();l()<<ptr<<endl;
+		glPushMatrix();
+		glTranslatef(ptr.getx(),ptr.gety(),ptr.getz());
+		glColor3b(127,127,127);
+		glutSolidCube(2);
+		glPopMatrix();
+
+		p3 pbr(*this);
+		pbr.transl(p3(zaxis).neg().scale(scrdst));
+		pbr.transl(p3(xaxis).scale(ww));
+		pbr.transl(p3(yaxis).scale(-hh));
+//		flf();l()<<ptr<<endl;
+		glPushMatrix();
+		glTranslatef(pbr.getx(),pbr.gety(),pbr.getz());
+		glColor3b(127,0,0);
+		glutSolidCube(2);
+		glPopMatrix();
+
+		p3 pbl(*this);
+		pbl.transl(p3(zaxis).neg().scale(scrdst));
+		pbl.transl(p3(xaxis).scale(-ww));
+		pbl.transl(p3(yaxis).scale(-hh));
+//		flf();l()<<ptr<<endl;
+		glPushMatrix();
+		glTranslatef(pbl.getx(),pbl.gety(),pbl.getz());
+		glColor3b(127,127,0);
+		glutSolidCube(2);
+		glPopMatrix();
+
+		p3 ptl(*this);
+		ptl.transl(p3(zaxis).neg().scale(scrdst));
+		ptl.transl(p3(xaxis).scale(-ww));
+		ptl.transl(p3(yaxis).scale( hh));
+//		flf();l()<<ptr<<endl;
+		glPushMatrix();
+		glTranslatef(ptl.getx(),ptl.gety(),ptl.getz());
+		glColor3b(127,0,127);
+		glutSolidCube(2);
+		glPopMatrix();
+
+
+
+		p3 rightplanenml(*this,p3());
+		rightplanenml.vecprod(pbr,ptr).norm();
+//		flf();l()<<"rightplanenml("<<rightplanenml<<endl;
+		p3p rightplane(*this,rightplanenml);
+
+
+		p3 leftplanenml(*this,p3());
+		leftplanenml.vecprod(ptl,pbl).norm();
+//		flf();l()<<"leftplanenml("<<leftplanenml<<endl;
+		p3p leftplane(*this,leftplanenml);
+
+		p3 topplanenml(*this,p3());
+		topplanenml.vecprod(ptr,ptl).norm();
+//		flf();l()<<"topplanenml("<<topplanenml<<endl;
+		p3p topplane(*this,topplanenml);
+
+		p3 btmplanenml(*this,p3());
+		btmplanenml.vecprod(pbl,pbr).norm();
+//		flf();l()<<"btmplanenml("<<btmplanenml<<endl;
+		p3p btmplane(*this,btmplanenml);
+
 
 		metrics::cullview=metrics::globsrend=0;
-		parent().culldraw(1,cullplanes);
+		p3p cullplanes[]{backplane,rightplane,leftplane,topplane,btmplane};
+		parent().culldraw(5,cullplanes);
 		metrics::dtrend=clk::timerdt();
 
 		if(dodrawhud){
@@ -1712,7 +1792,7 @@ private:
 	void rain(){
 		static float fromheight=wold::get().radius()*1.5f;
 		static float a=0;
-		const float r=wold::get().radius()/4;
+		const float r=wold::get().radius()/2;
 		const float dr=r/2;
 		const float dx=-2+rnd(-r,r);
 		const float dz=rnd(-r,r);
@@ -1880,7 +1960,7 @@ namespace glut{
 		players[1]=new windo();
 		players[1]->player=1;
 		players[1]->set(r,r,0);
-		players[1]->agl().set(0,-90,0);
+		players[1]->agl().set(0,0,0);
 		if(!multiplayer){
 			bot.wn=players[0];
 			gloxnet::player=1;
