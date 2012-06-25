@@ -463,14 +463,15 @@ public:
 		glRotatef(a.getz(),0,0,1);
 		if(drawboundingspheres)drawboundingsphere();
 		gldraw();
-		for(auto g:chs){glPushMatrix();g->culldraw(npl,pl);glPopMatrix();}
+		for(auto g:chs){glPushMatrix();g->culldraw(npl,pl);glPopMatrix();}//? coordsyschange
 	}
 	void drawboundingsphere(){
 		const GLbyte i=127;
 		glColor3b(i,i,i);
-		int detail=(int)(.1f*radius()*drawboundingspheresdetail);
+		int detail=(int)(.4f*radius()*drawboundingspheresdetail);
 		if(detail<drawboundingspheresdetail)
 			detail=drawboundingspheresdetail;
+//		glShadeModel(GL_SMOOTH);
 		glutSolidSphere(radius(),detail,detail);
 	}
 	void draw(){
@@ -1470,7 +1471,7 @@ public:
 //		if(hdlkeytg(13)){inp<<endl;consolemode=!consolemode;}
 //		if(hdlkeytg(127)){sts.str("");}// bkspc
 		if(hdlkeytg(27)){if(fullscr)togglefullscr();cout<<endl;exit(0);}// esc
-		rain();
+//		rain();
 	}
 public:
 	int player=0;
@@ -1535,8 +1536,8 @@ public:
 
 		const float viewangle_rad=degtorad(viewangle_deg);
 		const float scrdst=(wi/2)/tan(viewangle_rad)/zoom;
-		const float ww=wi/8;
-		const float hh=hi/8;
+		const float ww=wi/4;
+		const float hh=hi/4;
 
 //		flf();l()<<"scrdst="<<scrdst<<"   zaxis("<<zaxis<<")"<<endl;
 		p3 ptr(*this);
@@ -1792,7 +1793,7 @@ private:
 	void rain(){
 		static float fromheight=wold::get().radius()*1.5f;
 		static float a=0;
-		const float r=wold::get().radius()/2;
+		const float r=wold::get().radius()/4;
 		const float dr=r/2;
 		const float dx=-2+rnd(-r,r);
 		const float dz=rnd(-r,r);
@@ -1888,9 +1889,9 @@ public:
 	windo*wn;
 	void tick(){
 //		flf();
-//		wn->keydn('j',0,0);
-//		wn->keydn('w',0,0);
-//		wn->keydn(' ',0,0);
+		wn->keydn('j',0,0);
+		wn->keydn('w',0,0);
+		wn->keydn(' ',0,0);
 		wn->keydn('c',0,0);
 	}
 };
