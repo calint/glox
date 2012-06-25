@@ -542,7 +542,7 @@ public:
 		const float dy=gety()-radius();
 		if(dy<0){
 			d.scale(b,-b,b);
-			transl(0,-dy,0);//? backalongzaxis,energyconserv
+			transl(0,-dy,0);//? backalongzaxis,solve t,split dt,energyconserv
 //			flf();l()<<*this<<"   "<<dy<<"     "<<gety()<<"   "<<radius()<<endl;
 			const float ndy=gety()-radius();
 			if(ndy<0){
@@ -552,7 +552,7 @@ public:
 		}
 		if(!ppsaved){
 			pp.set(*this);
-			ppsaved=false;
+			ppsaved=false;//?
 		}
 		const p3 g=p3(0,-9.82f,0).scale(.05f);
 		dd=p3(f).transl(fi).scale(1/m).transl(g).scale(dt());
@@ -932,7 +932,7 @@ class grid{
 	list<glob*>lsmx;
 	grid*grds[8];
 	const size_t splitthresh=100;
-	const int subgridlevels=3;
+	const int subgridlevels=4;
 public:
 	grid(const float size,const p3&p=p3()):po(p),s(size),grds({0,0,0,0,0,0,0,0}){metrics::ngrids++;}
 	~grid(){metrics::ngrids--;clear();}
@@ -1065,6 +1065,7 @@ public:
 		globx::tick();
 	}
 	virtual bool oncol(glob&o){
+//		lft+=dt(100);
 		return globx::oncol(o);
 	}
 };
@@ -1093,9 +1094,9 @@ public:
 	inline static wold&get(){return wd;}
 	inline float gett(){return t;}
 	void load(){
-		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
-		new obcorp(*this,p3(0,4.2f,-6.5f));
-		new obcorp(*this,p3(0,0, 6.5f));
+//		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
+//		new obcorp(*this,p3(0,4.2f,-6.5f));
+//		new obcorp(*this,p3(0,0, 6.5f));
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
 //		mkiglos();
@@ -1438,6 +1439,7 @@ class windo:public globx{
 	int items;
 public:
 	void handlekeys(){
+		rain();
 		pp.set(*this);ppsaved=true;
 		mxv.mw(*this,agl());
 //		flf();l("handlekeys")<<player<<endl;
@@ -1471,7 +1473,6 @@ public:
 //		if(hdlkeytg(13)){inp<<endl;consolemode=!consolemode;}
 //		if(hdlkeytg(127)){sts.str("");}// bkspc
 		if(hdlkeytg(27)){if(fullscr)togglefullscr();cout<<endl;exit(0);}// esc
-//		rain();
 	}
 public:
 	int player=0;
