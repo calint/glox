@@ -1818,12 +1818,12 @@ public:
 namespace glut{
 	const int nplayers=2;
 	bool multiplayer=false;
-	windo players[nplayers];//? bug deleted twice,wold and program exit
+	windo*players[nplayers];//? bug deleted twice,wold and program exit
 	windobot bot;
 //	windo&wn=*new windo();
-	void reshape(const int width,const int height){players[gloxnet::player].reshape(width,height);}
+	void reshape(const int width,const int height){players[gloxnet::player]->reshape(width,height);}
 	void draw(){
-		players[gloxnet::player].drawframe();
+		players[gloxnet::player]->drawframe();
 		glutSwapBuffers();
 	}
 	void timer(const int value){
@@ -1844,8 +1844,8 @@ namespace glut{
 //		players[player].handlekeys();
 //		players[0].handlekeys();
 //		players[1].handlekeys();
-		for(windo&o:players)
-			o.handlekeys();
+		for(windo*o:players)
+			o->handlekeys();
 //		rain();
 //		wn.timer();
 		metrics::coldetsph=metrics::collisions=metrics::mwrefresh=metrics::mpmul=metrics::mmmul=0;
@@ -1853,10 +1853,10 @@ namespace glut{
 		glutPostRedisplay();
 		glutTimerFunc((unsigned)value,timer,value);
 	}
-	void keydn(const unsigned char key,const int x,const int y){players[gloxnet::player].keydn((char)key,x,y);}
-	void keyup(const unsigned char key,const int x,const int y){players[gloxnet::player].keyup((char)key,x,y);}
-	void mouseclk(const int button,const int state,int x,const int y){players[gloxnet::player].mouseclk(button,state,x,y);}
-	void mousemov(const int x,const int y){players[gloxnet::player].mousemov(x,y);}
+	void keydn(const unsigned char key,const int x,const int y){players[gloxnet::player]->keydn((char)key,x,y);}
+	void keyup(const unsigned char key,const int x,const int y){players[gloxnet::player]->keyup((char)key,x,y);}
+	void mouseclk(const int button,const int state,int x,const int y){players[gloxnet::player]->mouseclk(button,state,x,y);}
+	void mousemov(const int x,const int y){players[gloxnet::player]->mousemov(x,y);}
 	static void mainsig(const int i){cerr<<" ••• terminated with signal "<<i<<endl;exit(i);}
 	int main(int argc,char**argv){
 		for(int i=0;i<32;i++)signal(i,mainsig);//?
@@ -1873,27 +1873,30 @@ namespace glut{
 			gloxnet::start();
 		}
 		const float r=wold::get().radius();
-		players[0].player=0;
-		players[0].set(-r,r,0);
-		players[0].agl().set(0,90,0);
-		players[1].player=1;
-		players[1].set(r,r,0);
-		players[1].agl().set(0,-90,0);
+		players[0]=new windo();
+		players[0]->player=0;
+		players[0]->set(-r,r,0);
+		players[0]->agl().set(0,90,0);
+		players[1]=new windo();
+		players[1]->player=1;
+		players[1]->set(r,r,0);
+		players[1]->agl().set(0,-90,0);
 		if(!multiplayer){
-			bot.wn=&players[0];
+			bot.wn=players[0];
 			gloxnet::player=1;
 		}
+		windo*plr=players[gloxnet::player];
 		glutInit(&argc,argv);
 		glutIgnoreKeyRepeat(true);
 		glutInitDisplayMode(GLUT_DOUBLE|GLUT_DEPTH);
-		if(players[gloxnet::player].isgamemode()){
+		if(plr->isgamemode()){
 			glutGameModeString("1366x768:32");
 			glutEnterGameMode();
 			glutSetCursor(GLUT_CURSOR_NONE);
-		}else{
-			glutInitWindowSize(players[gloxnet::player].width(),players[gloxnet::player].height());
+		}else {
+		glutInitWindowSize(plr->width(),plr->height());
 			glutCreateWindow("glox");
-			if(players[gloxnet::player].isfullscreen()){
+			if(plr->isfullscreen()){
 				glutFullScreen();
 				glutSetCursor(GLUT_CURSOR_NONE);
 			}
