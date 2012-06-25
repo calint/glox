@@ -37,6 +37,8 @@ namespace glox{
 		float dtcoldetgrd;
 		float dtcoldetbrute;
 		float dtnet;
+		int cullview;
+		int globsrend;
 	}
 	inline float dt(const float f=1){return f*clk::dt;}
 	inline float rnd(const float from,const float tonotincluding){return from+(tonotincluding-from)*rand()/RAND_MAX;}
@@ -86,6 +88,7 @@ public:
 		x=t*x;y=t*y;z=t*z;
 		return*this;
 	}
+	inline float dotprod(const p3&p)const{return x*p.x+y*p.y+z*p.z;}
 	friend ostream&operator<<(ostream&,const p3&);
 	friend istream&operator>>(istream&,p3&);
 };
@@ -342,6 +345,12 @@ istream&operator>>(istream&is,m3&m){
 //istream&operator>>(istream&is,bvol&bv){is>>bv.r;is.ignore(2);is>>bv.v;is.ignore();return is;}
 //
 //#include<vector>
+
+class p3n:public p3{
+public:
+	p3 n;
+};
+
 #include <list>
 
 class glob:public p3{
@@ -423,7 +432,41 @@ public:
 			return;
 		}
 	}
+	void culldraw(const int npl,const p3n pl[]){
+//		flf();l("consider ")<<typeid(*this).name()<<"["<<id<<"]"<<endl;
+		const float r=radius();
+		for(int i=0;i<npl;i++){
+			const p3n&p=pl[i];
+			const p3 v(p,*this);
+			const float t=v.dotprod(p.n);
+//			flf();l("t=")<<t<<"  "<<"v("<<v<<")"<<endl;
+			if(t>0){// infront
+				if(t>r){
+//					flf();l("culled at p=(")<<*this<<")  r="<<r<<endl;
+					metrics::cullview++;
+					return;
+				}
+			}
+		}
+		metrics::globsrend++;
+//		flf();l("included")<<endl;
+		glTranslatef(getx(),gety(),getz());
+		glRotatef(a.getx(),1,0,0);
+		glRotatef(a.gety(),0,1,0);
+		glRotatef(a.getz(),0,0,1);
+		gldraw();
+		if(drawboundingspheres){
+			const GLbyte i=127;
+			glColor3b(i,i,i);
+			int detail=(int)(1.f*radius()*drawboundingspheresdetail);
+			if(detail<drawboundingspheresdetail)
+				detail=drawboundingspheresdetail;
+			glutSolidSphere(radius(),detail,detail);
+		}
+		for(auto g:chs){glPushMatrix();g->culldraw(npl,pl);glPopMatrix();}
+	}
 	void draw(){
+		metrics::globsrend++;
 		glTranslatef(getx(),gety(),getz());
 		glRotatef(a.getx(),1,0,0);
 		glRotatef(a.gety(),0,1,0);
@@ -1441,11 +1484,16 @@ public:
 	void drawframe(){
 		cout<<"\rframe("<<metrics::frames++<<")";
 		clk::timerrestart();
+
 		glClearColor(.3f,.3f,1,1);
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_DEPTH_TEST);
 		glClearDepth(1);
 		glShadeModel(GL_SMOOTH);
+
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+		glViewport(0,0,wi,hi);
+
 
 		float ff=0,f=0;
 		GLfloat matspec[]={ff,ff,ff,1};
@@ -1458,8 +1506,6 @@ public:
 		glEnable(GL_COLOR_MATERIAL) ;
 		glColor3b(127,127,127);
 
-		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-		glViewport(0,0,wi,hi);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		gluPerspective(45*zoom,(GLdouble)wi/hi,.01,1000);
@@ -1472,11 +1518,18 @@ public:
 //		glRotatef(angle().gety(),0,1,0);
 //		glRotatef(angle().getz(),0,0,1);
 //		glTranslatef(-getx(),-gety(),-getz());
-//		GLfloat af[16];
-//		glGetFloatv(GL_MODELVIEW_MATRIX,af);
-//		mxv.set(af);
+		GLfloat mf[16];
+		glGetFloatv(GL_MODELVIEW_MATRIX,mf);
+		m3 m;
+		m.set(mf);
+		p3n backplane;
+		backplane.set(*this);
+		backplane.n.set(m.zaxis());
 
-		parent().draw();
+		p3n cullplanes[]{backplane};
+
+		metrics::cullview=metrics::globsrend=0;
+		parent().culldraw(1,cullplanes);
 		metrics::dtrend=clk::timerdt();
 
 		if(dodrawhud){
@@ -1732,6 +1785,11 @@ private:
 
 		oss.str("");
 		oss<<setprecision(4);
+		oss<<"cullview("<<metrics::cullview<<") globstorend("<<metrics::globsrend<<")";
+		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
+
+		oss.str("");
+		oss<<setprecision(4);
 		oss<<"player("<<player<<") dtnet("<<metrics::dtnet<<")";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
@@ -1750,9 +1808,9 @@ public:
 	windo*wn;
 	void tick(){
 //		flf();
-		wn->keydn('j',0,0);
-		wn->keydn('w',0,0);
-		wn->keydn(' ',0,0);
+//		wn->keydn('j',0,0);
+//		wn->keydn('w',0,0);
+//		wn->keydn(' ',0,0);
 		wn->keydn('c',0,0);
 	}
 };
@@ -1760,7 +1818,7 @@ public:
 namespace glut{
 	const int nplayers=2;
 	bool multiplayer=false;
-	windo players[nplayers];
+	windo players[nplayers];//? bug deleted twice,wold and program exit
 	windobot bot;
 //	windo&wn=*new windo();
 	void reshape(const int width,const int height){players[gloxnet::player].reshape(width,height);}
