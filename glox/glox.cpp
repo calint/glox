@@ -552,19 +552,23 @@ public:
 		const p3p gnd(p3(0,0,0),p3(0,1,0));
 		const float dy=gety()-radius()-gnd.gety();
 		if(dy<0){
-			const float t=dy/d.gety();
-			transl(d,-t);
-			const float tb=d.dotprod(gnd.n);
-			p3 ddb(gnd.n);
-			ddb.scale(tb);
-			ddb.scale(-2,-2,-2);
-			d.transl(ddb);
-			transl(d,1-t);
-			d.scale(bf);
-			const float ndy=gety()-radius()-gnd.gety();
-			if(ndy<0){
-				flf();l("!!!! dy(")<<gety()-radius()<<")"<<endl;
-//				transl(0,-ndy,0);
+			if(d.gety()!=0){
+				const float t=dy/d.gety();
+				transl(d,-t);
+				const float tb=d.dotprod(gnd.n);
+				p3 ddb(gnd.n);
+				ddb.scale(tb);
+				ddb.scale(-2,-2,-2);
+				d.transl(ddb);
+				transl(d,1-t);
+				d.scale(bf);
+				const float ndy=gety()-radius()-gnd.gety();
+				if(ndy<0){
+//					flf();l("!!!! dy(")<<gety()-radius()<<")"<<endl;
+	//				transl(0,-ndy,0);
+				}
+			}else{
+				d.set(0,0,0);
 			}
 		}
 
@@ -1107,7 +1111,7 @@ public:
 //		new obcorp(*this,p3(0,0, 6.5f));
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
-//		mkiglos();
+		mkiglos();
 //		new obball(*this,p3(0,radius(),0),1,10,1,.5f);
 	}
 	void mkiglos(){
