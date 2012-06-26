@@ -535,8 +535,8 @@ public:
 	p3 fi;
 	p3 pp;
 	float m;
-	float b;
-	globx(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,const float density_gcm3=1,float bounciness=.5f):glob(g,p,a,r),f(p3()),fi(p3()),pp(p),m(density_gcm3*4/3*pi*r*r*r),b(bounciness){}
+	float bf;
+	globx(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,const float density_gcm3=1,float bounciness=1):glob(g,p,a,r),f(p3()),fi(p3()),pp(p),m(density_gcm3*4/3*pi*r*r*r),bf(bounciness){}
 	inline p3&dp(){return d;}
 	virtual void tick(){
 		if(!ppsaved){
@@ -549,19 +549,22 @@ public:
 		fi.set(0,0,0);
 		d.transl(dd);
 		this->transl(d);
-
-		const p3p gnd(p3(),p3(0,1,0));
+		const p3p gnd(p3(0,0,0),p3(0,1,0));
 		const float dy=gety()-radius()-gnd.gety();
 		if(dy<0){
 			const float t=dy/d.gety();
 			transl(d,-t);
-			d.scale(b,-b,b);//? bounce
+			const float tb=d.dotprod(gnd.n);
+			p3 ddb(gnd.n);
+			ddb.scale(tb);
+			ddb.scale(-2,-2,-2);
+			d.transl(ddb);
 			transl(d,1-t);
-//			flf();l()<<*this<<"   "<<dy<<"     "<<gety()<<"   "<<radius()<<endl;
-			const float ndy=gety()-radius();
+			d.scale(bf);
+			const float ndy=gety()-radius()-gnd.gety();
 			if(ndy<0){
-//				flf();l("!!!! dy(")<<gety()-radius()<<")"<<endl;
-				transl(0,-ndy,0);
+				flf();l("!!!! dy(")<<gety()-radius()<<")"<<endl;
+//				transl(0,-ndy,0);
 			}
 		}
 
@@ -571,7 +574,7 @@ public:
 //		flf();l()<<"cols"<<endl;
 		if(!o.issolid())return true;
 		set(pp);//? energyconserv
-		d.scale(-b);
+		d.scale(-bf);
 		return &o==&o;
 	}
 };
@@ -1495,7 +1498,7 @@ public:
 	}
 public:
 	int player=0;
-	windo(glob&g=wold::get(),const p3&p=p3(10.4f,.1f,10.5f),const p3&a=p3(-21,-44.8f,0),const float r=.1f,const int width=1024,const int height=512,const float zoom=1.5):globx(g,p,a,r,10,.3f),zoom(zoom),wi(width),hi(height){}
+	windo(glob&g=wold::get(),const p3&p=p3(10.4f,.1f,10.5f),const p3&a=p3(-21,-44.8f,0),const float r=.1f,const int width=1024,const int height=512,const float zoom=1.5):globx(g,p,a,r,10,.25f),zoom(zoom),wi(width),hi(height){}
 	inline bool isgamemode()const{return gamemode;}
 	inline bool isfullscreen()const{return fullscr;}
 	inline int width()const{return wi;}
@@ -1820,7 +1823,7 @@ private:
 		const float dy=-2+rnd(-r,r)/2;
 		a+=dt(60);
 		for(int i=0;i<11;i++){
-			globx&o=*new obball(wold::get(),p3(dx+r*cos(a)*rnd(-dr,dr),fromheight+dy,dz+r*sin(a)*rnd(-dr,dr)),.04f+rndn(.02f),1.5f,1,.15f+rndn(.05f));
+			globx&o=*new obball(wold::get(),p3(dx+r*cos(a)*rnd(-dr,dr),fromheight+dy,dz+r*sin(a)*rnd(-dr,dr)),.04f+rndn(.02f),1.2f,1,.1f+rndn(.03f));
 			o.fi.set(4*o.m,0,2*o.m);
 		}
 //		for(int i=0;i<11;i++)
