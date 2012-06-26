@@ -1094,12 +1094,12 @@ public:
 	inline static wold&get(){return wd;}
 	inline float gett(){return t;}
 	void load(){
-//		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
-//		new obcorp(*this,p3(0,4.2f,-6.5f));
-//		new obcorp(*this,p3(0,0, 6.5f));
+		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
+		new obcorp(*this,p3(0,4.2f,-6.5f));
+		new obcorp(*this,p3(0,0, 6.5f));
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
-//		mkiglos();
+		mkiglos();
 //		new obball(*this,p3(0,5,0),1);
 	}
 	void mkiglos(){
@@ -1637,9 +1637,9 @@ public:
 //		metrics::coldetsph=metrics::collisions=metrics::mwrefresh=metrics::mpmul=metrics::mmmul=0;
 //		wold::get().tick();
 //	}
-	void presskey(const char key){
-		keydn(key,0,0);
-	}
+//	void presskey(const char key){
+//		keydn(key,0,0);
+//	}
 	void keydn(const char key,const int x,const int y){
 		const int i=keyix(key);
 		if(!i)return;
