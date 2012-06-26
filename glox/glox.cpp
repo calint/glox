@@ -68,8 +68,8 @@ public:
 	inline p3&sety(const float f){y=f;return*this;}
 	inline float getz()const{return z;}
 	inline p3&transl(const float dx,const float dy,const float dz){x+=dx;y+=dy;z+=dz;return*this;}
-	inline p3&transl(const p3&dp){x+=dp.x;y+=dp.y;z+=dp.z;return*this;}
-	inline p3&transl(const p3&dp,const float dt){x+=dp.x*dt;y+=dp.y*dt;z+=dp.z*dt;return*this;}
+	inline p3&transl(const p3&d){x+=d.x;y+=d.y;z+=d.z;return*this;}
+	inline p3&transl(const p3&d,const float dt){x+=d.x*dt;y+=d.y*dt;z+=d.z*dt;return*this;}
 	inline float magn()const{return sqrt(x*x+y*y+z*z);}
 	inline p3&set(const p3&p){x=p.x;y=p.y;z=p.z;return*this;}
 	inline p3&set(const float x,const float y,const float z){this->x=x;this->y=y;this->z=z;return*this;}
@@ -539,17 +539,6 @@ public:
 	globx(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,const float density_gcm3=1,float bounciness=.5f):glob(g,p,a,r),f(p3()),fi(p3()),pp(p),m(density_gcm3*4/3*pi*r*r*r),b(bounciness){}
 	inline p3&dp(){return d;}
 	virtual void tick(){
-		const float dy=gety()-radius();
-		if(dy<0){
-			d.scale(b,-b,b);
-			transl(0,-dy,0);//? backalongzaxis,solve t,split dt,energyconserv
-//			flf();l()<<*this<<"   "<<dy<<"     "<<gety()<<"   "<<radius()<<endl;
-			const float ndy=gety()-radius();
-			if(ndy<0){
-//				flf();l("!!!! dy(")<<gety()-radius()<<")"<<endl;
-				transl(0,-ndy,0);
-			}
-		}
 		if(!ppsaved){
 			pp.set(*this);
 			ppsaved=false;//?
@@ -560,6 +549,22 @@ public:
 		fi.set(0,0,0);
 		d.transl(dd);
 		this->transl(d);
+
+		const p3p gnd(p3(),p3(0,1,0));
+		const float dy=gety()-radius()-gnd.gety();
+		if(dy<0){
+			const float t=dy/d.gety();
+			transl(d,-t);
+			d.scale(b,-b,b);//? bounce
+			transl(d,1-t);
+//			flf();l()<<*this<<"   "<<dy<<"     "<<gety()<<"   "<<radius()<<endl;
+			const float ndy=gety()-radius();
+			if(ndy<0){
+//				flf();l("!!!! dy(")<<gety()-radius()<<")"<<endl;
+				transl(0,-ndy,0);
+			}
+		}
+
 		glob::tick();
 	}
 	virtual bool oncol(glob&o){
@@ -1094,13 +1099,13 @@ public:
 	inline static wold&get(){return wd;}
 	inline float gett(){return t;}
 	void load(){
-		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
-		new obcorp(*this,p3(0,4.2f,-6.5f));
-		new obcorp(*this,p3(0,0, 6.5f));
+//		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
+//		new obcorp(*this,p3(0,4.2f,-6.5f));
+//		new obcorp(*this,p3(0,0, 6.5f));
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
-		mkiglos();
-//		new obball(*this,p3(0,5,0),1);
+//		mkiglos();
+//		new obball(*this,p3(0,radius(),0),1,10,1,.5f);
 	}
 	void mkiglos(){
 		const float s=1;
@@ -1340,14 +1345,15 @@ namespace gloxnet{
 	const char*host="127.0.0.1";
 	const char*port="8085";
 	const char*playername="noname";
+	bool sockio=true;
 
 	char keys[nplayers][nkeys];
 	int player=0;
 	int sockfd=0;
 	struct addrinfo*ai=0;
 	void sendkeys(){
-//		flf();l("sending keys for player ")<<player<<endl;
 		const ssize_t bytes_sent=send(sockfd,keys[player],nkeys,0);
+		flf();l("sent keys for player ")<<player<<"  bytessent("<<bytes_sent<<endl;
 		if(bytes_sent==-1){flf();l(strerror(errno))<<endl;throw signl(1,"sendkeys");}
 	}
 	void print(){
@@ -1382,10 +1388,23 @@ namespace gloxnet{
 	//	flf();l()<<"socket "<<sockfd<<"  errno("<<errno<<")"<<endl;
 		if(connect(sockfd,ai->ai_addr,ai->ai_addrlen)){flf();l(strerror(errno))<<endl;throw signl();}
 		flf();l("connected")<<endl;
-
 		memset(keys,0,sizeof keys);
-		strncpy(keys[player],playername,nkeys);
+		if(!sockio){
+			strncpy(keys[player],playername,nkeys);
+		}else{
+			string s="get /gloxnet .\r\ncookie:i=";
+			s.append(playername).append("\r\n\r\n");
+			const char*sc=s.c_str();
+			flf();l(sc)<<endl;
+			const size_t sclen=s.length();
+			flf();l()<<sclen<<endl;
+			const ssize_t bytes_sent=send(sockfd,sc,(size_t)sclen,0);
+			if(bytes_sent!=(signed)sclen){flf();l(strerror(errno))<<endl;throw signl(1,"sockio");}
+			const ssize_t bytes_sent2=send(sockfd,sc,(size_t)sclen,0);
+			if(bytes_sent2!=(signed)sclen){flf();l(strerror(errno))<<endl;throw signl(2,"sockio");}
+		}
 		sendkeys();
+
 		flf();l("connected. waiting for other players.")<<endl;
 		reckeys();
 		flf();l("all players connected.")<<endl;
@@ -1801,7 +1820,7 @@ private:
 		const float dy=-2+rnd(-r,r)/2;
 		a+=dt(60);
 		for(int i=0;i<11;i++){
-			globx&o=*new obball(wold::get(),p3(dx+r*cos(a)*rnd(-dr,dr),fromheight+dy,dz+r*sin(a)*rnd(-dr,dr)),.04f+rndn(.02f),1.5f,1,.1f+rndn(.1f));
+			globx&o=*new obball(wold::get(),p3(dx+r*cos(a)*rnd(-dr,dr),fromheight+dy,dz+r*sin(a)*rnd(-dr,dr)),.04f+rndn(.02f),1.5f,1,.15f+rndn(.05f));
 			o.fi.set(4*o.m,0,2*o.m);
 		}
 //		for(int i=0;i<11;i++)
@@ -1890,10 +1909,10 @@ public:
 	windo*wn;
 	void tick(){
 //		flf();
-		wn->keydn('j',0,0);
-		wn->keydn('w',0,0);
-		wn->keydn(' ',0,0);
-		wn->keydn('c',0,0);
+//		wn->keydn('j',0,0);
+//		wn->keydn('w',0,0);
+//		wn->keydn(' ',0,0);
+//		wn->keydn('c',0,0);
 	}
 };
 
@@ -1954,7 +1973,7 @@ namespace glut{
 			cout<<"· connect to "<<gloxnet::host<<":"<<gloxnet::port<<endl;
 			gloxnet::start();
 		}
-		const float r=wold::get().radius();
+		const float r=wold::get().radius()/2;
 		players[0]=new windo();
 		players[0]->player=0;
 		players[0]->set(-r,r,0);
@@ -1962,7 +1981,7 @@ namespace glut{
 		players[1]=new windo();
 		players[1]->player=1;
 		players[1]->set(r,r,0);
-		players[1]->agl().set(0,0,0);
+		players[1]->agl().set(0,-90,0);
 		if(!multiplayer){
 			bot.wn=players[0];
 			gloxnet::player=1;
