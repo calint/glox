@@ -95,6 +95,9 @@ public:
 		z=v1.x*v2.y-v1.y*v2.x;
 		return*this;
 	}
+	inline p3&pow2(){x*=x;y*=y;z*=z;return*this;}
+	inline float sum()const{return x+y+z;}
+	inline p3&mult(const p3&p){x*=p.x;y*=p.y;z*=p.z;return*this;}
 	friend ostream&operator<<(ostream&,const p3&);
 	friend istream&operator>>(istream&,p3&);
 };
@@ -574,12 +577,60 @@ public:
 
 		glob::tick();
 	}
+	void solvesecdegeq(const float a,const float b,const float c,float&t1,float&t2)const{
+		const float pt1=sqrt(b*b-4*a*c);
+		const float pt2=2*a;
+		if(pt2==0)throw signl();
+		t1=(-b-pt1)/pt2;
+		t2=(-b+pt1)/pt2;
+	}
 	virtual bool oncol(glob&o){
 //		flf();l()<<"cols"<<endl;
 		if(!o.issolid())return true;
-		set(pp);//? energyconserv
-		d.scale(-bf);
-		return &o==&o;
+//		p1 = {x1, y1, z1};
+//		v1 = {vx1, vy1, vz1};
+//		p2 = {x2, y2, z2};
+//		v2 = {vx2, vy2, vz2};
+// sqrt[Total[((p1 + v1 t) - (p2 + v2 t))^2]] == r1 + r2
+// (t vx1 - t vx2 + x1 - x2)^2 + (t vy1 - t vy2 + y1 - y2)^2 + (t vz1 - t vz2 + z1 - z2)^2 == (r1 + r2)^2
+//(t ( vx1 - vx2) + x1 - x2)^2 + (t (vy1 - vy2) + y1 - y2)^2 + (t (vz1 - vz2) + z1 - z2)^2 == (r1 + r2)^2
+//		dvx = vx1 - vx2;
+//		dvy = vy1 - vy2;
+//		dvz = vz1 - vz2;
+//		dx = x1 - x2;
+//		dy = y1 - y2;
+//		dz = z1 - z2;
+//		r0 = r1 + r2;
+//		(t dvx + dx)^2 + (t dvy + dy)^2 + (t dvz + dz)^2 == r0^2
+		const p3&p1=*this;
+		const p3&v1=this->d;
+		const p3&p2=o;
+		const p3&v2=((globx&)o).d;//?
+		const float r1=radius();
+		const float r2=o.radius();
+//		a = dvx^2 + dvy^2 + dvz^2;
+//		b = 2 dvx dx + 2 dvy dy + 2 dvz dz;
+//		c = dx^2 + dy^2 + dz^2 - r0^2;
+//		c + b t + a t^2 == 0
+		const p3 dv=p3(v2,v1);
+		const float a=p3(dv).pow2().sum();
+		const p3 dp=p3(p2,p1);
+		const float b=p3(dv).mult(dp).scale(2).sum();
+		const float r0=r1+r2;
+		const float c=p3(dp).pow2().sum()-r0*r0;
+		float t1,t2;
+		solvesecdegeq(a,b,c,t1,t2);
+		float t=min(t1,t2);
+		if(t<0)t=max(t1,t2);
+//		if(t>1)throw signl();// nocol
+		transl(v1,-t);
+
+//		d.set(0,0,0);
+
+		d.scale(-bf);//? reflect
+
+		transl(d,(1-t));
+		return true;
 	}
 };
 
@@ -1111,8 +1162,9 @@ public:
 //		new obcorp(*this,p3(0,0, 6.5f));
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
-		mkiglos();
-//		new obball(*this,p3(0,radius(),0),1,10,1,.5f);
+//		mkiglos();
+		new obball(*this,p3(0,radius(),0),1,10,1,.5f);
+		new obball(*this,p3(0,radius()*2,0),1,10,1,.5f);
 	}
 	void mkiglos(){
 		const float s=1;
@@ -1465,7 +1517,7 @@ class windo:public globx{
 	int items;
 public:
 	void handlekeys(){
-		rain();
+//		rain();
 		pp.set(*this);ppsaved=true;
 		mxv.mw(*this,agl());
 //		flf();l("handlekeys")<<player<<endl;
