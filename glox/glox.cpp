@@ -71,6 +71,7 @@ public:
 	inline p3&transl(const p3&d){x+=d.x;y+=d.y;z+=d.z;return*this;}
 	inline p3&transl(const p3&d,const float dt){x+=d.x*dt;y+=d.y*dt;z+=d.z*dt;return*this;}
 	inline float magn()const{return sqrt(x*x+y*y+z*z);}
+	inline float magn2()const{return x*x+y*y+z*z;}
 	inline p3&set(const p3&p){x=p.x;y=p.y;z=p.z;return*this;}
 	inline p3&set(const float x,const float y,const float z){this->x=x;this->y=y;this->z=z;return*this;}
 	inline p3&neg(){x=-x;y=-y;z=-z;return*this;}
@@ -417,10 +418,12 @@ public:
 		const p3 wpthis=g.posinwcs(*this);
 		const p3 wpo=o.g.posinwcs(o);
 		const p3 v(wpthis,wpo);
-		const float d=v.magn();
+		const float d=v.magn();//? magn2
+		const float dr=radius()+o.radius();
+//		const float rr=dr*dr;
 		metrics::coldetsph++;
 //		flf();l()<<typeid(*this).name()<<"("<<wpthis<<")  "<<typeid(o).name()<<"("<<wpo<<")  "<<d<<"  "<<bv.r<<"   "<<o.bv.r<<endl;
-		if(d>=(radius()+o.radius())){
+		if(d>=dr){
 			if(o.iscoldetrec()){
 				for(auto gg:o.chs)
 					coldet(*gg);
@@ -591,10 +594,10 @@ public:
 		glob::tick();
 	}
 	void solvesecdegeq(const float a,const float b,const float c,bool&solutionsfound,float&t1,float&t2)const{
-		const float pt1=sqrt(b*b-4*a*c);
 		const float pt2=2*a;
 		if(pt2==0){
 			solutionsfound=false;return;}
+		const float pt1=sqrt(b*b-4*a*c);
 		t1=(-b-pt1)/pt2;
 		t2=(-b+pt1)/pt2;
 		if(t1!=t1&&t2!=t2){
@@ -606,8 +609,7 @@ public:
 	}
 	virtual bool oncol(glob&o){//? defunc
 		glob::oncol(o);
-		cout<<typeid(*this).name()<<"["<<this->getid()<<"]"<<endl;
-//		flf();l()<<"cols"<<endl;
+		flf();l()<<typeid(*this).name()<<"["<<this->getid()<<"]"<<endl;
 		if(!o.issolid())return true;
 		const p3&p1=*this;
 		const p3&v1=this->d;
@@ -631,7 +633,10 @@ public:
 		float t=min(t1,t2);
 		if(t<-1)t=max(t1,t2);
 		if(t>0)t=min(t1,t2);
-		if(t<-1||t>0){flf();l("how2? ")<<t1<<"  "<<t2<<"  "<<t<<endl;}
+		if(t<-1||t>0){
+//			flf();l("how2? ")<<t1<<"  "<<t2<<"  "<<t<<endl;
+		}//? consider acc
+
 //		flf();l()<<t<<endl;
 		np.set(*this).transl(v1,t);
 //		nd.set(0,0,0);
@@ -1137,16 +1142,11 @@ public:
 	virtual void tick(){
 		lft-=dt();
 		if(lft<0){
-//			flf();l()<<getid()<<" rmed "<<endl;
 			rm();
 			return;
 		}
 		colr=1;
 		globx::tick();
-	}
-	virtual bool oncol(glob&o){
-//		lft+=dt(100);
-		return globx::oncol(o);
 	}
 };
 
@@ -1534,9 +1534,9 @@ class windo:public globx{
 	int wiprv=wi,hiprv=hi;
 
 	//? newclass
-	float fwdbckrate=.2f;
-	float straferate=.2f;
-	float turnrate=360;
+	float fwdbckrate=.01f;
+	float straferate=.01f;
+	float turnrate=270;
 	float rocketforce=150*m;
 	float rocketfuelburnrate=6;
 	float smallflapimpulseforce=7*m;
@@ -1916,7 +1916,11 @@ private:
 //		for(int i=0;i<11;i++)
 //			new obball(wold::get(),p3(getx()+rndn(dr),fromheight+rndn(dr/4),getz()+rndn(dr)));
 	}
+	float firereload=0;
 	void fire(){
+		firereload+=dt(20);if(firereload>1)firereload=1;
+		if(firereload<1)return;
+		firereload-=1;
 		p3 lv=mxv.zaxis().neg();
 		const float r=.05f;
 		const float v=.5f;
