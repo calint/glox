@@ -88,7 +88,7 @@ public:
 		x=t*x;y=t*y;z=t*z;
 		return*this;
 	}
-	inline float dotprod(const p3&p)const{return x*p.x+y*p.y+z*p.z;}
+	inline float dot(const p3&p)const{return x*p.x+y*p.y+z*p.z;}
 	p3&vecprod(const p3&v1,const p3&v2){
 		x=v1.y*v2.z-v1.z*v2.y;
 		y=v1.z*v2.x-v1.x*v2.z;
@@ -448,7 +448,7 @@ public:
 		for(int i=0;i<npl;i++){
 			const p3p&pp=pl[i];
 			const p3 v(pp,*this);
-			const float t=v.dotprod(pp.n);
+			const float t=v.dot(pp.n);
 //			flf();l("t=")<<t<<"  "<<"v("<<v<<")"<<endl;
 			if(t>0){// infront
 				if(t>r){
@@ -558,7 +558,7 @@ public:
 			if(d.gety()!=0){
 				const float t=dy/d.gety();
 				transl(d,-t);
-				const float tb=d.dotprod(gnd.n);
+				const float tb=d.dot(gnd.n);
 				p3 ddb(gnd.n);
 				ddb.scale(tb);
 				ddb.scale(-2,-2,-2);
@@ -567,7 +567,7 @@ public:
 				d.scale(bf);
 				const float ndy=gety()-radius()-gnd.gety();
 				if(ndy<0){
-					flf();l("!!!! dy(")<<gety()-radius()<<")"<<endl;
+//					flf();l("!!!! dy(")<<gety()-radius()<<")"<<endl;
 					transl(0,-ndy,0);
 				}
 			}else{
@@ -581,9 +581,14 @@ public:
 		const float pt1=sqrt(b*b-4*a*c);
 		const float pt2=2*a;
 		if(pt2==0){solutionsfound=false;return;}
-		solutionsfound=true;
 		t1=(-b-pt1)/pt2;
 		t2=(-b+pt1)/pt2;
+		if(t1!=t1&&t2!=t2){
+			flf();l()<<" nan "<<endl;
+			solutionsfound=false;
+			return;
+		}
+		solutionsfound=true;
 	}
 	virtual bool oncol(glob&o){//? defunc
 //		flf();l()<<"cols"<<endl;
@@ -596,25 +601,29 @@ public:
 		const float r2=o.radius();
 		const float r0=r1+r2;
 
-		const float a=p3(v1).pow2().sum()+p3(v2).pow2().sum()-2*v1.dotprod(v2);
-		const float b=2*p1.dotprod(v1)-2*p2.dotprod(v1)-2*p1.dotprod(v2)+2*p2.dotprod(v2);
-		const float c=-r0*r0+p3(p1).pow2().sum()+p3(p2).pow2().sum()-2*p1.dotprod(p2);
+		const float a=p3(v1).pow2().sum()+p3(v2).pow2().sum()-2*v1.dot(v2);
+		const float b=2*p1.dot(v1)-2*p2.dot(v1)-2*p1.dot(v2)+2*p2.dot(v2);
+		const float c=-r0*r0+p3(p1).pow2().sum()+p3(p2).pow2().sum()-2*p1.dot(p2);
 
 		float t1,t2;
 		bool found;
 		solvesecdegeq(a,b,c,found,t1,t2);
-		if(!found)return true;
-//		flf();l("t ")<<t1<<" and "<<t2<<endl;
+		if(!found){
+//			flf();l("how?")<<endl;
+			return true;
+		}
 		float t=min(t1,t2);
 		if(t<-1)t=max(t1,t2);
 		if(t>0)t=min(t1,t2);
-//		if(t<-1||t>0)throw signl(2,"t not within range at collision");// nocol
+//		if(t<-1||t>0){flf();l("how2? ")<<t1<<"  "<<t2<<"  "<<t<<endl;}
 		transl(v1,t);
-		p3 n(p2,*this);
-		n.norm().scale(d.dotprod(n));
+		p3 n(*this,p2);
+//		flf();l()<<" "<<n.norm()<<endl;
+		n.norm().scale(d.dot(n));
+//		flf();l()<<" "<<n<<endl;
 		d.transl(n,-1);
-//		flf();l()<<" "<<t<<endl;
-//		transl(d,dt()*(1-t));
+//		flf();l()<<" "<<t<<"   "<<d<<endl;
+		transl(d,dt()*(1-t));
 //		d.set(0,0,0);
 		return true;
 
@@ -1108,7 +1117,7 @@ public:
 	virtual void tick(){
 		lft-=dt();
 		if(lft<0){
-			flf();l()<<getid()<<" rmed "<<endl;
+//			flf();l()<<getid()<<" rmed "<<endl;
 			rm();
 			return;
 		}
@@ -1145,20 +1154,23 @@ public:
 	inline static wold&get(){return wd;}
 	inline float gett(){return t;}
 	void load(){
-//		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
-//		new obcorp(*this,p3(0,4.2f,-6.5f));
-//		new obcorp(*this,p3(0,0, 6.5f));
+		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
+		new obcorp(*this,p3(0,4.2f,-6.5f));
+		new obcorp(*this,p3(0,0, 6.5f));
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
 //		mkiglos();
-		const float r=1;
-		const float lft=1000;
-		const float density=1;
-		const float bounc=.5f;
-		new obball(*this,p3(0,radius(),-1),r,lft,density,bounc);
-		new obball(*this,p3(0,radius()*1.5f,0),r,lft,density,bounc);
-		new obball(*this,p3(0,radius()*2,0),r,lft,density,bounc);
-		new obball(*this,p3(0,radius()*3,.1f),r,lft,density,bounc);
+//		const float r=1;
+//		const float lft=1000;
+//		const float density=1;
+//		const float bounc=.5f;
+//		new obball(*this,p3(0,radius(),-1),r,lft,density,bounc);
+//		new obball(*this,p3(0,radius()*1.5f,0),r,lft,density,bounc);
+//		new obball(*this,p3(0,radius()*2,0),r,lft,density,bounc);
+//		new obball(*this,p3(0,radius()*3,.1f),r,lft,density,bounc);
+
+//		new obball(*this,p3(0,radius()*.2f,0),r,lft,density,bounc);
+//		new obball(*this,p3(0,radius()*2,0),r,lft,density,bounc);
 //		new obball(*this,p3(0,radius()*2.5f,0),1,100,1,.5f);
 //		new obball(*this,p3(0,radius()*3,0),1,100,1,.5f);
 	}
