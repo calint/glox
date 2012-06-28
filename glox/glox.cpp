@@ -624,11 +624,7 @@ public:
 		if(t<0)t=max(t1,t2);
 //		if(t>1)throw signl();// nocol
 		transl(v1,-t);
-
-//		d.set(0,0,0);
-
 		d.scale(-bf);//? reflect
-
 		transl(d,(1-t));
 		return true;
 	}
