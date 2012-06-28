@@ -420,7 +420,7 @@ public:
 		const float d=v.magn();
 		metrics::coldetsph++;
 //		flf();l()<<typeid(*this).name()<<"("<<wpthis<<")  "<<typeid(o).name()<<"("<<wpo<<")  "<<d<<"  "<<bv.r<<"   "<<o.bv.r<<endl;
-		if(d>(radius()+o.radius())){
+		if(d>=(radius()+o.radius())){
 			if(o.iscoldetrec()){
 				for(auto gg:o.chs)
 					coldet(*gg);
@@ -504,7 +504,7 @@ public:
 		for(auto g:chsrm){chs.remove(g);delete g;}
 		chsrm.clear();
 	}
-	virtual bool oncol(glob&o){metrics::collisions++;return &o==&o;}
+	virtual bool oncol(glob&o){flf();l("collision")<<endl;metrics::collisions++;return &o==&o;}
 protected:
 	p3 posinwcs(const p3&p){refreshmxmw();p3 d;mxmw.mult(p,d);return d;}
 	bool refreshmxmw(){
@@ -556,9 +556,9 @@ public:
 			pp.set(*this);
 			ppsaved=false;//?
 		}
-		const p3 g=p3(0,-9.82f,0).scale(.05f);
-		flf();l()<<fi<<endl;
-		dd=p3(f).transl(fi).scale(1/m).transl(g).scale(dt());
+//		flf();l()<<fi<<endl;
+		dd=p3(f).transl(fi).scale(1/m).scale(dt());
+//		dd.transl(p3(0,-9.82f,0),dt());
 //		flf();l()<<"f("<<f<<") fi("<<fi<<") m("<<m<<") dd("<<dd<<") d("<<d<<") ("<<*this<<") dt("<<dt()<<") "<<endl;
 		fi.set(0,0,0);
 		d.transl(dd);
@@ -566,6 +566,7 @@ public:
 		const p3p gnd(p3(0,0,0),p3(0,1,0));
 		const float dy=gety()-radius()-gnd.gety();
 		if(dy<0){
+			flf();l()<<endl;
 			if(d.gety()!=0){
 				const float t=dy/d.gety();
 				transl(d,-t);
@@ -578,11 +579,11 @@ public:
 				d.scale(bf);
 				const float ndy=gety()-radius()-gnd.gety();
 				if(ndy<0){
-//					flf();l("!!!! dy(")<<gety()-radius()<<")"<<endl;
+					flf();l("!!!! dy(")<<gety()-radius()<<")"<<endl;
 					transl(0,-ndy,0);
 				}
 			}else{
-				flf();
+				flf();l("!!!")<<endl;
 				d.set(0,0,0);
 			}
 		}
@@ -592,7 +593,8 @@ public:
 	void solvesecdegeq(const float a,const float b,const float c,bool&solutionsfound,float&t1,float&t2)const{
 		const float pt1=sqrt(b*b-4*a*c);
 		const float pt2=2*a;
-		if(pt2==0){solutionsfound=false;return;}
+		if(pt2==0){
+			solutionsfound=false;return;}
 		t1=(-b-pt1)/pt2;
 		t2=(-b+pt1)/pt2;
 		if(t1!=t1&&t2!=t2){
@@ -603,6 +605,7 @@ public:
 		solutionsfound=true;
 	}
 	virtual bool oncol(glob&o){//? defunc
+		glob::oncol(o);
 		cout<<typeid(*this).name()<<"["<<this->getid()<<"]"<<endl;
 //		flf();l()<<"cols"<<endl;
 		if(!o.issolid())return true;
@@ -618,20 +621,23 @@ public:
 		const float b=2*p1.dot(v1)-2*p2.dot(v1)-2*p1.dot(v2)+2*p2.dot(v2);
 		const float c=-r0*r0+p3(p1).pow2().sum()+p3(p2).pow2().sum()-2*p1.dot(p2);
 
-		float t1,t2;
+		float t1=0,t2=0;
 		bool found;
 		solvesecdegeq(a,b,c,found,t1,t2);
 		if(!found){
-//			flf();l("how?")<<endl;
-			np.set(*this);
-			nd.set(d);
+			flf();l("how? ")<<t1<<"  "<<t2<<endl;
 			return true;
 		}
 		float t=min(t1,t2);
 		if(t<-1)t=max(t1,t2);
 		if(t>0)t=min(t1,t2);
-//		if(t<-1||t>0){flf();l("how2? ")<<t1<<"  "<<t2<<"  "<<t<<endl;}
+		if(t<-1||t>0){flf();l("how2? ")<<t1<<"  "<<t2<<"  "<<t<<endl;}
+		flf();l()<<t<<endl;
 		np.set(*this).transl(v1,t);
+		nd.set(0,0,0);
+//		dd.set(0,0,0);
+		return true;
+
 		p3 nml(*this,p2);
 //		flf();l()<<" "<<n.norm()<<endl;
 		nml.norm().scale(d.dot(nml));
@@ -1167,6 +1173,7 @@ public:
 	bool drawaxis=false,drawgrid=true,hidezplane=false,coldetbrute=false,coldetgrid=true;
 	inline static wold&get(){return wd;}
 	inline float gett(){return t;}
+	inline void applyg(p3&dd)const{dd.transl(0,-9.82f,0);}
 	void load(){
 //		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
 //		new obcorp(*this,p3(0,4.2f,-6.5f));
@@ -1174,10 +1181,13 @@ public:
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
 //		mkiglos();
-		const float r=.8f;
+		const float r=1;
 		const float lft=1000;
 		const float density=1;
-		const float bounc=.3f;
+		const float bounc=1;
+		new obball(*this,p3(0,r,0),r,lft,density,bounc);
+		globx*g=new obball(*this,p3(0,r,-4),r,lft,density,bounc);
+		g->d.set(0,0,.02f);
 //		new obball(*this,p3(-1,radius(),-1),r,lft,density,bounc);
 //		new obball(*this,p3(1,radius(),-1),r,lft,density,bounc);
 //		new obball(*this,p3(1,radius(), 1),r,lft,density,bounc);
@@ -1186,9 +1196,10 @@ public:
 
 
 		//		new obball(*this,p3(0,radius()*1.5f,0),r,lft,density,bounc);
-		new obball(*this,p3(0,radius()*1,0),r,lft,density,bounc);
-		new obball(*this,p3(0,radius()*2,0),r,lft,density,bounc);
-		new obball(*this,p3(0,radius()*3,0),r,lft,density,bounc);
+//		new obball(*this,p3(0,radius()*.5f,0),r,lft,density,bounc);
+//		new obball(*this,p3(0,radius()*2,0),r,lft,density,bounc);
+//		new obball(*this,p3(0,radius()*3,0),r,lft,density,bounc);
+//		new obball(*this,p3(0,0,0),r,lft,density,bounc);
 
 //		new obball(*this,p3(0,radius()*.2f,0),r,lft,density,bounc);
 //		new obball(*this,p3(0,radius()*2,0),r,lft,density,bounc);
@@ -1899,13 +1910,13 @@ private:
 //		return b;
 //	}
 	void rain(){
-		static float fromheight=wold::get().radius()*1.5f;
+		static float fromheight=wold::get().radius()/2;
 		static float a=0;
 		const float r=wold::get().radius()/4;
 		const float dr=r/2;
 		const float dx=-2+rnd(-r,r);
 		const float dz=rnd(-r,r);
-		const float dy=-2+rnd(-r,r)/2;
+		const float dy=rnd(-r,r)/2;
 		a+=dt(60);
 		for(int i=0;i<11;i++){
 			globx&o=*new obball(wold::get(),p3(dx+r*cos(a)*rnd(-dr,dr),fromheight+dy,dz+r*sin(a)*rnd(-dr,dr)),.04f+rndn(.02f),1.2f,1,.1f+rndn(.03f));
@@ -1917,12 +1928,13 @@ private:
 	void fire(){
 		p3 lv=mxv.zaxis().neg();
 		const float r=.05f;
-		const float sprd=r/2;
+		const float v=.5f;
+		p3 vv=p3(d).transl(p3(lv).scale(v).transl(0,r,0));
+		const float sprd=r/5;
 		const float sx=rnd(-sprd,sprd);
 		const float sy=rnd(-sprd,sprd);
 		const float sz=rnd(-sprd,sprd);
-		const float v=.5f;
-		p3 vv=p3(lv).scale(v).transl(sx,sy,sz).transl(0,r,0);
+		vv.transl(sx,sy,sz);
 //		globx&o=*new obball(wold::get(),lv.scale(radius()+r).transl(sx,sy,sz).transl(*this),r);
 		globx&o=*new obball(wold::get(),*this,r);
 		o.d.set(vv);
@@ -2068,7 +2080,7 @@ namespace glut{
 		players[0]->agl().set(0,90,0);
 		players[1]=new windo();
 		players[1]->player=1;
-		players[1]->set(r,r,0);
+		players[1]->set(r,players[1]->radius(),0);
 		players[1]->agl().set(0,-90,0);
 		if(!multiplayer){
 			bot.wn=players[0];
