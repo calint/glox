@@ -567,8 +567,8 @@ public:
 				d.scale(bf);
 				const float ndy=gety()-radius()-gnd.gety();
 				if(ndy<0){
-//					flf();l("!!!! dy(")<<gety()-radius()<<")"<<endl;
-	//				transl(0,-ndy,0);
+					flf();l("!!!! dy(")<<gety()-radius()<<")"<<endl;
+					transl(0,-ndy,0);
 				}
 			}else{
 				d.set(0,0,0);
@@ -577,10 +577,11 @@ public:
 
 		glob::tick();
 	}
-	void solvesecdegeq(const float a,const float b,const float c,float&t1,float&t2)const{
+	void solvesecdegeq(const float a,const float b,const float c,bool&solutionsfound,float&t1,float&t2)const{
 		const float pt1=sqrt(b*b-4*a*c);
 		const float pt2=2*a;
-		if(pt2==0)throw signl();
+		if(pt2==0){solutionsfound=false;return;}
+		solutionsfound=true;
 		t1=(-b-pt1)/pt2;
 		t2=(-b+pt1)/pt2;
 	}
@@ -600,14 +601,21 @@ public:
 		const float c=-r0*r0+p3(p1).pow2().sum()+p3(p2).pow2().sum()-2*p1.dotprod(p2);
 
 		float t1,t2;
-		solvesecdegeq(a,b,c,t1,t2);
+		bool found;
+		solvesecdegeq(a,b,c,found,t1,t2);
+		if(!found)return true;
 //		flf();l("t ")<<t1<<" and "<<t2<<endl;
 		float t=min(t1,t2);
-//		if(t<0)t=max(t1,t2);
-		if(t>1)throw signl();// nocol
+		if(t<-1)t=max(t1,t2);
+		if(t>0)t=min(t1,t2);
+//		if(t<-1||t>0)throw signl(2,"t not within range at collision");// nocol
 		transl(v1,t);
-		d.scale(-bf);//? reflect
-		transl(d,dt()*(1-t));
+		p3 n(p2,*this);
+		n.norm().scale(d.dotprod(n));
+		d.transl(n,-1);
+//		flf();l()<<" "<<t<<endl;
+//		transl(d,dt()*(1-t));
+//		d.set(0,0,0);
 		return true;
 
 	}
@@ -1098,8 +1106,9 @@ public:
 	}
 	void gldraw(){}
 	virtual void tick(){
-		lft-=dt(1);
+		lft-=dt();
 		if(lft<0){
+			flf();l()<<getid()<<" rmed "<<endl;
 			rm();
 			return;
 		}
@@ -1142,11 +1151,16 @@ public:
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
 //		mkiglos();
-		new obball(*this,p3(0,radius(),0),1,100,1,.5f);
-//		new obball(*this,p3(0,radius()*1.5f,0),1,100,1,.5f);
-		new obball(*this,p3(0,radius()*2,0),1,100,1,.5f);
+		const float r=1;
+		const float lft=1000;
+		const float density=1;
+		const float bounc=.5f;
+		new obball(*this,p3(0,radius(),-1),r,lft,density,bounc);
+		new obball(*this,p3(0,radius()*1.5f,0),r,lft,density,bounc);
+		new obball(*this,p3(0,radius()*2,0),r,lft,density,bounc);
+		new obball(*this,p3(0,radius()*3,.1f),r,lft,density,bounc);
 //		new obball(*this,p3(0,radius()*2.5f,0),1,100,1,.5f);
-		new obball(*this,p3(0,radius()*3,0),1,100,1,.5f);
+//		new obball(*this,p3(0,radius()*3,0),1,100,1,.5f);
 	}
 	void mkiglos(){
 		const float s=1;
