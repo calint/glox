@@ -557,6 +557,7 @@ public:
 			ppsaved=false;//?
 		}
 		const p3 g=p3(0,-9.82f,0).scale(.05f);
+		flf();l()<<fi<<endl;
 		dd=p3(f).transl(fi).scale(1/m).transl(g).scale(dt());
 //		flf();l()<<"f("<<f<<") fi("<<fi<<") m("<<m<<") dd("<<dd<<") d("<<d<<") ("<<*this<<") dt("<<dt()<<") "<<endl;
 		fi.set(0,0,0);
@@ -602,6 +603,7 @@ public:
 		solutionsfound=true;
 	}
 	virtual bool oncol(glob&o){//? defunc
+		cout<<typeid(*this).name()<<"["<<this->getid()<<"]"<<endl;
 //		flf();l()<<"cols"<<endl;
 		if(!o.issolid())return true;
 		const p3&p1=*this;
@@ -1166,16 +1168,16 @@ public:
 	inline static wold&get(){return wd;}
 	inline float gett(){return t;}
 	void load(){
-		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
-		new obcorp(*this,p3(0,4.2f,-6.5f));
-		new obcorp(*this,p3(0,0, 6.5f));
+//		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
+//		new obcorp(*this,p3(0,4.2f,-6.5f));
+//		new obcorp(*this,p3(0,0, 6.5f));
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
 //		mkiglos();
-//		const float r=.8f;
-//		const float lft=1000;
-//		const float density=1;
-//		const float bounc=.3f;
+		const float r=.8f;
+		const float lft=1000;
+		const float density=1;
+		const float bounc=.3f;
 //		new obball(*this,p3(-1,radius(),-1),r,lft,density,bounc);
 //		new obball(*this,p3(1,radius(),-1),r,lft,density,bounc);
 //		new obball(*this,p3(1,radius(), 1),r,lft,density,bounc);
@@ -1184,8 +1186,9 @@ public:
 
 
 		//		new obball(*this,p3(0,radius()*1.5f,0),r,lft,density,bounc);
-//		new obball(*this,p3(0,radius()*2,0),r,lft,density,bounc);
-//		new obball(*this,p3(0,radius()*3,.1f),r,lft,density,bounc);
+		new obball(*this,p3(0,radius()*1,0),r,lft,density,bounc);
+		new obball(*this,p3(0,radius()*2,0),r,lft,density,bounc);
+		new obball(*this,p3(0,radius()*3,0),r,lft,density,bounc);
 
 //		new obball(*this,p3(0,radius()*.2f,0),r,lft,density,bounc);
 //		new obball(*this,p3(0,radius()*2,0),r,lft,density,bounc);
@@ -1520,8 +1523,8 @@ class windo:public globx{
 	int wiprv=wi,hiprv=hi;
 
 	//? newclass
-	float fwdbckrate=6;
-	float straferate=6;
+	float fwdbckrate=.2f;
+	float straferate=.2f;
 	float turnrate=360;
 	float rocketforce=150*m;
 	float rocketfuelburnrate=6;
@@ -1547,13 +1550,13 @@ public:
 		pp.set(*this);ppsaved=true;
 		mxv.mw(*this,agl());
 //		flf();l("handlekeys")<<player<<endl;
-		if(hdlkeydn('w')){transl(mxv.zaxis().sety(0).norm(),-dt(fwdbckrate));}
-		if(hdlkeydn('s')){transl(mxv.zaxis().sety(0).norm(),dt(fwdbckrate));}
-		if(hdlkeydn('d')){transl(mxv.xaxis(),dt(straferate));}
-		if(hdlkeydn('a')){transl(mxv.xaxis(),-dt(straferate));}
+		if(hdlkeydn('w')){fi.transl(mxv.zaxis().sety(0).norm().scale(-fwdbckrate));}
+		if(hdlkeydn('s')){fi.transl(mxv.zaxis().sety(0).norm().scale(fwdbckrate));}
+		if(hdlkeydn('d')){fi.transl(mxv.xaxis().scale(straferate));}
+		if(hdlkeydn('a')){fi.transl(mxv.xaxis().scale(-straferate));}
 		if(hdlkeydn('l')){agl().transl(0,dt(turnrate),0);}
 		if(hdlkeydn('j')){agl().transl(0,-dt(turnrate),0);}
-		if(hdlkeydn(',')&&rocketry>0){f.set(0,dt(rocketforce),0);rocketry-=dt(rocketfuelburnrate);}else{f.set(0,0,0);}
+		if(hdlkeydn(',')&&rocketry>0){f.transl(0,dt(rocketforce),0);rocketry-=dt(rocketfuelburnrate);}else{f.set(0,0,0);}
 		if(hdlkeydn(' ')){fire();}
 		if(hdlkeydn('b')){rain();}
 		if(hdlkeydn('t')){transl(mxv.yaxis(),dt(fwdbckrate));}
@@ -1561,9 +1564,9 @@ public:
 		if(hdlkeytg(9)){togglehud();}// tab
 		if(hdlkeytg('y')){zoom-=.1;}
 		if(hdlkeytg('h')){zoom+=.1;}
-		if(hdlkeytg('i')){if(flappery>0){fi.set(0,smallflapimpulseforce,0);flappery-=smallflapfuelburn;}}
-		if(hdlkeytg('k')){if(flappery>0){fi.set(0,bigflapimpulseforce,0);flappery-=bigflapfuelburn;}}
-		if(hdlkeytg('m')){if(flappery>0){fi.set(mxv.zaxis().neg().negy().scale(leapimpulseforce));flappery-=leapfuelburn;}}
+		if(hdlkeytg('i')){if(flappery>0){fi.transl(0,smallflapimpulseforce,0);flappery-=smallflapfuelburn;}}
+		if(hdlkeytg('k')){if(flappery>0){fi.transl(0,bigflapimpulseforce,0);flappery-=bigflapfuelburn;}}
+		if(hdlkeytg('m')){if(flappery>0){fi.transl(mxv.zaxis().neg().negy().scale(leapimpulseforce));flappery-=leapfuelburn;}}
 		if(hdlkeytg('x')){agl().transl(7,0,0);}
 		if(hdlkeytg('c')){agl().transl(-7,0,0);}
 		if(hdlkeytg('z')){agl().setx(0);}
@@ -1787,7 +1790,7 @@ public:
 		globx::tick();
 	}
 	bool oncol(glob&g){
-//		cout<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
+		cout<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
 //		if(g.isitem()){
 //			g.rm();
 //			items++;
@@ -1947,7 +1950,7 @@ private:
 
 		oss.str("");
 		oss<<setprecision(1);
-		oss<<"p("<<*this<<") a("<<angle()<<") zoom("<<zoom<<")";
+		oss<<"p("<<*this<<") d("<<this->d<<") fi("<<this->fi<<") a("<<angle()<<") zoom("<<zoom<<")";
 		y+=dy;pl(oss.str().c_str(),y,0,1,.1f);
 
 		oss.str("");
