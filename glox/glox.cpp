@@ -379,10 +379,12 @@ class glob:public p3{
 protected:
 	list<glob*>chs;
 public:
+	p3 d;
+	p3 np,nd;
 	static bool drawboundingspheres;
 	static int drawboundingspheresdetail;
 
-	glob(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1):p3(p),id(metrics::globs++),g(g),a(a),bits(1),rmed(false),r(r){
+	glob(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1):p3(p),id(metrics::globs++),g(g),a(a),bits(1),rmed(false),r(r),d(p3()),np(p3()),nd(p3()){
 		if(&g==0)return;
 		g.chsadd.push_back(this);
 	}
@@ -427,8 +429,16 @@ public:
 			return;
 		}
 		if(issolid()&&o.issolid()){
+			np.set(*this);
+			nd.set(this->d);
+			o.np.set(o);
+			o.nd.set(o.d);
 			oncol(o);
 			o.oncol(*this);
+			this->set(np);
+			this->d.set(nd);
+			o.set(o.np);
+			o.d.set(o.nd);
 			return;
 		}
 		if(issolid()&&!o.issolid()){
@@ -533,7 +543,7 @@ class globx:public glob{
 protected:
 	bool ppsaved;
 public:
-	p3 d,dd;
+	p3 dd;
 	p3 f;
 	p3 fi;
 	p3 pp;
@@ -571,6 +581,7 @@ public:
 					transl(0,-ndy,0);
 				}
 			}else{
+				flf();
 				d.set(0,0,0);
 			}
 		}
@@ -596,7 +607,7 @@ public:
 		const p3&p1=*this;
 		const p3&v1=this->d;
 		const p3&p2=o;
-		const p3&v2=((globx&)o).d;//?
+		const p3&v2=o.d;
 		const float r1=radius();
 		const float r2=o.radius();
 		const float r0=r1+r2;
@@ -610,23 +621,24 @@ public:
 		solvesecdegeq(a,b,c,found,t1,t2);
 		if(!found){
 //			flf();l("how?")<<endl;
+			np.set(*this);
+			nd.set(d);
 			return true;
 		}
 		float t=min(t1,t2);
 		if(t<-1)t=max(t1,t2);
 		if(t>0)t=min(t1,t2);
 //		if(t<-1||t>0){flf();l("how2? ")<<t1<<"  "<<t2<<"  "<<t<<endl;}
-		transl(v1,t);
-		p3 n(*this,p2);
+		np.set(*this).transl(v1,t);
+		p3 nml(*this,p2);
 //		flf();l()<<" "<<n.norm()<<endl;
-		n.norm().scale(d.dot(n));
+		nml.norm().scale(d.dot(nml));
+//		flf();l()<<" "<<d<<endl;
 //		flf();l()<<" "<<n<<endl;
-		d.transl(n,-1);
-//		flf();l()<<" "<<t<<"   "<<d<<endl;
-		transl(d,dt()*(1-t));
+		nd.set(d).transl(nml,-2).scale(bf);
+		np.transl(d,dt()*(1-t));
 //		d.set(0,0,0);
 		return true;
-
 	}
 };
 
@@ -1160,12 +1172,18 @@ public:
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
 //		mkiglos();
-//		const float r=1;
+//		const float r=.8f;
 //		const float lft=1000;
 //		const float density=1;
-//		const float bounc=.5f;
-//		new obball(*this,p3(0,radius(),-1),r,lft,density,bounc);
-//		new obball(*this,p3(0,radius()*1.5f,0),r,lft,density,bounc);
+//		const float bounc=.3f;
+//		new obball(*this,p3(-1,radius(),-1),r,lft,density,bounc);
+//		new obball(*this,p3(1,radius(),-1),r,lft,density,bounc);
+//		new obball(*this,p3(1,radius(), 1),r,lft,density,bounc);
+//		new obball(*this,p3(-1,radius(), 1),r,lft,density,bounc);
+//		new obball(*this,p3(0,radius()*2, 0),r,lft,density,bounc);
+
+
+		//		new obball(*this,p3(0,radius()*1.5f,0),r,lft,density,bounc);
 //		new obball(*this,p3(0,radius()*2,0),r,lft,density,bounc);
 //		new obball(*this,p3(0,radius()*3,.1f),r,lft,density,bounc);
 
