@@ -1201,12 +1201,13 @@ public:
 		const float r=1;
 		const float lft=1000;
 		const float bounc=1;
-		new obball(*this,p3(0,r,10),3*r,lft,bounc);
+		globx*g=new obball(*this,p3(0,r,11),3*r,lft,bounc);
+		g->d.set(0,0,-.01f);
 		new obball(*this,p3(0,r,5),r,lft,bounc);
 		new obball(*this,p3(0,r,2),r,lft,bounc);
 		new obball(*this,p3(0,r,0),r,lft,bounc);
-		globx*g=new obball(*this,p3(0,r,-6),r,lft,bounc);
-		g->d.set(0,0,.02f);
+		g=new obball(*this,p3(0,r,-10),r*3,lft,bounc);
+		g->d.set(0,0,.01f);
 //		new obball(*this,p3(-1,radius(),-1),r,lft,density,bounc);
 //		new obball(*this,p3(1,radius(),-1),r,lft,density,bounc);
 //		new obball(*this,p3(1,radius(), 1),r,lft,density,bounc);
