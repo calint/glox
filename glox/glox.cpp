@@ -645,10 +645,10 @@ public:
 
 		p3 nml(*this,p2);
 //		flf();l()<<" "<<n.norm()<<endl;
-		nml.norm().scale(d.dot(nml));
+		nml.norm().scale(d.dot(nml)*bf);
 //		flf();l()<<" "<<d<<endl;
 //		flf();l()<<" "<<n<<endl;
-		nd.set(d).transl(nml,-2).scale(bf);
+		nd.set(d).transl(nml,-2);
 		np.transl(d,dt()*(1-t));
 //		d.set(0,0,0);
 		return true;
