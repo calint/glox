@@ -1758,11 +1758,11 @@ public:
 	}
 	bool oncol(glob&g){
 //		cout<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
-		if(g.isitem()){
-			g.rm();
-			items++;
-			return true;
-		}
+//		if(g.isitem()){
+//			g.rm();
+//			items++;
+//			return true;
+//		}
 		return globx::oncol(g);
 	}
 private:
