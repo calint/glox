@@ -504,7 +504,7 @@ public:
 		for(auto g:chsrm){chs.remove(g);delete g;}
 		chsrm.clear();
 	}
-	virtual bool oncol(glob&o){flf();l("collision")<<endl;metrics::collisions++;return &o==&o;}
+	virtual bool oncol(glob&o){metrics::collisions++;return &o==&o;}
 protected:
 	p3 posinwcs(const p3&p){refreshmxmw();p3 d;mxmw.mult(p,d);return d;}
 	bool refreshmxmw(){
@@ -563,30 +563,30 @@ public:
 		fi.set(0,0,0);
 		d.transl(dd);
 		this->transl(d);
-		const p3p gnd(p3(0,0,0),p3(0,1,0));
-		const float dy=gety()-radius()-gnd.gety();
-		if(dy<0){
-			flf();l()<<endl;
-			if(d.gety()!=0){
-				const float t=dy/d.gety();
-				transl(d,-t);
-				const float tb=d.dot(gnd.n);
-				p3 ddb(gnd.n);
-				ddb.scale(tb);
-				ddb.scale(-2,-2,-2);
-				d.transl(ddb);
-				transl(d,1-t);
-				d.scale(bf);
-				const float ndy=gety()-radius()-gnd.gety();
-				if(ndy<0){
-					flf();l("!!!! dy(")<<gety()-radius()<<")"<<endl;
-					transl(0,-ndy,0);
-				}
-			}else{
-				flf();l("!!!")<<endl;
-				d.set(0,0,0);
-			}
-		}
+//		const p3p gnd(p3(0,0,0),p3(0,1,0));
+//		const float dy=gety()-radius()-gnd.gety();
+//		if(dy<0){
+//			flf();l()<<endl;
+//			if(d.gety()!=0){
+//				const float t=dy/d.gety();
+//				transl(d,-t);
+//				const float tb=d.dot(gnd.n);
+//				p3 ddb(gnd.n);
+//				ddb.scale(tb);
+//				ddb.scale(-2,-2,-2);
+//				d.transl(ddb);
+//				transl(d,1-t);
+//				d.scale(bf);
+//				const float ndy=gety()-radius()-gnd.gety();
+//				if(ndy<0){
+//					flf();l("!!!! dy(")<<gety()-radius()<<")"<<endl;
+//					transl(0,-ndy,0);
+//				}
+//			}else{
+//				flf();l("!!!")<<endl;
+//				d.set(0,0,0);
+//			}
+//		}
 
 		glob::tick();
 	}
@@ -632,11 +632,11 @@ public:
 		if(t<-1)t=max(t1,t2);
 		if(t>0)t=min(t1,t2);
 		if(t<-1||t>0){flf();l("how2? ")<<t1<<"  "<<t2<<"  "<<t<<endl;}
-		flf();l()<<t<<endl;
+//		flf();l()<<t<<endl;
 		np.set(*this).transl(v1,t);
-		nd.set(0,0,0);
+//		nd.set(0,0,0);
 //		dd.set(0,0,0);
-		return true;
+//		return true;
 
 		p3 nml(*this,p2);
 //		flf();l()<<" "<<n.norm()<<endl;
@@ -1800,15 +1800,6 @@ public:
 		if(rocketry>rocketrymax)rocketry=rocketrymax;
 		globx::tick();
 	}
-	bool oncol(glob&g){
-		cout<<typeid(g).name()<<"["<<g.getid()<<"]"<<endl;
-//		if(g.isitem()){
-//			g.rm();
-//			items++;
-//			return true;
-//		}
-		return globx::oncol(g);
-	}
 private:
 	void togglefullscr(){
 		if(gamemode)
@@ -2080,7 +2071,7 @@ namespace glut{
 		players[0]->agl().set(0,90,0);
 		players[1]=new windo();
 		players[1]->player=1;
-		players[1]->set(r,players[1]->radius(),0);
+		players[1]->set(r,1,0);
 		players[1]->agl().set(0,-90,0);
 		if(!multiplayer){
 			bot.wn=players[0];
