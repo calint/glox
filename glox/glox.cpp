@@ -382,10 +382,11 @@ protected:
 public:
 	p3 d;
 	p3 np,nd;
+	float m;
 	static bool drawboundingspheres;
 	static int drawboundingspheresdetail;
 
-	glob(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1):p3(p),id(metrics::globs++),g(g),a(a),bits(1),rmed(false),r(r),d(p3()),np(p3()),nd(p3()){
+	glob(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,const float density_gcm3=1):p3(p),id(metrics::globs++),g(g),a(a),bits(1),rmed(false),r(r),d(p3()),np(p3()),nd(p3()),m(density_gcm3*4/3*pi*r*r*r){
 		if(&g==0)return;
 		g.chsadd.push_back(this);
 	}
@@ -550,9 +551,8 @@ public:
 	p3 f;
 	p3 fi;
 	p3 pp;
-	float m;
 	float bf;
-	globx(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,const float density_gcm3=1,float bounciness=1):glob(g,p,a,r),f(p3()),fi(p3()),pp(p),m(density_gcm3*4/3*pi*r*r*r),bf(bounciness){}
+	globx(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,float bounciness=1):glob(g,p,a,r),f(p3()),fi(p3()),pp(p),bf(bounciness){}
 	inline p3&dp(){return d;}
 	virtual void tick(){
 		if(!ppsaved){
@@ -612,23 +612,23 @@ public:
 		flf();l()<<typeid(*this).name()<<"["<<this->getid()<<"]"<<endl;
 		if(!o.issolid())return true;
 		const p3&p1=*this;
-		const p3&v1=this->d;
+		const p3&u1=this->d;
 		const p3&p2=o;
-		const p3&v2=o.d;
+		const p3&u2=o.d;
 		const float r1=radius();
 		const float r2=o.radius();
 		const float r0=r1+r2;
 
-		const float a=p3(v1).pow2().sum()+p3(v2).pow2().sum()-2*v1.dot(v2);
-		const float b=2*p1.dot(v1)-2*p2.dot(v1)-2*p1.dot(v2)+2*p2.dot(v2);
+		const float a=p3(u1).pow2().sum()+p3(u2).pow2().sum()-2*u1.dot(u2);
+		const float b=2*p1.dot(u1)-2*p2.dot(u1)-2*p1.dot(u2)+2*p2.dot(u2);
 		const float c=-r0*r0+p3(p1).pow2().sum()+p3(p2).pow2().sum()-2*p1.dot(p2);
 
 		float t1=0,t2=0;
 		bool found;
 		solvesecdegeq(a,b,c,found,t1,t2);
 		if(!found){
-			flf();l("how? ")<<t1<<"  "<<t2<<endl;
-			return true;
+			flf();l("how? ")<<t1<<"  "<<t2<<"   "<<a<<endl;
+			return true;//? acc
 		}
 		float t=min(t1,t2);
 		if(t<-1)t=max(t1,t2);
@@ -636,20 +636,37 @@ public:
 		if(t<-1||t>0){
 //			flf();l("how2? ")<<t1<<"  "<<t2<<"  "<<t<<endl;
 		}//? consider acc
+		np.set(*this).transl(u1,t);
 
-//		flf();l()<<t<<endl;
-		np.set(*this).transl(v1,t);
-//		nd.set(0,0,0);
-//		dd.set(0,0,0);
-//		return true;
+		const float m1=m;
+		const float m2=o.m;
+		const float mm=m+o.m;
 
-		p3 nml(*this,p2);
-//		flf();l()<<" "<<n.norm()<<endl;
-		nml.norm().scale(d.dot(nml)*bf);
-//		flf();l()<<" "<<d<<endl;
-//		flf();l()<<" "<<n<<endl;
-		nd.set(d).transl(nml,-2);
-		np.transl(d,dt()*(1-t));
+//		p3 nml(*this,p2);
+//		nml.norm().scale(u1.dot(nml));
+//		p3 vb1(u1);
+//		vb1.transl(nml,-1);
+
+		p3 v1(u1);
+		v1.scale((m1-m2)/mm);
+		p3 v11(u2);
+		v11.scale(2*m2/mm);
+		v1.transl(v11);
+
+//		p3 vn1(p1,p2);
+//		vn1.norm().scale(v1.dot(vn1));
+//		nd.set(v1).transl(vn1);
+
+		nd.set(v1);
+		np.transl(nd,dt()*(1-t));
+
+//		p3 v2(u2);
+//		v2.scale((m2-m1)/mm);
+//		p3 v21(u1);
+//		v21.scale(2*m1/mm);
+//		v2.transl(v21);
+
+
 //		d.set(0,0,0);
 		return true;
 	}
@@ -1135,7 +1152,7 @@ class obball:public globx{
 	float lft;
 	float colr=1;
 public:
-	obball(glob&g,const p3&p,const float r=.05f,const float lft=2,const float density_gcm3=1,const float bounciness=.3f):globx(g,p,p3(90,0,0),r,density_gcm3,bounciness),lft(lft){
+	obball(glob&g,const p3&p,const float r=.05f,const float lft=2,const float bounciness=.3f):globx(g,p,p3(90,0,0),r,bounciness),lft(lft){
 		setblt(true).setitem(true);
 	}
 	void gldraw(){}
@@ -1183,10 +1200,12 @@ public:
 //		mkiglos();
 		const float r=1;
 		const float lft=1000;
-		const float density=1;
 		const float bounc=1;
-		new obball(*this,p3(0,r,0),r,lft,density,bounc);
-		globx*g=new obball(*this,p3(0,r,-4),r,lft,density,bounc);
+		new obball(*this,p3(0,r,10),3*r,lft,bounc);
+		new obball(*this,p3(0,r,5),r,lft,bounc);
+		new obball(*this,p3(0,r,2),r,lft,bounc);
+		new obball(*this,p3(0,r,0),r,lft,bounc);
+		globx*g=new obball(*this,p3(0,r,-6),r,lft,bounc);
 		g->d.set(0,0,.02f);
 //		new obball(*this,p3(-1,radius(),-1),r,lft,density,bounc);
 //		new obball(*this,p3(1,radius(),-1),r,lft,density,bounc);
@@ -1594,7 +1613,7 @@ public:
 	}
 public:
 	int player=0;
-	windo(glob&g=wold::get(),const p3&p=p3(10.4f,.1f,10.5f),const p3&a=p3(-21,-44.8f,0),const float r=.1f,const int width=1024,const int height=512,const float zoom=1.5):globx(g,p,a,r,10,.25f),zoom(zoom),wi(width),hi(height){}
+	windo(glob&g=wold::get(),const p3&p=p3(10.4f,.1f,10.5f),const p3&a=p3(-21,-44.8f,0),const float r=.1f,const int width=1024,const int height=512,const float zoom=1.5):globx(g,p,a,r,.25f),zoom(zoom),wi(width),hi(height){}
 	inline bool isgamemode()const{return gamemode;}
 	inline bool isfullscreen()const{return fullscr;}
 	inline int width()const{return wi;}
@@ -1910,7 +1929,7 @@ private:
 		const float dy=rnd(-r,r)/2;
 		a+=dt(60);
 		for(int i=0;i<11;i++){
-			globx&o=*new obball(wold::get(),p3(dx+r*cos(a)*rnd(-dr,dr),fromheight+dy,dz+r*sin(a)*rnd(-dr,dr)),.04f+rndn(.02f),1.2f,1,.1f+rndn(.03f));
+			globx&o=*new obball(wold::get(),p3(dx+r*cos(a)*rnd(-dr,dr),fromheight+dy,dz+r*sin(a)*rnd(-dr,dr)),.04f+rndn(.02f),1.2f,.1f+rndn(.03f));
 			o.fi.set(4*o.m,0,2*o.m);
 		}
 //		for(int i=0;i<11;i++)
