@@ -593,8 +593,6 @@ public:
 		const p3&v2=((globx&)o).d;//?
 		const float r1=radius();
 		const float r2=o.radius();
-		const p3 dv=p3(v2,v1);
-		const p3 dp=p3(p2,p1);
 		const float r0=r1+r2;
 
 		const float a=p3(v1).pow2().sum()+p3(v2).pow2().sum()-2*v1.dotprod(v2);
@@ -603,12 +601,13 @@ public:
 
 		float t1,t2;
 		solvesecdegeq(a,b,c,t1,t2);
+//		flf();l("t ")<<t1<<" and "<<t2<<endl;
 		float t=min(t1,t2);
-		if(t<0)t=max(t1,t2);
-//		if(t>1)throw signl();// nocol
-		transl(v1,-t);
+//		if(t<0)t=max(t1,t2);
+		if(t>1)throw signl();// nocol
+		transl(v1,t);
 		d.scale(-bf);//? reflect
-		transl(d,(1-t));
+		transl(d,dt()*(1-t));
 		return true;
 
 	}
@@ -1143,8 +1142,11 @@ public:
 //		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
 //		new obufocluster(*this,p3(50,0,0));
 //		mkiglos();
-		new obball(*this,p3(0,radius(),0),1,10,1,.5f);
-		new obball(*this,p3(0,radius()*2,0),1,10,1,.5f);
+		new obball(*this,p3(0,radius(),0),1,100,1,.5f);
+//		new obball(*this,p3(0,radius()*1.5f,0),1,100,1,.5f);
+		new obball(*this,p3(0,radius()*2,0),1,100,1,.5f);
+//		new obball(*this,p3(0,radius()*2.5f,0),1,100,1,.5f);
+		new obball(*this,p3(0,radius()*3,0),1,100,1,.5f);
 	}
 	void mkiglos(){
 		const float s=1;
