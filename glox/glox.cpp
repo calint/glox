@@ -584,40 +584,23 @@ public:
 		t1=(-b-pt1)/pt2;
 		t2=(-b+pt1)/pt2;
 	}
-	virtual bool oncol(glob&o){
+	virtual bool oncol(glob&o){//? defunc
 //		flf();l()<<"cols"<<endl;
 		if(!o.issolid())return true;
-//		p1 = {x1, y1, z1};
-//		v1 = {vx1, vy1, vz1};
-//		p2 = {x2, y2, z2};
-//		v2 = {vx2, vy2, vz2};
-// sqrt[Total[((p1 + v1 t) - (p2 + v2 t))^2]] == r1 + r2
-// (t vx1 - t vx2 + x1 - x2)^2 + (t vy1 - t vy2 + y1 - y2)^2 + (t vz1 - t vz2 + z1 - z2)^2 == (r1 + r2)^2
-//(t ( vx1 - vx2) + x1 - x2)^2 + (t (vy1 - vy2) + y1 - y2)^2 + (t (vz1 - vz2) + z1 - z2)^2 == (r1 + r2)^2
-//		dvx = vx1 - vx2;
-//		dvy = vy1 - vy2;
-//		dvz = vz1 - vz2;
-//		dx = x1 - x2;
-//		dy = y1 - y2;
-//		dz = z1 - z2;
-//		r0 = r1 + r2;
-//		(t dvx + dx)^2 + (t dvy + dy)^2 + (t dvz + dz)^2 == r0^2
 		const p3&p1=*this;
 		const p3&v1=this->d;
 		const p3&p2=o;
 		const p3&v2=((globx&)o).d;//?
 		const float r1=radius();
 		const float r2=o.radius();
-//		a = dvx^2 + dvy^2 + dvz^2;
-//		b = 2 dvx dx + 2 dvy dy + 2 dvz dz;
-//		c = dx^2 + dy^2 + dz^2 - r0^2;
-//		c + b t + a t^2 == 0
 		const p3 dv=p3(v2,v1);
-		const float a=p3(dv).pow2().sum();
 		const p3 dp=p3(p2,p1);
-		const float b=p3(dv).mult(dp).scale(2).sum();
 		const float r0=r1+r2;
-		const float c=p3(dp).pow2().sum()-r0*r0;
+
+		const float a=p3(v1).pow2().sum()+p3(v2).pow2().sum()-2*v1.dotprod(v2);
+		const float b=2*p1.dotprod(v1)-2*p2.dotprod(v1)-2*p1.dotprod(v2)+2*p2.dotprod(v2);
+		const float c=-r0*r0+p3(p1).pow2().sum()+p3(p2).pow2().sum()-2*p1.dotprod(p2);
+
 		float t1,t2;
 		solvesecdegeq(a,b,c,t1,t2);
 		float t=min(t1,t2);
@@ -627,6 +610,7 @@ public:
 		d.scale(-bf);//? reflect
 		transl(d,(1-t));
 		return true;
+
 	}
 };
 
