@@ -1,3 +1,25 @@
+		//		new obball(*this,p3(-1,radius(),-1),r,lft,density,bounc);
+		//		new obball(*this,p3(1,radius(),-1),r,lft,density,bounc);
+		//		new obball(*this,p3(1,radius(), 1),r,lft,density,bounc);
+		//		new obball(*this,p3(-1,radius(), 1),r,lft,density,bounc);
+		//		new obball(*this,p3(0,radius()*2, 0),r,lft,density,bounc);
+
+
+		//		new obball(*this,p3(0,radius()*1.5f,0),r,lft,density,bounc);
+		//		new obball(*this,p3(0,radius()*.5f,0),r,lft,density,bounc);
+		//		new obball(*this,p3(0,radius()*2,0),r,lft,density,bounc);
+		//		new obball(*this,p3(0,radius()*3,0),r,lft,density,bounc);
+		//		new obball(*this,p3(0,0,0),r,lft,density,bounc);
+
+		//		new obball(*this,p3(0,radius()*.2f,0),r,lft,density,bounc);
+		//		new obball(*this,p3(0,radius()*2,0),r,lft,density,bounc);
+		//		new obball(*this,p3(0,radius()*2.5f,0),1,100,1,.5f);
+		//		new obball(*this,p3(0,radius()*3,0),1,100,1,.5f);
+//		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
+//		new obufocluster(*this,p3(50,0,0));
+
+
+
 bool gluInvertMatrix(const float m[16],float invOut[16]){
 	double inv[16],det;
 	int i;

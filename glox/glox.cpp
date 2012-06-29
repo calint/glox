@@ -60,6 +60,7 @@ public:
 	inline p3(const p3&p){x=p.x;y=p.y;z=p.z;metrics::p3s++;}
 	inline p3(const float x,const float y,const float z):x(x),y(y),z(z){metrics::p3s++;}
 	inline p3(const p3&from,const p3&to):x(to.x-from.x),y(to.y-from.y),z(to.z-from.z){metrics::p3s++;}
+	inline p3(const p3&from,const p3&to,const float len):x(to.x-from.x),y(to.y-from.y),z(to.z-from.z){metrics::p3s++;norm(len);}
 	inline ~p3(){metrics::p3s--;}
 
 	inline float getx()const{return x;}
@@ -635,17 +636,14 @@ public:
 		if(t>0)t=min(t1,t2);
 		if(t<-1||t>0){
 //			flf();l("how2? ")<<t1<<"  "<<t2<<"  "<<t<<endl;
-		}//? consider acc
+		}//? acc
 		np.set(*this).transl(u1,t);
 
 		const float m1=m;
 		const float m2=o.m;
 		const float mm=m+o.m;
 
-//		p3 nml(*this,p2);
-//		nml.norm().scale(u1.dot(nml));
-//		p3 vb1(u1);
-//		vb1.transl(nml,-1);
+		const p3 nml(*this,p2,true);
 
 		p3 v1(u1);
 		v1.scale((m1-m2)/mm);
@@ -653,11 +651,11 @@ public:
 		v11.scale(2*m2/mm);
 		v1.transl(v11);
 
-//		p3 vn1(p1,p2);
-//		vn1.norm().scale(v1.dot(vn1));
-//		nd.set(v1).transl(vn1);
+		p3 nv1(nml);
+		nv1.scale(v1.dot(nml));
 
-		nd.set(v1);
+		flf();l()<<"nml("<<nml<<") u1("<<u1<<") v1("<<v1<<") nv1("<<nv1<<")"<<endl;
+		nd.set(nv1);
 		np.transl(nd,dt()*(1-t));
 
 //		p3 v2(u2);
@@ -1195,9 +1193,24 @@ public:
 //		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
 //		new obcorp(*this,p3(0,4.2f,-6.5f));
 //		new obcorp(*this,p3(0,0, 6.5f));
-//		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
-//		new obufocluster(*this,p3(50,0,0));
 //		mkiglos();
+		mkexperiment1();
+	}
+	void mkexperiment1(){
+		const float r=1;
+		const float lft=1000;
+		const float bounc=1;
+		globx*g=new obball(*this,p3(0,r,17),10*r,lft,bounc);
+		g->d.set(0,0,0);
+		g=new obball(*this,p3(0,r*2.5f,6),r,lft,bounc);
+		g->d.set(0,0,-.05f);
+//		new obball(*this,p3(0,r,2),r,lft,bounc);
+		new obball(*this,p3(0,r,0),r,lft,bounc);
+//		new obball(*this,p3(0,r,-2),r,lft,bounc);
+//		g=new obball(*this,p3(0,r,-15),10*r,lft,bounc);
+//		g->d.set(0,0,0);
+	}
+	void mkcradle(){
 		const float r=1;
 		const float lft=1000;
 		const float bounc=1;
@@ -1210,23 +1223,6 @@ public:
 		new obball(*this,p3(0,r,-2),r,lft,bounc);
 		g=new obball(*this,p3(0,r,-15),10*r,lft,bounc);
 		g->d.set(0,0,0);
-//		new obball(*this,p3(-1,radius(),-1),r,lft,density,bounc);
-//		new obball(*this,p3(1,radius(),-1),r,lft,density,bounc);
-//		new obball(*this,p3(1,radius(), 1),r,lft,density,bounc);
-//		new obball(*this,p3(-1,radius(), 1),r,lft,density,bounc);
-//		new obball(*this,p3(0,radius()*2, 0),r,lft,density,bounc);
-
-
-		//		new obball(*this,p3(0,radius()*1.5f,0),r,lft,density,bounc);
-//		new obball(*this,p3(0,radius()*.5f,0),r,lft,density,bounc);
-//		new obball(*this,p3(0,radius()*2,0),r,lft,density,bounc);
-//		new obball(*this,p3(0,radius()*3,0),r,lft,density,bounc);
-//		new obball(*this,p3(0,0,0),r,lft,density,bounc);
-
-//		new obball(*this,p3(0,radius()*.2f,0),r,lft,density,bounc);
-//		new obball(*this,p3(0,radius()*2,0),r,lft,density,bounc);
-//		new obball(*this,p3(0,radius()*2.5f,0),1,100,1,.5f);
-//		new obball(*this,p3(0,radius()*3,0),1,100,1,.5f);
 	}
 	void mkiglos(){
 		const float s=1;
