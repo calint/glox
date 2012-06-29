@@ -612,7 +612,7 @@ public:
 //		flf();l()<<typeid(*this).name()<<"["<<this->getid()<<"]"<<endl;
 		if(!o.issolid())return true;
 		const p3&p1=*this;
-		const p3&u1=this->d;
+		const p3&u1=d;
 		const p3&p2=o;
 		const p3&u2=o.d;
 		const float r1=radius();
