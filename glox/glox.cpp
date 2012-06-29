@@ -1190,7 +1190,19 @@ public:
 //		new obcorp(*this,p3(0,4.2f,-6.5f));
 //		new obcorp(*this,p3(0,0, 6.5f));
 //		mkiglos();
-		mkexperiment3();
+		mkexperiment4();
+	}
+	void mkexperiment4(){
+		const float r=1;
+		const float lft=1000;
+		const float bounc=1;
+		globx*g;
+		g=new obball(*this,p3(0,r,6),r,lft,bounc);
+		g->d.set(0,0,-.05f);
+		new obball(*this,p3(0,r,0),r,lft,bounc);
+		new obball(*this,p3(0,r,2),r,lft,bounc);
+		g=new obball(*this,p3(0,r,-6),r,lft,bounc);
+		g->d.set(0,0,.05f);
 	}
 	void mkexperiment3(){
 		const float r=1;
@@ -1199,7 +1211,9 @@ public:
 		globx*g;
 		g=new obball(*this,p3(0,r,6),r,lft,bounc);
 		g->d.set(0,0,-.05f);
+		new obball(*this,p3(0,r,-2),r,lft,bounc);
 		new obball(*this,p3(0,r,0),r,lft,bounc);
+		new obball(*this,p3(0,r,2),r,lft,bounc);
 		g=new obball(*this,p3(0,r,-6),r,lft,bounc);
 		g->d.set(0,0,.05f);
 	}
