@@ -594,23 +594,21 @@ public:
 
 		glob::tick();
 	}
-	void solvesecdegeq(const float a,const float b,const float c,bool&solutionsfound,float&t1,float&t2)const{
+	bool solvesecdegeq(const float a,const float b,const float c,float&t1,float&t2)const{
 		const float pt2=2*a;
-		if(pt2==0){
-			solutionsfound=false;return;}
+		if(pt2==0){return false;}
 		const float pt1=sqrt(b*b-4*a*c);
 		t1=(-b-pt1)/pt2;
 		t2=(-b+pt1)/pt2;
 		if(t1!=t1&&t2!=t2){
-			flf();l()<<" nan "<<endl;
-			solutionsfound=false;
-			return;
+			flf();l()<<" t1 and t2 nan "<<endl;
+			return false;
 		}
-		solutionsfound=true;
+		return true;
 	}
 	virtual bool oncol(glob&o){//? defunc
 		glob::oncol(o);
-		flf();l()<<typeid(*this).name()<<"["<<this->getid()<<"]"<<endl;
+//		flf();l()<<typeid(*this).name()<<"["<<this->getid()<<"]"<<endl;
 		if(!o.issolid())return true;
 		const p3&p1=*this;
 		const p3&u1=this->d;
@@ -625,18 +623,17 @@ public:
 		const float c=-r0*r0+p3(p1).pow2().sum()+p3(p2).pow2().sum()-2*p1.dot(p2);
 
 		float t1=0,t2=0;
-		bool found;
-		solvesecdegeq(a,b,c,found,t1,t2);
-		if(!found){
-			flf();l("???")<<t1<<"  "<<t2<<"   "<<a<<endl;
-			return true;//? acc
+		if(!solvesecdegeq(a,b,c,t1,t2)){
+//			const float d=p3(p1,p2).magn();
+//			flf();cout<<"t1="<<t1<<" t2="<<t2<<" a="<<a<<" d="<<d<<" dr="<<r0<<endl;
+			return true;//? objects in collision but have no velocities
 		}
 		float t=min(t1,t2);
 		if(t<-1)t=max(t1,t2);
 		if(t>0)t=min(t1,t2);
 		if(t<-1||t>0){
-//			flf();l("??? ")<<t1<<"  "<<t2<<"  "<<t<<endl;
-		}//? acc
+//			flf();l("no t with 0,1 t1=")<<t1<<" t2="<<t2<<" t="<<t<<"  u1("<<u1<<")"<<endl;
+		}
 		np.set(p1).transl(u1,t);
 		p3 np2(p2);
 		np2.transl(u2,t);
@@ -648,17 +645,18 @@ public:
 		p3 vu2(nml);
 		vu2.scale(u2.dot(nml));
 
-		p3 v1(u1);
-		v1.transl(vu1,-1);
-		v1.transl(vu2, 1);
+//		p3 v1(u1);
+//		v1.transl(vu1,-1);
+//		v1.transl(vu2, 1);
 
 		// m1*u1+m2*u2=m1*v1+m2*v2
-//		const float m1=m;
-//		const float m2=o.m;
-//		const float mm=1/(m1+m2);
-//		p3 v1(u1);
-//		v1.transl(p3(vu1).scale(m1-m2).transl(p3(vu2).scale(2*m2)).scale(mm), 1);
-//		v1.transl(p3(vu2).scale(m2-m1).transl(p3(vu1).scale(2*m1)).scale(mm),-1);
+		const float m1=m;
+		const float m2=o.m;
+		const float mm=1/(m1+m2);
+		p3 v1(u1);
+		v1.transl(vu1,-1);
+		v1.transl(vu1,(m1-m2)*mm);
+		v1.transl(vu2,2*m2*mm);
 //		flf();l()<<"nml("<<nml<<") u1("<<u1<<") u2("<<u2<<") vu1("<<vu1<<") vu2("<<vu2<<") v1("<<v1<<") m1("<<m1<<") m2("<<m2<<")"<<endl;
 		nd.set(v1);
 		np.transl(nd,dt()*(1-t));
@@ -1190,14 +1188,15 @@ public:
 //		new obcorp(*this,p3(0,4.2f,-6.5f));
 //		new obcorp(*this,p3(0,0, 6.5f));
 //		mkiglos();
-		mkexperiment6();
+//		mkexperiment6();
+		mkcradle();
 	}
 	void mkexperiment6(){
 		const float r=1;
 		const float lft=1000;
 		const float bounc=1;
 		globx*g;
-		g=new obball(*this,p3(0,r*2,6),r,lft,bounc);
+		g=new obball(*this,p3(0,r*2,6),r*2,lft,bounc);
 		g->d.set(0,0,-.05f);
 		g=new obball(*this,p3(0,r,0),r,lft,bounc);
 		g->d.set(0,0,0);
