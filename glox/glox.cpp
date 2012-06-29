@@ -628,40 +628,40 @@ public:
 		bool found;
 		solvesecdegeq(a,b,c,found,t1,t2);
 		if(!found){
-			flf();l("how? ")<<t1<<"  "<<t2<<"   "<<a<<endl;
+			flf();l("???")<<t1<<"  "<<t2<<"   "<<a<<endl;
 			return true;//? acc
 		}
 		float t=min(t1,t2);
 		if(t<-1)t=max(t1,t2);
 		if(t>0)t=min(t1,t2);
 		if(t<-1||t>0){
-//			flf();l("how2? ")<<t1<<"  "<<t2<<"  "<<t<<endl;
+//			flf();l("??? ")<<t1<<"  "<<t2<<"  "<<t<<endl;
 		}//? acc
-		np.set(*this).transl(u1,t);
+		np.set(p1).transl(u1,t);
+		p3 np2(p2);
+		np2.transl(u2,t);
+		const p3 nml(np,np2,true);
 
+		p3 vu1(nml);
+		vu1.scale(u1.dot(nml));
+
+		p3 vu2(nml);
+		vu2.scale(u2.dot(nml));
+
+		p3 v1(u1);
+		v1.transl(vu1,-1);
+		v1.transl(vu2, 1);
+
+		// m1*u1+m2*u2=m1*v1+m2*v2
 //		const float m1=m;
 //		const float m2=o.m;
-//		const float mm=m+o.m;
-
-		const p3 nml(*this,p2,true);
-
-		p3 v11(nml);
-		v11.scale(u1.dot(nml));//.scale((m1-m2)/mm);
-
-		p3 v12(nml);
-		v12.scale(u2.dot(nml));//.scale(2*m2/mm);
-
-		p3 nu1(u1);
-		nu1.transl(v11,-1).transl(v12,1);
-		flf();l()<<"nml("<<nml<<") u1("<<u1<<") u2("<<u2<<") v11("<<v11<<") v12("<<v12<<") nu1("<<nu1<<")"<<endl;
-		nd.set(nu1);
+//		const float mm=1/(m1+m2);
+//		p3 v1(u1);
+//		v1.transl(p3(vu1).scale(m1-m2).transl(p3(vu2).scale(2*m2)).scale(mm), 1);
+//		v1.transl(p3(vu2).scale(m2-m1).transl(p3(vu1).scale(2*m1)).scale(mm),-1);
+//		flf();l()<<"nml("<<nml<<") u1("<<u1<<") u2("<<u2<<") vu1("<<vu1<<") vu2("<<vu2<<") v1("<<v1<<") m1("<<m1<<") m2("<<m2<<")"<<endl;
+		nd.set(v1);
 		np.transl(nd,dt()*(1-t));
-
-//		p3 v2(u2);
-//		v2.scale((m2-m1)/mm);
-//		p3 v21(u1);
-//		v21.scale(2*m1/mm);
-//		v2.transl(v21);
 		return true;
 	}
 };
@@ -1190,7 +1190,31 @@ public:
 //		new obcorp(*this,p3(0,4.2f,-6.5f));
 //		new obcorp(*this,p3(0,0, 6.5f));
 //		mkiglos();
-		mkexperiment4();
+		mkexperiment6();
+	}
+	void mkexperiment6(){
+		const float r=1;
+		const float lft=1000;
+		const float bounc=1;
+		globx*g;
+		g=new obball(*this,p3(0,r*2,6),r,lft,bounc);
+		g->d.set(0,0,-.05f);
+		g=new obball(*this,p3(0,r,0),r,lft,bounc);
+		g->d.set(0,0,0);
+//		new obball(*this,p3(0,r*1.25f,-3),r,lft,bounc);
+//		new obball(*this,p3(0,r*1.5f,-5),r,lft,bounc);
+	}
+	void mkexperiment5(){
+		const float r=1;
+		const float lft=1000;
+		const float bounc=1;
+		globx*g;
+		g=new obball(*this,p3(0,r*2,6),r,lft,bounc);
+		g->d.set(0,0,-.05f);
+		new obball(*this,p3(0,r,0),r,lft,bounc);
+		new obball(*this,p3(0,r,2),r,lft,bounc);
+		g=new obball(*this,p3(0,r,-6),r,lft,bounc);
+		g->d.set(0,0,.05f);
 	}
 	void mkexperiment4(){
 		const float r=1;
