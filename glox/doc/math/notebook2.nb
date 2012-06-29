@@ -1,0 +1,285 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 8.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[      8447,        276]
+NotebookOptionsPosition[      8192,        262]
+NotebookOutlinePosition[      8547,        278]
+CellTagsIndexPosition[      8504,        275]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", 
+   RowBox[{
+    RowBox[{"sphere", "/", "sphere"}], " ", "collision", " ", "resolver"}], 
+   "*)"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{
+    RowBox[{
+     SubscriptBox["p", "1"], "=", 
+     RowBox[{"{", 
+      RowBox[{
+       SubscriptBox["p", 
+        RowBox[{"1.", "x"}]], ",", 
+       SubscriptBox["p", 
+        RowBox[{"1.", "y"}]], ",", 
+       SubscriptBox["p", 
+        RowBox[{"1.", "z"}]]}], "}"}]}], ";", 
+    RowBox[{"(*", "position", "*)"}], "\[IndentingNewLine]", 
+    RowBox[{
+     SubscriptBox["u", "1"], "=", 
+     RowBox[{"{", 
+      RowBox[{
+       SubscriptBox["u", 
+        RowBox[{"1.", "x"}]], ",", 
+       SubscriptBox["u", 
+        RowBox[{"1.", "y"}]], ",", 
+       SubscriptBox["u", 
+        RowBox[{"1.", "z"}]]}], "}"}]}], ";"}], 
+   RowBox[{"(*", "velocity", "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     SubscriptBox["r", "1"], "=", 
+     SubscriptBox["r", "1"]}], ";", " ", 
+    RowBox[{"(*", "radius", "*)"}], "\[IndentingNewLine]", 
+    RowBox[{
+     SubscriptBox["p", "2"], "=", 
+     RowBox[{"{", 
+      RowBox[{
+       SubscriptBox["p", 
+        RowBox[{"2.", "x"}]], ",", 
+       SubscriptBox["p", 
+        RowBox[{"2.", "y"}]], ",", 
+       SubscriptBox["p", 
+        RowBox[{"2.", "z"}]]}], "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    SubscriptBox["r", "2"], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     SubscriptBox["u", "2"], "=", 
+     RowBox[{"{", 
+      RowBox[{
+       SubscriptBox["u", 
+        RowBox[{"2.", "x"}]], ",", 
+       SubscriptBox["u", 
+        RowBox[{"2.", "y"}]], ",", 
+       SubscriptBox["u", 
+        RowBox[{"2.", "z"}]]}], "}"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Solve", "[", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"EuclideanDistance", "[", 
+        RowBox[{
+         RowBox[{
+          SubscriptBox["p", "1"], "+", 
+          RowBox[{
+           SubscriptBox["u", "1"], "t"}]}], ",", 
+         RowBox[{
+          SubscriptBox["p", "2"], "+", 
+          RowBox[{
+           SubscriptBox["u", "2"], "t"}]}]}], "]"}], "\[Equal]", 
+       RowBox[{
+        SubscriptBox["r", "1"], "+", 
+        SubscriptBox["r", "2"]}]}], ",", "t"}], "]"}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{
+     RowBox[{
+      RowBox[{
+      "if", " ", "overlapping", " ", "pick", " ", "nearest", " ", "t"}], 
+      "\[LessEqual]", "0"}], ",", " ", 
+     RowBox[{
+      RowBox[{
+      "for", " ", "collision", " ", "detection", " ", "check", " ", "t"}], 
+      ">", 
+      RowBox[{"0", " ", "and", " ", "t"}], "<", "1"}]}], "*)"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     SubscriptBox["np", "1"], "=", 
+     RowBox[{
+      SubscriptBox["p", "1"], "+", 
+      RowBox[{
+       SubscriptBox["u", "1"], "t"}]}]}], ";", 
+    RowBox[{"(*", 
+     RowBox[{"move", " ", "out", " ", "of", " ", "collision"}], "*)"}], 
+    "\[IndentingNewLine]", 
+    RowBox[{
+     SubscriptBox["np", "2"], "=", 
+     RowBox[{
+      SubscriptBox["p", "2"], "+", 
+      RowBox[{
+       SubscriptBox["u", "2"], "t"}]}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"nml", "=", 
+     RowBox[{"Normalize", "[", 
+      RowBox[{
+       SubscriptBox["np", "1"], "-", 
+       SubscriptBox["np", "2"]}], "]"}]}], ";", 
+    RowBox[{"(*", 
+     RowBox[{"collision", " ", "plane", " ", "normal"}], "*)"}], 
+    "\[IndentingNewLine]", 
+    SubscriptBox["m", "1"], ";", 
+    RowBox[{"(*", "mass", "*)"}], "\[IndentingNewLine]", 
+    SubscriptBox["m", "2"], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"(*", "     ", 
+    RowBox[{
+    "velocity", " ", "given", "    ", "velocities", " ", "received", " ", 
+     "along", " ", "collision", " ", "plane", " ", "normal"}], "*)"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     SubscriptBox["v", "1"], "=", 
+     RowBox[{
+      SubscriptBox["u", "1"], "-", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{
+         SubscriptBox["u", "1"], ".", "nml"}], ")"}], "nml"}], "+", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{
+         SubscriptBox["u", "1"], ".", "nml"}], ")"}], "nml", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{
+           SubscriptBox["m", "1"], "-", 
+           SubscriptBox["m", "2"]}], ")"}], "/", 
+         RowBox[{"(", 
+          RowBox[{
+           SubscriptBox["m", "1"], "+", 
+           SubscriptBox["m", "2"]}], ")"}]}], ")"}]}], "+", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{
+         SubscriptBox["u", "2"], ".", "nml"}], ")"}], "nml", 
+       RowBox[{"(", 
+        RowBox[{"2", 
+         RowBox[{
+          SubscriptBox["m", "2"], "/", 
+          RowBox[{"(", 
+           RowBox[{
+            SubscriptBox["m", "1"], "+", 
+            SubscriptBox["m", "2"]}], ")"}]}]}], ")"}]}]}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     SubscriptBox["v", "2"], "=", 
+     RowBox[{
+      SubscriptBox["u", "2"], "-", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{
+         SubscriptBox["u", "2"], ".", "nml"}], ")"}], "nml"}], "+", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{
+         SubscriptBox["u", "2"], ".", "nml"}], ")"}], "nml", 
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{
+           SubscriptBox["m", "2"], "-", 
+           SubscriptBox["m", "1"]}], ")"}], "/", 
+         RowBox[{"(", 
+          RowBox[{
+           SubscriptBox["m", "1"], "+", 
+           SubscriptBox["m", "2"]}], ")"}]}], ")"}]}], "+", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{
+         SubscriptBox["u", "1"], ".", "nml"}], ")"}], "nml", 
+       RowBox[{"(", 
+        RowBox[{"2", 
+         RowBox[{
+          SubscriptBox["m", "1"], "/", 
+          RowBox[{"(", 
+           RowBox[{
+            SubscriptBox["m", "1"], "+", 
+            SubscriptBox["m", "2"]}], ")"}]}]}], ")"}]}]}]}], ";"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     SubscriptBox["np", "1"], "=", 
+     RowBox[{
+      SubscriptBox["np", "1"], "+", 
+      RowBox[{
+       SubscriptBox["v", "1"], 
+       RowBox[{"(", 
+        RowBox[{"1", "-", "t"}], ")"}]}]}]}], ";", 
+    RowBox[{"(*", 
+     RowBox[{
+     "perform", " ", "remaining", " ", "dt", " ", "with", " ", "new", " ", 
+      "velocities"}], "*)"}], "\[IndentingNewLine]", 
+    RowBox[{
+     SubscriptBox["np", "2"], "=", 
+     RowBox[{
+      SubscriptBox["np", "2"], "+", 
+      RowBox[{
+       SubscriptBox["v", "2"], 
+       RowBox[{"(", 
+        RowBox[{"1", "-", "t"}], ")"}]}]}]}], ";"}], "\[IndentingNewLine]", 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{
+      RowBox[{
+       SubscriptBox["m", "1"], 
+       SubscriptBox["u", "1"]}], "+", 
+      RowBox[{
+       SubscriptBox["m", "2"], 
+       SubscriptBox["u", "2"]}]}], "==", 
+     RowBox[{
+      RowBox[{
+       SubscriptBox["m", "1"], 
+       SubscriptBox["v", "1"]}], "+", 
+      RowBox[{
+       SubscriptBox["m", "2"], 
+       SubscriptBox["v", "2"]}]}]}], ";"}], 
+   "\[IndentingNewLine]"}]}]], "Input",
+ CellChangeTimes->{{3.5499443001618557`*^9, 3.549944570235422*^9}, {
+  3.5499446778792973`*^9, 3.5499446851043043`*^9}, {3.549944717914577*^9, 
+  3.5499447628114853`*^9}, {3.5499449232853823`*^9, 3.549945030267845*^9}, {
+  3.549945119514237*^9, 3.5499452362530613`*^9}, {3.549945285470325*^9, 
+  3.549945891208911*^9}, {3.549945931800774*^9, 3.5499459891270103`*^9}, {
+  3.5499460785149393`*^9, 3.549946128248087*^9}, {3.5499461618674383`*^9, 
+  3.5499463020369577`*^9}, {3.549946339911528*^9, 3.5499464179173517`*^9}, {
+  3.549946483848427*^9, 3.549946568980342*^9}, {3.549946599573805*^9, 
+  3.549946612542385*^9}}]
+},
+WindowSize->{740, 620},
+WindowMargins->{{105, Automatic}, {Automatic, 0}},
+FrontEndVersion->"8.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (October 5, \
+2011)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[557, 20, 7631, 240, 375, "Input"]
+}
+]
+*)
+
+(* End of internal cache information *)

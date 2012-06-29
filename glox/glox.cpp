@@ -560,25 +560,23 @@ public:
 			pp.set(*this);
 			ppsaved=false;//?
 		}
-//		flf();l()<<fi<<endl;
-		dd=p3(f).transl(fi).scale(1/m).scale(dt());
-//		dd.transl(p3(0,-9.82f,0),dt());
 //		flf();l()<<"f("<<f<<") fi("<<fi<<") m("<<m<<") dd("<<dd<<") d("<<d<<") ("<<*this<<") dt("<<dt()<<") "<<endl;
+		dd=p3(f).transl(fi).scale(1/m).scale(dt());
 		fi.set(0,0,0);
+//		dd.transl(p3(0,-9.82f,0).scale(.1f),dt());
 		d.transl(dd);
-		this->transl(d);
+		transl(d);
 //		const p3p gnd(p3(0,0,0),p3(0,1,0));
 //		const float dy=gety()-radius()-gnd.gety();
 //		if(dy<0){
-//			flf();l()<<endl;
+////			flf();l()<<endl;
 //			if(d.gety()!=0){
 //				const float t=dy/d.gety();
 //				transl(d,-t);
-//				const float tb=d.dot(gnd.n);
-//				p3 ddb(gnd.n);
-//				ddb.scale(tb);
-//				ddb.scale(-2,-2,-2);
-//				d.transl(ddb);
+//				p3 nml(gnd.n);
+//				nml.scale(d.dot(gnd.n));
+//				nml.scale(-2,-2,-2);
+//				d.transl(nml);
 //				transl(d,1-t);
 //				d.scale(bf);
 //				const float ndy=gety()-radius()-gnd.gety();
@@ -591,7 +589,6 @@ public:
 //				d.set(0,0,0);
 //			}
 //		}
-
 		glob::tick();
 	}
 	bool solvesecdegeq(const float a,const float b,const float c,float&t1,float&t2)const{
@@ -1188,18 +1185,32 @@ public:
 //		new obcorp(*this,p3(0,4.2f,-6.5f));
 //		new obcorp(*this,p3(0,0, 6.5f));
 //		mkiglos();
-//		mkexperiment6();
-		mkcradle();
+		mkexperiment();
+//		mkcradle();
+	}
+	void mkexperiment(){
+		const float r=1;
+		const float lft=1000;
+		const float bounc=1;
+		globx*g;
+		new obball(*this,p3( 0,    r,  0),r,lft,bounc);
+		new obball(*this,p3( 0,r+2*r,  0),r,lft,bounc);
+		new obball(*this,p3( 0,    r,2*r),r,lft,bounc);
+		new obball(*this,p3( 0,r+2*r,2*r),r,lft,bounc);
+		g=new obball(*this,p3(5, r*2,r),r,lft,bounc);
+		g->d.set(-.01f,0,0);
+//		new obball(*this,p3(0,r*1.5f,-5),r,lft,bounc);
 	}
 	void mkexperiment6(){
 		const float r=1;
 		const float lft=1000;
 		const float bounc=1;
 		globx*g;
-		g=new obball(*this,p3(0,r*2,6),r*2,lft,bounc);
+		g=new obball(*this,p3(0,r,6),r,lft,bounc);
 		g->d.set(0,0,-.05f);
-		g=new obball(*this,p3(0,r,0),r,lft,bounc);
-		g->d.set(0,0,0);
+		new obball(*this,p3(0,r,0),r,lft,bounc);
+		g=new obball(*this,p3(0,r,-6),r,lft,bounc);
+		g->d.set(0,0,.05f);
 //		new obball(*this,p3(0,r*1.25f,-3),r,lft,bounc);
 //		new obball(*this,p3(0,r*1.5f,-5),r,lft,bounc);
 	}
