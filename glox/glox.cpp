@@ -595,12 +595,16 @@ public:
 		const float pt2=2*a;
 		if(pt2==0){return false;}
 		const float pt1=sqrt(b*b-4*a*c);
-		t1=(-b-pt1)/pt2;
-		t2=(-b+pt1)/pt2;
-		if(t1!=t1&&t2!=t2){
-			flf();l()<<" t1 and t2 nan "<<endl;
+		if(pt1!=pt1){
+			flf();l()<<" nan "<<endl;
 			return false;
 		}
+		t1=(-b-pt1)/pt2;
+		t2=(-b+pt1)/pt2;
+//		if(t1!=t1&&t2!=t2){
+//			flf();l()<<" t1 and t2 nan "<<endl;
+//			return false;
+//		}
 		return true;
 	}
 	virtual bool oncol(glob&o){//? defunc
@@ -615,10 +619,14 @@ public:
 		const float r2=o.radius();
 		const float r0=r1+r2;
 
-		const float a=p3(u1).pow2().sum()+p3(u2).pow2().sum()-2*u1.dot(u2);
-		const float b=2*p1.dot(u1)-2*p2.dot(u1)-2*p1.dot(u2)+2*p2.dot(u2);
-		const float c=-r0*r0+p3(p1).pow2().sum()+p3(p2).pow2().sum()-2*p1.dot(p2);
-
+//		const float a=p3(u1).pow2().sum()+p3(u2).pow2().sum()-2*u1.dot(u2);
+//		const float b=2*p1.dot(u1)-2*p2.dot(u1)-2*p1.dot(u2)+2*p2.dot(u2);
+//		const float c=-r0*r0+p3(p1).pow2().sum()+p3(p2).pow2().sum()-2*p1.dot(p2);
+		const p3 dp=p3(p2,p1);
+		const p3 du=p3(u2,u1);
+		const float a=p3(du).pow2().sum();
+		const float b=2*p3(dp).dot(du);
+		const float c=p3(dp).pow2().sum()-r0*r0;
 		float t1=0,t2=0;
 		if(!solvesecdegeq(a,b,c,t1,t2)){
 //			const float d=p3(p1,p2).magn();
@@ -1185,8 +1193,8 @@ public:
 //		new obcorp(*this,p3(0,4.2f,-6.5f));
 //		new obcorp(*this,p3(0,0, 6.5f));
 //		mkiglos();
-		mkexperiment();
-//		mkcradle();
+//		mkexperiment();
+		mkcradle();
 	}
 	void mkexperiment(){
 		const float r=1;
