@@ -639,23 +639,22 @@ public:
 		}//? acc
 		np.set(*this).transl(u1,t);
 
-		const float m1=m;
-		const float m2=o.m;
-		const float mm=m+o.m;
+//		const float m1=m;
+//		const float m2=o.m;
+//		const float mm=m+o.m;
 
 		const p3 nml(*this,p2,true);
 
-		p3 v1(u1);
-		v1.scale((m1-m2)/mm);
-		p3 v11(u2);
-		v11.scale(2*m2/mm);
-		v1.transl(v11);
+		p3 v11(nml);
+		v11.scale(u1.dot(nml));//.scale((m1-m2)/mm);
 
-		p3 nv1(nml);
-		nv1.scale(v1.dot(nml));
+		p3 v12(nml);
+		v12.scale(u2.dot(nml));//.scale(2*m2/mm);
 
-		flf();l()<<"nml("<<nml<<") u1("<<u1<<") v1("<<v1<<") nv1("<<nv1<<")"<<endl;
-		nd.set(nv1);
+		p3 nu1(u1);
+		nu1.transl(v11,-1).transl(v12,1);
+		flf();l()<<"nml("<<nml<<") u1("<<u1<<") u2("<<u2<<") v11("<<v11<<") v12("<<v12<<") nu1("<<nu1<<")"<<endl;
+		nd.set(nu1);
 		np.transl(nd,dt()*(1-t));
 
 //		p3 v2(u2);
@@ -1191,7 +1190,20 @@ public:
 //		new obcorp(*this,p3(0,4.2f,-6.5f));
 //		new obcorp(*this,p3(0,0, 6.5f));
 //		mkiglos();
-		mkexperiment1();
+		mkexperiment2();
+	}
+	void mkexperiment2(){
+		const float r=1;
+		const float lft=1000;
+		const float bounc=1;
+		globx*g;
+		new obball(*this,p3(0,r,17),10*r,lft,bounc);
+		g=new obball(*this,p3(0,r*2.7f,6),r,lft,bounc);
+		g->d.set(0,0,-.05f);
+		new obball(*this,p3(0,r,2),r,lft,bounc);
+		new obball(*this,p3(0,r,0),r,lft,bounc);
+		new obball(*this,p3(0,r,-2),r,lft,bounc);
+		new obball(*this,p3(0,r,-15),10*r,lft,bounc);
 	}
 	void mkexperiment1(){
 		const float r=1;
@@ -1199,7 +1211,7 @@ public:
 		const float bounc=1;
 		globx*g=new obball(*this,p3(0,r,17),10*r,lft,bounc);
 		g->d.set(0,0,0);
-		g=new obball(*this,p3(0,r*2.5f,6),r,lft,bounc);
+		g=new obball(*this,p3(0,r*2,6),r,lft,bounc);
 		g->d.set(0,0,-.05f);
 //		new obball(*this,p3(0,r,2),r,lft,bounc);
 		new obball(*this,p3(0,r,0),r,lft,bounc);
