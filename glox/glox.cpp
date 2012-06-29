@@ -663,9 +663,6 @@ public:
 //		p3 v21(u1);
 //		v21.scale(2*m1/mm);
 //		v2.transl(v21);
-
-
-//		d.set(0,0,0);
 		return true;
 	}
 };
