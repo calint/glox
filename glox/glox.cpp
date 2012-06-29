@@ -622,9 +622,10 @@ public:
 //		const float a=p3(u1).pow2().sum()+p3(u2).pow2().sum()-2*u1.dot(u2);
 //		const float b=2*p1.dot(u1)-2*p2.dot(u1)-2*p1.dot(u2)+2*p2.dot(u2);
 //		const float c=-r0*r0+p3(p1).pow2().sum()+p3(p2).pow2().sum()-2*p1.dot(p2);
-		const p3 dp=p3(p2,p1);
+
 		const p3 du=p3(u2,u1);
 		const float a=p3(du).pow2().sum();
+		const p3 dp=p3(p2,p1);
 		const float b=2*p3(dp).dot(du);
 		const float c=p3(dp).pow2().sum()-r0*r0;
 		float t1=0,t2=0;
