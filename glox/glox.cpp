@@ -184,9 +184,9 @@ public:
 	p3 zaxis()const{return p3(zx,zy,zz);}
 	m3&mw(const p3&p,const p3&a){
 		ident();
-		rotz(degtorad(a.getz()));
 		roty(degtorad(a.gety()));
 		rotx(degtorad(a.getx()));
+		rotz(degtorad(a.getz()));
 		xo=p.getx();
 		yo=p.gety();
 		zo=p.getz();
@@ -421,11 +421,10 @@ public:
 		const p3 wpo=o.g.posinwcs(o);
 		const p3 v(wpthis,wpo);
 		const float d=v.magn();//? magn2
-		const float dr=radius()+o.radius();
-//		const float rr=dr*dr;
+		const float r=radius()+o.radius();
 		metrics::coldetsph++;
 //		flf();l()<<typeid(*this).name()<<"("<<wpthis<<")  "<<typeid(o).name()<<"("<<wpo<<")  "<<d<<"  "<<bv.r<<"   "<<o.bv.r<<endl;
-		if(d>=dr){
+		if(d>=r){
 			if(o.iscoldetrec()){
 				for(auto gg:o.chs)
 					coldet(*gg);
@@ -476,9 +475,9 @@ public:
 		metrics::globsrend++;
 //		flf();l("included")<<endl;
 		glTranslatef(getx(),gety(),getz());
+		glRotatef(a.getz(),0,0,1);
 		glRotatef(a.getx(),1,0,0);
 		glRotatef(a.gety(),0,1,0);
-		glRotatef(a.getz(),0,0,1);
 		if(drawboundingspheres)drawboundingsphere();
 		gldraw();
 		for(auto g:chs){glPushMatrix();g->culldraw(npl,pl);glPopMatrix();}//? coordsyschange
@@ -492,16 +491,16 @@ public:
 //		glShadeModel(GL_SMOOTH);
 		glutSolidSphere(radius(),detail,detail);
 	}
-	void draw(){
-		metrics::globsrend++;
-		glTranslatef(getx(),gety(),getz());
-		glRotatef(a.getx(),1,0,0);
-		glRotatef(a.gety(),0,1,0);
-		glRotatef(a.getz(),0,0,1);
-		if(drawboundingspheres)drawboundingsphere();
-		gldraw();
-		for(auto g:chs){glPushMatrix();g->draw();glPopMatrix();}
-	}
+//	void draw(){
+//		metrics::globsrend++;
+//		glTranslatef(getx(),gety(),getz());
+//		glRotatef(a.getz(),0,0,1);
+//		glRotatef(a.getx(),1,0,0);
+//		glRotatef(a.gety(),0,1,0);
+//		if(drawboundingspheres)drawboundingsphere();
+//		gldraw();
+//		for(auto g:chs){glPushMatrix();g->draw();glPopMatrix();}
+//	}
 	virtual void gldraw(){};
 	virtual void tick(){
 		chs.splice(chs.end(),chsadd);
