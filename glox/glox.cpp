@@ -204,6 +204,13 @@ public:
 		return*this;
 	}
 	m3&set(const GLfloat m[16]){
+		xx=m[ 0];yx=m[ 4];zx=m[ 8];ox=m[12];
+		xy=m[ 1];yy=m[ 5];zy=m[ 9];oy=m[13];
+		xz=m[ 2];yz=m[ 6];zz=m[10];oz=m[14];
+		xo=m[ 3];yo=m[ 7];zo=m[11];oo=m[15];
+		return*this;
+	}
+	m3&settransposed(const GLfloat m[16]){//?
 		xx=m[ 0];yx=m[ 1];zx=m[ 2];ox=m[ 3];
 		xy=m[ 4];yy=m[ 5];zy=m[ 6];oy=m[ 7];
 		xz=m[ 8];yz=m[ 9];zz=m[10];oz=m[11];
@@ -266,6 +273,13 @@ public:
 //		xz=nxz;yz=nyz;zz=nzz;oz=noz;
 //		xo=nxo;yo=nyo;zo=nzo;oo=noo;
 //
+//		return*this;
+//	}
+//	m3&set(const GLfloat m[16]){
+//		xx=m[ 0];yx=m[ 1];zx=m[ 2];ox=m[ 3];
+//		xy=m[ 4];yy=m[ 5];zy=m[ 6];oy=m[ 7];
+//		xz=m[ 8];yz=m[ 9];zz=m[10];oz=m[11];
+//		xo=m[12];yo=m[13];zo=m[14];oo=m[15];
 //		return*this;
 //	}
 //	m3 inv()const{
@@ -1738,7 +1752,7 @@ public:
 		GLfloat mf[16];
 		glGetFloatv(GL_MODELVIEW_MATRIX,mf);
 		m3 m;
-		m.set(mf);
+		m.settransposed(mf);
 
 		const p3 xaxis=m.xaxis();
 		const p3 yaxis=m.yaxis();
