@@ -203,20 +203,20 @@ public:
 		dst.set(rx,ry,rz);
 		return*this;
 	}
-	m3&set(const GLfloat m[16]){
-		xx=m[ 0];yx=m[ 4];zx=m[ 8];ox=m[12];
-		xy=m[ 1];yy=m[ 5];zy=m[ 9];oy=m[13];
-		xz=m[ 2];yz=m[ 6];zz=m[10];oz=m[14];
-		xo=m[ 3];yo=m[ 7];zo=m[11];oo=m[15];
-		return*this;
-	}
-	m3&settransposed(const GLfloat m[16]){//?
-		xx=m[ 0];yx=m[ 1];zx=m[ 2];ox=m[ 3];
-		xy=m[ 4];yy=m[ 5];zy=m[ 6];oy=m[ 7];
-		xz=m[ 8];yz=m[ 9];zz=m[10];oz=m[11];
-		xo=m[12];yo=m[13];zo=m[14];oo=m[15];
-		return*this;
-	}
+//	m3&set(const GLfloat m[16]){
+//		xx=m[ 0];yx=m[ 4];zx=m[ 8];ox=m[12];
+//		xy=m[ 1];yy=m[ 5];zy=m[ 9];oy=m[13];
+//		xz=m[ 2];yz=m[ 6];zz=m[10];oz=m[14];
+//		xo=m[ 3];yo=m[ 7];zo=m[11];oo=m[15];
+//		return*this;
+//	}
+//	m3&settransposed(const GLfloat m[16]){//?
+//		xx=m[ 0];yx=m[ 1];zx=m[ 2];ox=m[ 3];
+//		xy=m[ 4];yy=m[ 5];zy=m[ 6];oy=m[ 7];
+//		xz=m[ 8];yz=m[ 9];zz=m[10];oz=m[11];
+//		xo=m[12];yo=m[13];zo=m[14];oo=m[15];
+//		return*this;
+//	}
 	m3&mult(const m3&m){
 		metrics::mmmul++;
 		const float nxx=m.xx*xx+m.yx*xy+m.zx*xz+m.ox*xo;
