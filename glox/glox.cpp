@@ -197,9 +197,9 @@ public:
 		const float x=src.getx();
 		const float y=src.gety();
 		const float z=src.getz();
-		float rx=x*xx+y*xy+z*xz+xo;
-		float ry=x*yx+y*yy+z*yz+yo;
-		float rz=x*zx+y*zy+z*zz+zo;
+		const float rx=x*xx+y*xy+z*xz+xo;
+		const float ry=x*yx+y*yy+z*yz+yo;
+		const float rz=x*zx+y*zy+z*zz+zo;
 		dst.set(rx,ry,rz);
 		return*this;
 	}
@@ -212,25 +212,25 @@ public:
 	}
 	m3&mult(const m3&m){
 		metrics::mmmul++;
-		float nxx=m.xx*xx+m.yx*xy+m.zx*xz+m.ox*xo;
-		float nyx=m.xx*yx+m.yx*yy+m.zx*yz+m.ox*yo;
-		float nzx=m.xx*zx+m.yx*zy+m.zx*zz+m.ox*zo;
-		float nox=m.xx*ox+m.yx*oy+m.zx*oz+m.ox*oo;
+		const float nxx=m.xx*xx+m.yx*xy+m.zx*xz+m.ox*xo;
+		const float nyx=m.xx*yx+m.yx*yy+m.zx*yz+m.ox*yo;
+		const float nzx=m.xx*zx+m.yx*zy+m.zx*zz+m.ox*zo;
+		const float nox=m.xx*ox+m.yx*oy+m.zx*oz+m.ox*oo;
 
-		float nxy=m.xy*xx+m.yy*xy+m.zy*xz+m.oy*xo;
-		float nyy=m.xy*yx+m.yy*yy+m.zy*yz+m.oy*yo;
-		float nzy=m.xy*zx+m.yy*zy+m.zy*zz+m.oy*zo;
-		float noy=m.xy*ox+m.yy*oy+m.zy*oz+m.oy*oo;
+		const float nxy=m.xy*xx+m.yy*xy+m.zy*xz+m.oy*xo;
+		const float nyy=m.xy*yx+m.yy*yy+m.zy*yz+m.oy*yo;
+		const float nzy=m.xy*zx+m.yy*zy+m.zy*zz+m.oy*zo;
+		const float noy=m.xy*ox+m.yy*oy+m.zy*oz+m.oy*oo;
 
-		float nxz=m.xz*xx+m.yz*xy+m.zz*xz+m.oz*xo;
-		float nyz=m.xz*yx+m.yz*yy+m.zz*yz+m.oz*yo;
-		float nzz=m.xz*zx+m.yz*zy+m.zz*zz+m.oz*zo;
-		float noz=m.xz*ox+m.yz*oy+m.zz*oz+m.oz*oo;
+		const float nxz=m.xz*xx+m.yz*xy+m.zz*xz+m.oz*xo;
+		const float nyz=m.xz*yx+m.yz*yy+m.zz*yz+m.oz*yo;
+		const float nzz=m.xz*zx+m.yz*zy+m.zz*zz+m.oz*zo;
+		const float noz=m.xz*ox+m.yz*oy+m.zz*oz+m.oz*oo;
 
-		float nxo=m.xo*xx+m.yo*xy+m.zo*xz+m.oo*xo;
-		float nyo=m.xo*yx+m.yo*yy+m.zo*yz+m.oo*yo;
-		float nzo=m.xo*zx+m.yo*zy+m.zo*zz+m.oo*zo;
-		float noo=m.xo*ox+m.yo*oy+m.zo*oz+m.oo*oo;
+		const float nxo=m.xo*xx+m.yo*xy+m.zo*xz+m.oo*xo;
+		const float nyo=m.xo*yx+m.yo*yy+m.zo*yz+m.oo*yo;
+		const float nzo=m.xo*zx+m.yo*zy+m.zo*zz+m.oo*zo;
+		const float noo=m.xo*ox+m.yo*oy+m.zo*oz+m.oo*oo;
 
 		xx=nxx;yx=nyx;zx=nzx;ox=nox;
 		xy=nxy;yy=nyy;zy=nzy;oy=noy;
