@@ -136,7 +136,7 @@ public:
 #define flf()l("···",__FILE__,__LINE__,__FUNCTION__);
 static inline ostream&l(const char*s="",const char*file="",int lineno=0,const char*func=""){cerr<<file;if(lineno){cerr<<":"<<lineno;}cerr<<" "<<func<<"  "<<s;return cerr;}
 
-class m3{//?
+class m3{
 	float xx,yx,zx,ox;
 	float xy,yy,zy,oy;
 	float xz,yz,zz,oz;
@@ -182,7 +182,7 @@ public:
 	p3 xaxis()const{return p3(xx,xy,xz);}
 	p3 yaxis()const{return p3(yx,yy,yz);}
 	p3 zaxis()const{return p3(zx,zy,zz);}
-	m3&mw(const p3&p,const p3&a){
+	m3&mw(const p3&p,const p3&a){//? Msyxzt
 		ident();
 		roty(degtorad(a.gety()));
 		rotx(degtorad(a.getx()));
@@ -192,7 +192,7 @@ public:
 		zo=p.getz();
 		return*this;
 	}
-	const m3&mult(const p3&src,p3&dst)const{
+	const m3&transf(const p3&src,p3&dst)const{
 		metrics::mpmul++;
 		const float x=src.getx();
 		const float y=src.gety();
@@ -510,7 +510,7 @@ public:
 	}
 	virtual bool oncol(glob&o){metrics::collisions++;return &o==&o;}
 protected:
-	p3 posinwcs(const p3&p){refreshmxmw();p3 d;mxmw.mult(p,d);return d;}
+	p3 posinwcs(const p3&p){refreshmxmw();p3 d;mxmw.transf(p,d);return d;}
 	bool refreshmxmw(){
 		if(!&g)
 			return false;
@@ -1351,10 +1351,10 @@ public:
 			glVertex3f(r,0,0);
 			glVertex3f(0,0,0);
 
-			glColor3b(0,0,0);
+			glColor3b(0,127,0);
 			glVertex3f(0,0,0);
 
-			glColor3b(0,0,0);
+			glColor3b(0,127,0);
 			glVertex3f(0,r,0);
 
 			glColor3b(0,0,127);
