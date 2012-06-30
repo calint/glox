@@ -165,15 +165,15 @@ class m3{
 		yx=nyx;yy=nyy;yz=nyz;yo=nyo;
 		return*this;
 	}
-	m3&transl(const p3&p){
-		const float x=p.getx();
-		const float y=p.gety();
-		const float z=p.getz();
-		ox=xx*x+yx*y+zx*z+ox;
-		oy=xy*x+yy*y+zy*z+oy;
-		oz=xz*x+yz*y+zz*z+oz;
-		return*this;
-	}
+//	m3&transl(const p3&p){
+//		const float x=p.getx();
+//		const float y=p.gety();
+//		const float z=p.getz();
+//		ox=xx*x+yx*y+zx*z+ox;
+//		oy=xy*x+yy*y+zy*z+oy;
+//		oz=xz*x+yz*y+zz*z+oz;
+//		return*this;
+//	}
 
 public:
 	inline m3(){metrics::m3s++;ident();}
@@ -197,9 +197,9 @@ public:
 		const float x=src.getx();
 		const float y=src.gety();
 		const float z=src.getz();
-		const float nx=x*xx+y*xy+z*xz+xo;
-		const float ny=x*yx+y*yy+z*yz+yo;
-		const float nz=x*zx+y*zy+z*zz+zo;
+		const float nx=ox+x*xx+y*yx+z*zx;
+		const float ny=oy+x*xy+y*yy+z*zy;
+		const float nz=oz+x*xz+y*yz+z*zz;
 		dst.set(nx,ny,nz);
 		return*this;
 	}
