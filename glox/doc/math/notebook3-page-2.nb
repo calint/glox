@@ -1,0 +1,450 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 8.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[     12917,        441]
+NotebookOptionsPosition[     12240,        415]
+NotebookOutlinePosition[     12595,        431]
+CellTagsIndexPosition[     12552,        428]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[
+ RowBox[{"(*", 
+  RowBox[{
+  "force", ",", " ", "mass", ",", " ", "acceleration", ",", " ", "velociy", 
+   ",", " ", 
+   RowBox[{"lineear", " ", "momentum"}], ",", " ", 
+   RowBox[{"kinetic", " ", "energy"}], ",", " ", 
+   RowBox[{"elastic", " ", "collision"}]}], " ", "*)"}]], "Input",
+ CellChangeTimes->{{3.550011004618732*^9, 3.5500110847286863`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Clear", "[", "\"\<*\>\"", "]"}], ";"}]], "Input",
+ CellChangeTimes->{{3.5500085272014923`*^9, 3.550008543201634*^9}, {
+  3.5500087956840687`*^9, 3.550008819024445*^9}, {3.5500105211110573`*^9, 
+  3.550010543793836*^9}, {3.550010575561935*^9, 3.55001064434361*^9}, {
+  3.550013141798761*^9, 3.550013142709425*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"m", ";"}], 
+  RowBox[{"(*", "mass", "*)"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"v", ";"}], 
+  RowBox[{"(*", "velocity", "*)"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"p", "=", 
+    RowBox[{"m", " ", "v"}]}], ";"}], 
+  RowBox[{"(*", 
+   RowBox[{"linear", " ", "momentum"}], "*)"}]}]}], "Input",
+ CellChangeTimes->{{3.550010250296454*^9, 3.550010278510209*^9}, {
+  3.550010611958791*^9, 3.550010623069024*^9}, {3.550011266522635*^9, 
+  3.550011279441475*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"a", ";"}], 
+  RowBox[{"(*", "acceleartion", "*)"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"F", "=", 
+    RowBox[{"m", " ", "a"}]}], ";"}], 
+  RowBox[{"(*", "force", "*)"}]}]}], "Input",
+ CellChangeTimes->{{3.550010280592349*^9, 3.550010291535935*^9}, {
+  3.550010630469784*^9, 3.550010639412871*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   SubscriptBox["u", "1"], ";"}], 
+  RowBox[{"(*", 
+   RowBox[{"velocity", " ", "during", " ", "collision"}], 
+   "*)"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  SubscriptBox["u", "2"], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   SubscriptBox["v", "1"], ";"}], 
+  RowBox[{"(*", 
+   RowBox[{"velocity", " ", "after", " ", "collision"}], 
+   "*)"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  SubscriptBox["v", "2"], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{
+    RowBox[{
+     RowBox[{
+      SubscriptBox["m", "1"], 
+      SubscriptBox["u", "1"]}], "+", 
+     RowBox[{
+      SubscriptBox["m", "2"], 
+      SubscriptBox["u", "2"]}]}], "\[Equal]", 
+    RowBox[{
+     RowBox[{
+      SubscriptBox["m", "1"], 
+      SubscriptBox["v", "1"]}], "+", 
+     RowBox[{
+      SubscriptBox["m", "2"], 
+      SubscriptBox["v", "2"]}]}]}], ";"}], 
+  RowBox[{"(*", 
+   RowBox[{"conservation", " ", "of", " ", "linear", " ", "momentum"}], 
+   "*)"}]}], "\[IndentingNewLine]"}], "Input",
+ CellChangeTimes->{{3.550008545008*^9, 3.5500085479059553`*^9}, {
+   3.550008740123238*^9, 3.5500087675949707`*^9}, {3.550008825118999*^9, 
+   3.550008829731481*^9}, 3.550010266789258*^9, {3.550010653450268*^9, 
+   3.550010718044191*^9}, {3.550010901851119*^9, 3.550010910244787*^9}, {
+   3.5500109554516983`*^9, 3.550010970035833*^9}, {3.5500126325743923`*^9, 
+   3.5500126338133163`*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{
+    RowBox[{
+     RowBox[{
+      FractionBox["1", "2"], 
+      SubscriptBox["m", "1"], 
+      SubsuperscriptBox["u", "1", "2"]}], "+", 
+     RowBox[{
+      FractionBox["1", "2"], 
+      SubscriptBox["m", "2"], 
+      SubsuperscriptBox["u", "2", "2"]}]}], "==", 
+    RowBox[{
+     RowBox[{
+      FractionBox["1", "2"], 
+      SubscriptBox["m", "1"], 
+      SubsuperscriptBox["v", "1", "2"]}], "+", 
+     RowBox[{
+      FractionBox["1", "2"], 
+      SubscriptBox["m", "2"], 
+      SubsuperscriptBox["v", "2", "2"]}]}]}], ";"}], 
+  RowBox[{"(*", 
+   RowBox[{"conservation", " ", "of", " ", "kinetic", " ", "energy"}], 
+   "*)"}]}]], "Input",
+ CellChangeTimes->{{3.550010353343596*^9, 3.550010447315384*^9}, {
+  3.550010921393887*^9, 3.550010929459165*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"eq1", "=", 
+   RowBox[{
+    RowBox[{
+     RowBox[{
+      SubscriptBox["m", "1"], 
+      SubscriptBox["u", "1"]}], "+", 
+     RowBox[{
+      SubscriptBox["m", "2"], 
+      SubscriptBox["u", "2"]}]}], "\[Equal]", 
+    RowBox[{
+     RowBox[{
+      SubscriptBox["m", "1"], 
+      SubscriptBox["v", "1"]}], "+", 
+     RowBox[{
+      SubscriptBox["m", "2"], 
+      SubscriptBox["v", "2"]}]}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"eq2", "=", 
+   RowBox[{
+    RowBox[{
+     RowBox[{
+      FractionBox["1", "2"], 
+      SubscriptBox["m", "1"], 
+      SubsuperscriptBox["u", "1", "2"]}], "+", 
+     RowBox[{
+      FractionBox["1", "2"], 
+      SubscriptBox["m", "2"], 
+      SubsuperscriptBox["u", "2", "2"]}]}], "==", 
+    RowBox[{
+     RowBox[{
+      FractionBox["1", "2"], 
+      SubscriptBox["m", "1"], 
+      SubsuperscriptBox["v", "1", "2"]}], "+", 
+     RowBox[{
+      FractionBox["1", "2"], 
+      SubscriptBox["m", "2"], 
+      SubsuperscriptBox["v", "2", "2"]}]}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Collect", "[", 
+  RowBox[{
+   RowBox[{"Solve", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"eq1", ",", "eq2"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{
+       SubscriptBox["v", "1"], ",", 
+       SubscriptBox["v", "2"]}], "}"}]}], "]"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     SubscriptBox["u", "1"], ",", 
+     SubscriptBox["u", "2"]}], "}"}]}], 
+  "]"}], "\[IndentingNewLine]"}], "Input",
+ CellChangeTimes->{
+  3.5500083932338037`*^9, {3.5500126026946983`*^9, 3.550012624820395*^9}, {
+   3.550012970956634*^9, 3.550012993557786*^9}, {3.550013027149394*^9, 
+   3.550013070889703*^9}, {3.550013108550667*^9, 3.55001311336982*^9}, {
+   3.550013152488036*^9, 3.5500131685091667`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{
+      SubscriptBox["v", "1"], "\[Rule]", 
+      SubscriptBox["u", "1"]}], ",", 
+     RowBox[{
+      SubscriptBox["v", "2"], "\[Rule]", 
+      SubscriptBox["u", "2"]}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{
+      SubscriptBox["v", "1"], "\[Rule]", 
+      RowBox[{
+       FractionBox[
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{
+           SubscriptBox["m", "1"], "-", 
+           SubscriptBox["m", "2"]}], ")"}], " ", 
+         SubscriptBox["u", "1"]}], 
+        RowBox[{
+         SubscriptBox["m", "1"], "+", 
+         SubscriptBox["m", "2"]}]], "+", 
+       FractionBox[
+        RowBox[{"2", " ", 
+         SubscriptBox["m", "2"], " ", 
+         SubscriptBox["u", "2"]}], 
+        RowBox[{
+         SubscriptBox["m", "1"], "+", 
+         SubscriptBox["m", "2"]}]]}]}], ",", 
+     RowBox[{
+      SubscriptBox["v", "2"], "\[Rule]", 
+      RowBox[{
+       FractionBox[
+        RowBox[{"2", " ", 
+         SubscriptBox["m", "1"], " ", 
+         SubscriptBox["u", "1"]}], 
+        RowBox[{
+         SubscriptBox["m", "1"], "+", 
+         SubscriptBox["m", "2"]}]], "+", 
+       FractionBox[
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{
+           RowBox[{"-", 
+            SubscriptBox["m", "1"]}], "+", 
+           SubscriptBox["m", "2"]}], ")"}], " ", 
+         SubscriptBox["u", "2"]}], 
+        RowBox[{
+         SubscriptBox["m", "1"], "+", 
+         SubscriptBox["m", "2"]}]]}]}]}], "}"}]}], "}"}]], "Output",
+ CellChangeTimes->{
+  3.55001297384937*^9, 3.550013030742366*^9, {3.55001306088935*^9, 
+   3.550013079099011*^9}, {3.5500131145309353`*^9, 3.550013174514699*^9}}]
+}, Open  ]],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   SubscriptBox["v", "1"], "=", 
+   RowBox[{
+    RowBox[{
+     FractionBox[
+      RowBox[{
+       SubscriptBox["m", "1"], "-", 
+       SubscriptBox["m", "2"]}], 
+      RowBox[{
+       SubscriptBox["m", "1"], "+", 
+       SubscriptBox["m", "2"]}]], 
+     SubscriptBox["u", "1"]}], "+", 
+    RowBox[{
+     FractionBox[
+      RowBox[{"2", 
+       SubscriptBox["m", "2"]}], 
+      RowBox[{
+       SubscriptBox["m", "1"], "+", 
+       SubscriptBox["m", "2"]}]], 
+     SubscriptBox["u", "2"]}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   SubscriptBox["v", "2"], "=", 
+   RowBox[{
+    RowBox[{
+     FractionBox[
+      RowBox[{
+       SubscriptBox["m", "2"], "-", 
+       SubscriptBox["m", "1"]}], 
+      RowBox[{
+       SubscriptBox["m", "1"], "+", 
+       SubscriptBox["m", "2"]}]], 
+     SubscriptBox["u", "2"]}], "+", 
+    RowBox[{
+     FractionBox[
+      RowBox[{"2", 
+       SubscriptBox["m", "1"]}], 
+      RowBox[{
+       SubscriptBox["m", "1"], "+", 
+       SubscriptBox["m", "2"]}]], 
+     SubscriptBox["u", "1"]}]}]}], ";"}]}], "Input"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"nm", "=", 
+    RowBox[{"{", 
+     RowBox[{
+      SubscriptBox["n", "x"], ",", 
+      SubscriptBox["n", "y"], ",", 
+      SubscriptBox["n", "z"]}], "}"}]}], ";"}], 
+  RowBox[{"(*", 
+   RowBox[{
+    RowBox[{"collision", " ", "plane", " ", "normal"}], ",", " ", 
+    RowBox[{"where", " ", "velocities", " ", "are", " ", "exchanged"}]}], 
+   "*)"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   SubscriptBox["u", "1"], "=", 
+   RowBox[{"{", 
+    RowBox[{
+     SubscriptBox["u", 
+      RowBox[{"1.", "x"}]], ",", 
+     SubscriptBox["u", 
+      RowBox[{"1.", "y"}]], ",", 
+     SubscriptBox["u", 
+      RowBox[{"1.", "z"}]]}], "}"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{
+    SubscriptBox["u", "2"], "=", 
+    RowBox[{"{", 
+     RowBox[{
+      SubscriptBox["u", 
+       RowBox[{"2.", "x"}]], ",", 
+      SubscriptBox["u", 
+       RowBox[{"2.", "y"}]], ",", 
+      SubscriptBox["u", 
+       RowBox[{"2.", "z"}]]}], "}"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   SubscriptBox["v", "1"], "=", 
+   FractionBox[
+    RowBox[{
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{
+        SubscriptBox["m", "1"], "-", 
+        SubscriptBox["m", "2"]}], ")"}], 
+      RowBox[{"(", 
+       RowBox[{
+        SubscriptBox["u", "1"], ".", "nm"}], ")"}], "nm"}], "+", 
+     RowBox[{"2", 
+      SubscriptBox["m", "2"], 
+      RowBox[{"(", 
+       RowBox[{
+        SubscriptBox["u", "2"], ".", "nm"}], ")"}], "nm"}]}], 
+    RowBox[{
+     SubscriptBox["m", "1"], "+", 
+     SubscriptBox["m", "2"]}]]}], " ", ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   SubscriptBox["v", "2"], "=", 
+   FractionBox[
+    RowBox[{
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{
+        SubscriptBox["m", "2"], "-", 
+        SubscriptBox["m", "1"]}], ")"}], 
+      RowBox[{"(", 
+       RowBox[{
+        SubscriptBox["u", "2"], ".", "nm"}], ")"}], "nm"}], "+", 
+     RowBox[{"2", 
+      SubscriptBox["m", "1"], 
+      RowBox[{"(", 
+       RowBox[{
+        SubscriptBox["u", "1"], ".", "nm"}], ")"}], "nm"}]}], 
+    RowBox[{
+     SubscriptBox["m", "1"], "+", 
+     SubscriptBox["m", "2"]}]]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.550008903884963*^9, 3.5500090449596987`*^9}, {
+  3.550009075964232*^9, 3.550009393043768*^9}, {3.550009649760193*^9, 
+  3.5500098478877373`*^9}, {3.5500099141047707`*^9, 3.550009928125696*^9}, {
+  3.550010023558152*^9, 3.550010028926283*^9}, {3.550010761284273*^9, 
+  3.550010870102219*^9}, {3.550011169328641*^9, 3.550011236212468*^9}, {
+  3.550013412691206*^9, 3.5500134257866783`*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   SubscriptBox["u", "1"], "=", 
+   RowBox[{
+    SubscriptBox["u", "1"], "-", 
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{
+       SubscriptBox["u", "1"], ".", "nm"}], ")"}], "nm"}], "+", 
+    SubscriptBox["v", "1"]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   SubscriptBox["u", "2"], "=", 
+   RowBox[{
+    SubscriptBox["u", "2"], "-", 
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{
+       SubscriptBox["u", "2"], ".", "nm"}], ")"}], "nm"}], "+", 
+    SubscriptBox["v", "2"]}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.5500134621930923`*^9, 3.5500135271026278`*^9}}]
+},
+WindowSize->{740, 620},
+WindowMargins->{{111, Automatic}, {Automatic, 0}},
+FrontEndVersion->"8.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (October 5, \
+2011)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[557, 20, 368, 8, 43, "Input"],
+Cell[928, 30, 348, 6, 27, "Input"],
+Cell[1279, 38, 524, 15, 58, "Input"],
+Cell[1806, 55, 356, 10, 43, "Input"],
+Cell[2165, 67, 1419, 42, 103, "Input"],
+Cell[3587, 111, 800, 26, 46, "Input"],
+Cell[CellGroupData[{
+Cell[4412, 141, 1767, 59, 94, "Input"],
+Cell[6182, 202, 1708, 56, 49, "Output"]
+}, Open  ]],
+Cell[7905, 261, 1091, 42, 88, "Input"],
+Cell[8999, 305, 2613, 85, 166, "Input"],
+Cell[11615, 392, 621, 21, 43, "Input"]
+}
+]
+*)
+
+(* End of internal cache information *)
