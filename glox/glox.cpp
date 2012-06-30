@@ -1598,7 +1598,7 @@ namespace gloxnet{
 		memset(keys,0,sizeof keys);
 		if(!sockio){
 			strncpy(keys[player],playername,nkeys);
-		}else{
+		}else{//?
 			string s="get /gloxnet .\r\ncookie:i=";
 			s.append(playername).append("\r\n\r\n");
 			const char*sc=s.c_str();
@@ -1607,8 +1607,8 @@ namespace gloxnet{
 			flf();l()<<sclen<<endl;
 			const ssize_t bytes_sent=send(sockfd,sc,(size_t)sclen,0);
 			if(bytes_sent!=(signed)sclen){flf();l(strerror(errno))<<endl;throw signl(1,"sockio");}
-			const ssize_t bytes_sent2=send(sockfd,sc,(size_t)sclen,0);
-			if(bytes_sent2!=(signed)sclen){flf();l(strerror(errno))<<endl;throw signl(2,"sockio");}
+//			const ssize_t bytes_sent2=send(sockfd,sc,(size_t)sclen,0);
+//			if(bytes_sent2!=(signed)sclen){flf();l(strerror(errno))<<endl;throw signl(2,"sockio");}
 		}
 		sendkeys();
 
@@ -1751,15 +1751,13 @@ public:
 //		glTranslatef(-getx(),-gety(),-getz());
 		GLfloat mf[16];
 		glGetFloatv(GL_MODELVIEW_MATRIX,mf);
-		m3 m;
-		m.settransposed(mf);
+//		m3 m;//? getaxisfromarray
+//		m.settransposed(mf);
+		const p3 xaxis=p3(mf[0],mf[4],mf[8]);//m.xaxis();
+		const p3 yaxis=p3(mf[1],mf[5],mf[9]);//m.yaxis();
+		const p3 zaxis=p3(mf[2],mf[6],mf[10]);//m.zaxis();
 
-		const p3 xaxis=m.xaxis();
-		const p3 yaxis=m.yaxis();
-		const p3 zaxis=m.zaxis();
-
-
-		p3p backplane(*this,m.zaxis());
+		p3p backplane(*this,zaxis);
 
 		const float viewangle_rad=degtorad(viewangle_deg);
 		const float scrdst=(wi/2)/tan(viewangle_rad)/zoom;
