@@ -149,18 +149,18 @@ class m3{//?
 		zx=nzx;zy=nzy;zz=nzz;zo=nzo;
 		return*this;
 	}
-	m3&roty(const float a){//? -a
+	m3&roty(const float a){
 		float c=cos(a),s=sin(a);
-		float nxx=xx*c+zx*s,nxy=xy*c+zy*s,nxz=xz*c+zz*s,nxo=xo*c+zo*s;
-		float nzx=zx*c-xx*s,nzy=zy*c-xy*s,nzz=zz*c-xz*s,nzo=zo*c-xo*s;
+		float nxx=xx*c-zx*s,nxy=xy*c-zy*s,nxz=xz*c-zz*s,nxo=xo*c-zo*s;
+		float nzx=zx*c+xx*s,nzy=zy*c+xy*s,nzz=zz*c+xz*s,nzo=zo*c+xo*s;
 		xx=nxx;xy=nxy;xz=nxz;xo=nxo;
 		zx=nzx;zy=nzy;zz=nzz;zo=nzo;
 		return*this;
 	}
-	m3&rotz(const float a){//? -a
+	m3&rotz(const float a){
 		float c=cos(a),s=sin(a);
-		float nxx=xx*c-yx*s,nxy=xy*c-yy*s,nxz=xz*c-yz*s,nxo=xo*c-yo*s;
-		float nyx=yx*c+xx*s,nyy=yy*c+xy*s,nyz=yz*c+xz*s,nyo=yo*c+xo*s;
+		float nxx=xx*c+yx*s,nxy=xy*c+yy*s,nxz=xz*c+yz*s,nxo=xo*c+yo*s;
+		float nyx=yx*c-xx*s,nyy=yy*c-xy*s,nyz=yz*c-xz*s,nyo=yo*c-xo*s;
 		xx=nxx;xy=nxy;xz=nxz;xo=nxo;
 		yx=nyx;yy=nyy;yz=nyz;yo=nyo;
 		return*this;
@@ -1659,8 +1659,8 @@ public:
 		if(hdlkeydn('s')){fi.transl(mxv.zaxis().sety(0).norm().scale(fwdbckrate));}
 		if(hdlkeydn('d')){fi.transl(mxv.xaxis().scale(straferate));}
 		if(hdlkeydn('a')){fi.transl(mxv.xaxis().scale(-straferate));}
-		if(hdlkeydn('l')){agl().transl(0,dt(turnrate),0);}
-		if(hdlkeydn('j')){agl().transl(0,-dt(turnrate),0);}
+		if(hdlkeydn('j')){agl().transl(0,dt(turnrate),0);}
+		if(hdlkeydn('l')){agl().transl(0,-dt(turnrate),0);}
 		if(hdlkeydn(',')&&rocketry>0){f.transl(0,dt(rocketforce),0);rocketry-=dt(rocketfuelburnrate);}else{f.set(0,0,0);}
 		if(hdlkeydn(' ')){fire();}
 		if(hdlkeydn('b')){rain();}
@@ -1688,7 +1688,7 @@ public:
 	}
 public:
 	int player=0;
-	windo(glob&g=wold::get(),const p3&p=p3(10.4f,.1f,10.5f),const p3&a=p3(-21,-44.8f,0),const float r=.1f,const int width=1024,const int height=512,const float zoom=1.5):globx(g,p,a,r,.25f),zoom(zoom),wi(width),hi(height){}
+	windo(glob&g=wold::get(),const p3&p=p3(),const p3&a=p3(),const float r=.1f,const int width=1024,const int height=512,const float zoom=1.5):globx(g,p,a,r,.25f),zoom(zoom),wi(width),hi(height){}
 	inline bool isgamemode()const{return gamemode;}
 	inline bool isfullscreen()const{return fullscr;}
 	inline int width()const{return wi;}
@@ -2166,11 +2166,11 @@ namespace glut{
 		players[0]=new windo();
 		players[0]->player=0;
 		players[0]->set(-r,r,0);
-		players[0]->agl().set(0,90,0);
+//		players[0]->agl().set(0,90,0);
 		players[1]=new windo();
 		players[1]->player=1;
 		players[1]->set(r,1,0);
-		players[1]->agl().set(0,-90,0);
+		players[1]->agl().set(0,90,0);
 		if(!multiplayer){
 			bot.wn=players[0];
 			gloxnet::player=1;
