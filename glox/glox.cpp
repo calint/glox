@@ -192,15 +192,15 @@ public:
 		zo=p.getz();
 		return*this;
 	}
-	const m3&transf(const p3&src,p3&dst)const{
+	const m3&trnsf(const p3&src,p3&dst)const{
 		metrics::mpmul++;
 		const float x=src.getx();
 		const float y=src.gety();
 		const float z=src.getz();
-		const float rx=x*xx+y*xy+z*xz+xo;
-		const float ry=x*yx+y*yy+z*yz+yo;
-		const float rz=x*zx+y*zy+z*zz+zo;
-		dst.set(rx,ry,rz);
+		const float nx=x*xx+y*xy+z*xz+xo;
+		const float ny=x*yx+y*yy+z*yz+yo;
+		const float nz=x*zx+y*zy+z*zz+zo;
+		dst.set(nx,ny,nz);
 		return*this;
 	}
 //	m3&set(const GLfloat m[16]){
@@ -217,7 +217,7 @@ public:
 //		xo=m[12];yo=m[13];zo=m[14];oo=m[15];
 //		return*this;
 //	}
-	m3&mult(const m3&m){
+	m3&mul(const m3&m){
 		metrics::mmmul++;
 		const float nxx=m.xx*xx+m.yx*xy+m.zx*xz+m.ox*xo;
 		const float nyx=m.xx*yx+m.yx*yy+m.zx*yz+m.ox*yo;
@@ -524,7 +524,7 @@ public:
 	}
 	virtual bool oncol(glob&o){metrics::collisions++;return &o==&o;}
 protected:
-	p3 posinwcs(const p3&p){refreshmxmw();p3 d;mxmw.transf(p,d);return d;}
+	p3 posinwcs(const p3&p){refreshmxmw();p3 d;mxmw.trnsf(p,d);return d;}
 	bool refreshmxmw(){
 		if(!&g)
 			return false;
@@ -544,7 +544,7 @@ protected:
 		m.mw(mxmwpos,mxmwagl);
 
 		mxmw=g.mxmw;
-		mxmw.mult(m);
+		mxmw.mul(m);
 
 //		glTranslatef(getx(),gety(),getz());
 //		glRotatef(a.getx(),1,0,0);
