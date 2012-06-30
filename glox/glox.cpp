@@ -149,7 +149,7 @@ class m3{//?
 		zx=nzx;zy=nzy;zz=nzz;zo=nzo;
 		return*this;
 	}
-	m3&roty(const float a){
+	m3&roty(const float a){//? -a
 		float c=cos(a),s=sin(a);
 		float nxx=xx*c+zx*s,nxy=xy*c+zy*s,nxz=xz*c+zz*s,nxo=xo*c+zo*s;
 		float nzx=zx*c-xx*s,nzy=zy*c-xy*s,nzz=zz*c-xz*s,nzo=zo*c-xo*s;
@@ -157,10 +157,10 @@ class m3{//?
 		zx=nzx;zy=nzy;zz=nzz;zo=nzo;
 		return*this;
 	}
-	m3&rotz(const float a){
+	m3&rotz(const float a){//? -a
 		float c=cos(a),s=sin(a);
-		float nyx=yx*c+xx*s,nyy=yy*c+xy*s,nyz=yz*c+xz*s,nyo=yo*c+xo*s;
 		float nxx=xx*c-yx*s,nxy=xy*c-yy*s,nxz=xz*c-yz*s,nxo=xo*c-yo*s;
+		float nyx=yx*c+xx*s,nyy=yy*c+xy*s,nyz=yz*c+xz*s,nyo=yo*c+xo*s;
 		xx=nxx;xy=nxy;xz=nxz;xo=nxo;
 		yx=nyx;yy=nyy;yz=nyz;yo=nyo;
 		return*this;
@@ -169,9 +169,9 @@ class m3{//?
 		const float x=p.getx();
 		const float y=p.gety();
 		const float z=p.getz();
-		xo=xx*x+xy*y+xz*z+xo;
-		yo=yx*x+yy*y+yz*z+yo;
-		zo=zx*x+zy*y+zz*z+zo;
+		ox=xx*x+yx*y+zx*z+ox;
+		oy=xy*x+yy*y+zy*z+oy;
+		oz=xz*x+yz*y+zz*z+oz;
 		return*this;
 	}
 
