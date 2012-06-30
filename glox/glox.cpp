@@ -136,7 +136,7 @@ public:
 #define flf()l("···",__FILE__,__LINE__,__FUNCTION__);
 static inline ostream&l(const char*s="",const char*file="",int lineno=0,const char*func=""){cerr<<file;if(lineno){cerr<<":"<<lineno;}cerr<<" "<<func<<"  "<<s;return cerr;}
 
-class m3{
+class m3{//?
 	float xx,yx,zx,ox;
 	float xy,yy,zy,oy;
 	float xz,yz,zz,oz;
