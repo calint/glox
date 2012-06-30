@@ -187,9 +187,9 @@ public:
 		roty(degtorad(a.gety()));
 		rotx(degtorad(a.getx()));
 		rotz(degtorad(a.getz()));
-		xo=p.getx();
-		yo=p.gety();
-		zo=p.getz();
+		ox=p.getx();
+		oy=p.gety();
+		oz=p.getz();
 		return*this;
 	}
 	const m3&trnsf(const p3&src,p3&dst)const{
