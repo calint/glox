@@ -1216,29 +1216,27 @@ public:
 	}
 	void mkexperiment(){
 		const float lft=60;
-		const float bounc=.1f;
-		const float v=2.f;//+rndn(.05f);
+		const float v=1.5f;//+rndn(.05f);
 		const float r=.2f;//+rndn(.1f);
 		globx*g;
-		const int n=200;
+		const int n=100;
 		for(int i=0;i<n;i++){
 			const float x=rndn(1.f);
 			const float y=rndn(1.f);
 			const float z=rndn(1.f);
 			if(x*x+y*y+z*z>2)
 				continue;
-			g=new obball(*this,p3(x,4+y,-100+z),r*.5f,lft,bounc,10);
+			g=new obball(*this,p3(x,4+y,-100+z),r*.5f,lft,.5f,1000);
 			g->d.set(0,0,v);
 		}
 		const float s=5.f;
 		const float dpth=1.f;
-
 		bool odd=false;
 		for(float zz=-dpth;zz<=dpth;zz+=2*r){
 			odd=!odd;
 			for(float yy=-s;yy<=s;yy+=r*3){
 				for(float xx=-s;xx<=s;xx+=r*3){
-					new obball(*this,p3(xx+1.5f*(odd?r:0),s+yy+2.f*(odd?r:0),zz),r,lft,.2f,1);
+					new obball(*this,p3(xx+1.5f*(odd?r:0),s+yy+2.f*(odd?r:0),zz),r,lft,.5f,1);
 					g->d.set(rndn(.0001f),rndn(.0001f),rndn(.0001f));
 				}
 			}
