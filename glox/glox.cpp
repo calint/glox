@@ -91,7 +91,7 @@ public:
 		return*this;
 	}
 	inline float dot(const p3&p)const{return x*p.x+y*p.y+z*p.z;}
-	p3&vecprod(const p3&v1,const p3&v2){
+	inline p3&vecprod(const p3&v1,const p3&v2){
 		x=v1.y*v2.z-v1.z*v2.y;
 		y=v1.z*v2.x-v1.x*v2.z;
 		z=v1.x*v2.y-v1.y*v2.x;
