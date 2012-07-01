@@ -949,8 +949,12 @@ protected:
 //	inline void rw(const int offset,const int len,void(*f)(T&e)){asrt(offset,len);T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
 //};
 //
-
-class obcon:public obtex{
+class keyb{
+public:
+	virtual~keyb(){}
+	virtual void onkeyb(const char c=0,const bool pressed=false,const int x=0,const int y=0)=0;
+};
+class obcon:public obtex,public keyb{
 	static unsigned short fnt_az[];
 	static unsigned short fnt_09[];
 	const static int fnt_w=4;
@@ -959,7 +963,14 @@ class obcon:public obtex{
 	GLubyte*p;
 	GLubyte*pnl;
 	const char*title;
+	ostringstream oss;
+	int x,y;
 public:
+	virtual void onkeyb(const char c,const bool pressed,const int x,const int y){
+		if(pressed)
+			oss<<c;
+		this->x=x;this->y=y;
+	}
 	obcon(glob&g,const p3&p=p3(),const p3&a=p3(),const char*title="gnox console"):obtex(g,32*bp,1,p,a),p(rgba+wihi*bp+bp),title(title){
 		setcolmx(true);
 	}
@@ -1031,7 +1042,7 @@ public:
 		n=wihi*wihi*bp;
 		n>>=4;
 		while(n--)*pp++=0;
-		phom().prnt(title).nl().nl().nl().prnt(sts.str().c_str()).prnt(inp.str().c_str()).nl();
+		phom().prnt(title).nl().nl().nl().prnt(oss.str().c_str()).nl();
 		updtx();
 	}
 };
@@ -1202,6 +1213,8 @@ class wold:public glob{
 	wold(const float r=15):glob(*(glob*)0,p3(),p3(),r),grd(r){}
 	~wold(){f3s::clear();}
 public:
+	glob*con;
+	keyb*kb;
 	bool drawaxis=false,drawgrid=true,hidezplane=false,coldetbrute=false,coldetgrid=true;
 	inline static wold&get(){return wd;}
 	inline float gett(){return t;}
@@ -1216,8 +1229,9 @@ public:
 		mkznjr();
 	}
 	void mkznjr(){
-		new obcon(*this);
+		kb=new obcon(*this);
 	}
+	keyb&keyb()const{return*kb;}
 	void mkexperiment(){
 		const float lft=60;
 		const float v=1.5f;//+rndn(.05f);
@@ -1706,10 +1720,9 @@ namespace gloxnet{
 	}
 }
 
-class windo:public globx{
+class windo:public globx,public keyb{
 	m3 mxv;
-//	lut<int>keysdn;
-	bool gravity=true,dodrawhud=true,gamemode=false,fullscr=false,consolemode=false;
+	bool dodrawhud=false,gamemode=false,fullscr=false,consolemode=false;
 	float zoom;
 	int wi,hi;
 	int wiprv=wi,hiprv=hi;
@@ -1937,6 +1950,10 @@ public:
 //	void presskey(const char key){
 //		keydn(key,0,0);
 //	}
+	void onkeyb(const char c,const bool pressed,const int x,const int y){
+		if(pressed)keydn(c,x,y);
+		else keyup(c,x,y);
+	}
 	void keydn(const char key,const int x,const int y){
 		const int i=keyix(key);
 		if(!i)return;
@@ -2194,6 +2211,7 @@ namespace glut{
 	const int nplayers=2;
 	bool multiplayer=false;
 	windo*players[nplayers];
+	keyb*keyb;
 	windobot bot;
 //	windo&wn=*new windo();
 	void reshape(const int width,const int height){players[gloxnet::player]->reshape(width,height);}
@@ -2228,8 +2246,8 @@ namespace glut{
 		glutPostRedisplay();
 		glutTimerFunc((unsigned)value,timer,value);
 	}
-	void keydn(const unsigned char key,const int x,const int y){players[gloxnet::player]->keydn((char)key,x,y);}
-	void keyup(const unsigned char key,const int x,const int y){players[gloxnet::player]->keyup((char)key,x,y);}
+	void keydn(const unsigned char key,const int x,const int y){keyb->onkeyb((signed char)key,true,x,y);}// players[gloxnet::player]->keydn((char)key,x,y);}
+	void keyup(const unsigned char key,const int x,const int y){keyb->onkeyb((signed char)key,false,x,y);}//players[gloxnet::player]->keyup((char)key,x,y);}
 	void mouseclk(const int button,const int state,int x,const int y){players[gloxnet::player]->mouseclk(button,state,x,y);}
 	void mousemov(const int x,const int y){players[gloxnet::player]->mousemov(x,y);}
 	static void mainsig(const int i){cerr<<" ••• terminated with signal "<<i<<endl;exit(i);}
@@ -2256,13 +2274,16 @@ namespace glut{
 		players[1]->player=1;
 		players[1]->set(0,0,1.5f);
 		players[1]->agl().set(0,0,0);
+		keyb=players[1];
 		glob::drawboundingspheres=false;
 		wold::get().hidezplane=true;
+		wold::get().drawgrid=false;
 		if(!multiplayer){
 			bot.wn=players[0];
 			gloxnet::player=1;
 		}
 		windo*plr=players[gloxnet::player];
+		keyb=plr;
 		glutInit(&argc,argv);
 		glutIgnoreKeyRepeat(true);
 		glutInitDisplayMode(GLUT_DOUBLE|GLUT_DEPTH);
