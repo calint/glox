@@ -1219,6 +1219,34 @@ public:
 		const float v=1.5f;//+rndn(.05f);
 		const float r=.2f;//+rndn(.1f);
 		globx*g;
+		const int n=200;
+		for(int i=0;i<n;i++){
+			const float x=rndn(1.f);
+			const float y=rndn(1.f);
+			const float z=rndn(1.f);
+			if(x*x+y*y+z*z>1)
+				continue;
+			g=new obball(*this,p3(x,4+y,-100+z),r*.5f,lft,.5f,10000);
+			g->d.set(0,0,v);
+		}
+		const float s=7.f;
+		const float dpth=.4f;
+		bool odd=false;
+		for(float zz=-dpth;zz<=dpth;zz+=2*r){
+			odd=!odd;
+			for(float yy=-s;yy<=s;yy+=r*3){
+				for(float xx=-s;xx<=s;xx+=r*3){
+					new obball(*this,p3(xx+1.5f*(odd?r:0),s+yy+2.f*(odd?r:0),zz),r,lft,.5f,1);
+					g->d.set(rndn(.0001f),rndn(.0001f),rndn(.0001f));
+				}
+			}
+		}
+	}
+	void mkexperiment8(){
+		const float lft=60;
+		const float v=1.5f;//+rndn(.05f);
+		const float r=.2f;//+rndn(.1f);
+		globx*g;
 		const int n=100;
 		for(int i=0;i<n;i++){
 			const float x=rndn(1.f);
@@ -2222,8 +2250,8 @@ namespace glut{
 //		players[0]->agl().set(0,90,0);
 		players[1]=new windo();
 		players[1]->player=1;
-		players[1]->set(0,1,1.8f*r);
-		players[1]->agl().set(0,0,0);
+		players[1]->set(r,1,-r);
+		players[1]->agl().set(0,45,0);
 		if(!multiplayer){
 			bot.wn=players[0];
 			gloxnet::player=1;
