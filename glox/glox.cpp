@@ -1211,8 +1211,12 @@ public:
 //		new obcorp(*this,p3(0,4.2f,-6.5f));
 //		new obcorp(*this,p3(0,0, 6.5f));
 //		mkiglos();
-		mkexperiment();
+//		mkexperiment();
 //		mkcradle();
+		mkznjr();
+	}
+	void mkznjr(){
+		new obcon(*this);
 	}
 	void mkexperiment(){
 		const float lft=60;
@@ -2189,7 +2193,7 @@ public:
 namespace glut{
 	const int nplayers=2;
 	bool multiplayer=false;
-	windo*players[nplayers];//? bug deleted twice,wold and program exit
+	windo*players[nplayers];
 	windobot bot;
 //	windo&wn=*new windo();
 	void reshape(const int width,const int height){players[gloxnet::player]->reshape(width,height);}
@@ -2250,8 +2254,10 @@ namespace glut{
 //		players[0]->agl().set(0,90,0);
 		players[1]=new windo();
 		players[1]->player=1;
-		players[1]->set(r,1,-r);
-		players[1]->agl().set(0,45,0);
+		players[1]->set(0,0,1.5f);
+		players[1]->agl().set(0,0,0);
+		glob::drawboundingspheres=false;
+		wold::get().hidezplane=true;
 		if(!multiplayer){
 			bot.wn=players[0];
 			gloxnet::player=1;
