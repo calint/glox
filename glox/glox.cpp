@@ -446,9 +446,7 @@ public:
 			}
 			return;
 		}
-		if(issolid()&&o.issolid()){
-			np.set(*this);
-			nd.set(this->d);
+		if(issolid()&&o.issolid()){//?
 			o.np.set(o);
 			o.nd.set(o.d);
 			oncol(o);
@@ -566,9 +564,11 @@ public:
 	p3 fi;
 	p3 pp;
 	float bf;
-	globx(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,float bounciness=1):glob(g,p,a,r),f(p3()),fi(p3()),pp(p),bf(bounciness){}
+	globx(glob&g,const p3&p=p3(),const p3&a=p3(),const float r=1,float bounciness=1,float density=1):glob(g,p,a,r,density),f(p3()),fi(p3()),pp(p),bf(bounciness){}
 	inline p3&dp(){return d;}
 	virtual void tick(){
+//		set(np);
+//		d.set(nd);
 		if(!ppsaved){
 			pp.set(*this);
 			ppsaved=false;//?
@@ -579,6 +579,9 @@ public:
 //		dd.transl(p3(0,-9.82f,0).scale(.1f),dt());
 		d.transl(dd);
 		transl(d);
+//		np.set(*this);
+//		nd.set(this->d);
+
 //		const p3p gnd(p3(0,0,0),p3(0,1,0));
 //		const float dy=gety()-radius()-gnd.gety();
 //		if(dy<0){
@@ -637,10 +640,10 @@ public:
 //		const float c=-r0*r0+p3(p1).pow2().sum()+p3(p2).pow2().sum()-2*p1.dot(p2);
 
 		const p3 du=p3(u2,u1);
-		const float a=p3(du).pow2().sum();
+		const float a=p3(du).dot(du);
 		const p3 dp=p3(p2,p1);
 		const float b=2*p3(dp).dot(du);
-		const float c=p3(dp).pow2().sum()-r0*r0;
+		const float c=p3(dp).dot(dp)-r0*r0;
 		float t1=0,t2=0;
 		if(!solvesecdegeq(a,b,c,t1,t2)){
 //			const float d=p3(p1,p2).magn();
@@ -674,8 +677,8 @@ public:
 		const float mm=1/(m1+m2);
 		p3 v1(u1);
 		v1.transl(vu1,-1);
-		v1.transl(vu1,(m1-m2)*mm);
-		v1.transl(vu2,2*m2*mm);
+		v1.transl(vu1,(m1-m2)*mm*bf);
+		v1.transl(vu2,2*m2*mm*bf);
 //		flf();l()<<"nml("<<nml<<") u1("<<u1<<") u2("<<u2<<") vu1("<<vu1<<") vu2("<<vu2<<") v1("<<v1<<") m1("<<m1<<") m2("<<m2<<")"<<endl;
 		nd.set(v1);
 		np.transl(nd,dt()*(1-t));
@@ -1075,6 +1078,7 @@ public:
 		for(auto g:ls)
 			putif(g,*g,g->radius());
 		splitif(subgridlevels);//? splititonthefly
+		//? ifallglobswhereaddedtoallsubgrids,stoprecurtion
 	}
 	void coldet(){
 		if(!ls.empty()){
@@ -1163,7 +1167,7 @@ class obball:public globx{
 	float lft;
 	float colr=1;
 public:
-	obball(glob&g,const p3&p,const float r=.05f,const float lft=2,const float bounciness=.3f):globx(g,p,p3(90,0,0),r,bounciness),lft(lft){
+	obball(glob&g,const p3&p,const float r=.05f,const float lft=2,const float bounciness=.3f,const float density=1):globx(g,p,p3(90,0,0),r,bounciness,density),lft(lft){
 		setblt(true).setitem(true);
 	}
 	void gldraw(){}
@@ -1207,10 +1211,49 @@ public:
 //		new obcorp(*this,p3(0,4.2f,-6.5f));
 //		new obcorp(*this,p3(0,0, 6.5f));
 //		mkiglos();
-//		mkexperiment();
-		mkcradle();
+		mkexperiment();
+//		mkcradle();
 	}
 	void mkexperiment(){
+		const float lft=60;
+		const float bounc=.1f;
+		const float v=2.f;//+rndn(.05f);
+		const float r=.2f;//+rndn(.1f);
+		globx*g;
+		const int n=200;
+		for(int i=0;i<n;i++){
+			const float x=rndn(1.f);
+			const float y=rndn(1.f);
+			const float z=rndn(1.f);
+			if(x*x+y*y+z*z>2)
+				continue;
+			g=new obball(*this,p3(x,4+y,-100+z),r*.5f,lft,bounc,10);
+			g->d.set(0,0,v);
+		}
+		const float s=5.f;
+		const float dpth=1.f;
+
+		bool odd=false;
+		for(float zz=-dpth;zz<=dpth;zz+=2*r){
+			odd=!odd;
+			for(float yy=-s;yy<=s;yy+=r*3){
+				for(float xx=-s;xx<=s;xx+=r*3){
+					new obball(*this,p3(xx+1.5f*(odd?r:0),s+yy+2.f*(odd?r:0),zz),r,lft,.2f,1);
+					g->d.set(rndn(.0001f),rndn(.0001f),rndn(.0001f));
+				}
+			}
+		}
+//		for(int i=0;i<n;i++){
+//			g=new obball(*this,p3(rndn(s),s/2+rndn(s),rndn(.5f)),r,lft,.1f,1);
+//			g->fi.set(rndn(.0001f),rndn(.0001f),rndn(.0001f));
+//		}
+//		for(int i=0;i<n;i++){
+//			g=new obball(*this,p3(rndn(s),s/2+rndn(s),rndn(.5f)),r,lft,.1f,1);
+//			g->fi.set(rndn(.0001f),rndn(.0001f),rndn(.0001f));
+//		}
+//		new obball(*this,p3(0,r*1.5f,-5),r,lft,bounc);
+	}
+	void mkexperiment7(){
 		const float r=1;
 		const float lft=1000;
 		const float bounc=1;
@@ -2181,8 +2224,8 @@ namespace glut{
 //		players[0]->agl().set(0,90,0);
 		players[1]=new windo();
 		players[1]->player=1;
-		players[1]->set(r,1,0);
-		players[1]->agl().set(0,90,0);
+		players[1]->set(0,1,1.8f*r);
+		players[1]->agl().set(0,0,0);
 		if(!multiplayer){
 			bot.wn=players[0];
 			gloxnet::player=1;
