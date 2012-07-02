@@ -1826,7 +1826,7 @@ public:
 		sts<<"reshape("<<wi<<"x"<<hi<<")";wi=width;hi=height;
 	}
 	GLuint gltexshadowmap=0;
-	GLsizei shadowmapsize=512;
+	GLsizei shadowmapsize=1024;
 	void drawframe(){
 		cout<<"\rframe("<<metrics::frames++<<")";
 		clk::timerrestart();
@@ -1844,7 +1844,7 @@ public:
 		gluPerspective(45,1,.01,100);
 		GLfloat mflhtproj[16];
 		glGetFloatv(GL_PROJECTION_MATRIX,mflhtproj);
-		const GLfloat lhtpos[]={0,1,15.f,1};
+		const GLfloat lhtpos[]={0,.5f,3.f,1};
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 		glTranslatef(-lhtpos[0],-lhtpos[1],-lhtpos[2]);
@@ -1862,12 +1862,14 @@ public:
 		glCullFace(GL_FRONT);
 		glEnable(GL_CULL_FACE);
 		glClear(GL_DEPTH_BUFFER_BIT);
-		glColorMask(0,0,0,0);
-//		glShadeModel(GL_FLAT);
+//		glColorMask(0,0,0,0);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glShadeModel(GL_FLAT);
 		wold::get().culldraw(0,0);//? cull viewfurst
 		glBindTexture(GL_TEXTURE_2D,gltexshadowmap);
 		glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,0,0,0,shadowmapsize,shadowmapsize);
-//return;
+
+//		return;
 		glColorMask(1,1,1,1);
 		glClearColor(.3f,.3f,1,1);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -2102,6 +2104,10 @@ public:
 		if(rocketry>rocketrymax)rocketry=rocketrymax;
 		globx::tick();
 	}
+	void gldraw(){
+		glColor3f(1,0,0);
+		glutSolidSphere(radius(),20,20);
+	}
 private:
 	void togglefullscr(){
 		if(gamemode)
@@ -2224,8 +2230,8 @@ private:
 		if(firereload<1)return;
 		firereload-=1;
 		p3 lv=mxv.zaxis().neg();
-		const float r=.05f;
-		const float v=.5f;
+		const float r=.02f;
+		const float v=.2f;
 		p3 vv=p3(d).transl(p3(lv).scale(v).transl(0,r,0));
 		const float sprd=r/5;
 		const float sx=rnd(-sprd,sprd);
