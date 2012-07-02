@@ -1125,7 +1125,7 @@ public:
 		pnl=p=pnl+fnt_h*wihi*bp;
 		return *this;
 	}
-	inline obray&nl(){p=pnl+=wihi*bp;return*this;}
+	inline obray&nl(){p=pnl+=4*wihi*bp;return*this;}
 	void tick(){
 		obtex::tick();
 		int n=wihi*wihi*bp/4;
@@ -1134,6 +1134,15 @@ public:
 			*pp++=0x808080ff;
 		}
 		phom().prnt(title).nl();
+		prnt("lineintersectsplane");
+		prnt("lineintersectssphere");
+		prnt("materials");
+		prnt("reflection");
+		prnt("niceshadow");
+		prnt("320x200x2xn");
+		nl();
+		nl();
+		prnt("megarayone and orthonorm");
 		updtx();
 	}
 };
@@ -1330,6 +1339,7 @@ public:
 	}
 	void mkray(){
 		hidezplane=true;
+		drawaxis=true;
 		new obray(*this);
 	}
 	void mkscene(){
