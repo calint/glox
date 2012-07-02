@@ -1808,14 +1808,16 @@ public:
 		if(hdlkeytg('3')){wold::get().drawgrid=!wold::get().drawgrid;}
 		if(hdlkeytg('4')){wold::get().hidezplane=!wold::get().hidezplane;}
 		if(hdlkeytg('5')){wold::get().coldetgrid=!wold::get().coldetgrid;}
-		if(hdlkeytg('6')){wold::get().coldetbrute=!wold::get().coldetbrute;}
+//		if(hdlkeytg('6')){wold::get().coldetbrute=!wold::get().coldetbrute;}
+		if(hdlkeytg('6')){viewpointlht=!viewpointlht;}
 		if(hdlkeytg('0')){togglefullscr();return;}
-//		if(hdlkeytg(13)){inp<<endl;consolemode=!consolemode;}
+		//		if(hdlkeytg(13)){inp<<endl;consolemode=!consolemode;}
 //		if(hdlkeytg(127)){sts.str("");}// bkspc
 		if(hdlkeytg(27)){if(fullscr)togglefullscr();cout<<endl;exit(0);}// esc
 	}
 public:
 	int player=0;
+	bool viewpointlht;
 	windo(glob&g=wold::get(),const p3&p=p3(),const p3&a=p3(),const float r=.1f,const int width=1024,const int height=512,const float zoom=1.5):globx(g,p,a,r,.25f),zoom(zoom),wi(width),hi(height){}
 	inline bool isgamemode()const{return gamemode;}
 	inline bool isfullscreen()const{return fullscr;}
@@ -1826,28 +1828,33 @@ public:
 		sts<<"reshape("<<wi<<"x"<<hi<<")";wi=width;hi=height;
 	}
 	GLuint gltexshadowmap=0;
-	GLsizei shadowmapsize=1024;
+	GLsizei shadowmapsize=512;
 	void drawframe(){
 		cout<<"\rframe("<<metrics::frames++<<")";
 		clk::timerrestart();
 		if(!gltexshadowmap){
 			glGenTextures(1,&gltexshadowmap);
 			glBindTexture(GL_TEXTURE_2D,gltexshadowmap);
-			glTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT,shadowmapsize,shadowmapsize,0,GL_DEPTH_COMPONENT,GL_UNSIGNED_BYTE,0);
+			glTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT,shadowmapsize,shadowmapsize,0,GL_DEPTH_COMPONENT,GL_FLOAT,0);
 			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);
 			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
 		}
+
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		gluPerspective(45,1,.01,100);
 		GLfloat mflhtproj[16];
 		glGetFloatv(GL_PROJECTION_MATRIX,mflhtproj);
-		const GLfloat lhtpos[]={0,.5f,3.f,1};
+//		const GLfloat lhtpos[]={7,1,7,1};
+		const GLfloat lhtpos[]={getx(),gety()+radius()*2,getz(),1};
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
-		glTranslatef(-lhtpos[0],-lhtpos[1],-lhtpos[2]);
+		const p3 lhtlookat=p3(mxv.zaxis().neg().scale(10)).transl(*this);
+		gluLookAt(lhtpos[0],lhtpos[1],lhtpos[2], lhtlookat.getx(),lhtlookat.gety(),lhtlookat.getz(), 0,1,0);
+//		gluLookAt(lhtpos[0],lhtpos[1],lhtpos[2], 0,3,0, 0,1,0);
+//		glTranslatef(-lhtpos[0],-lhtpos[1],-lhtpos[2]);
 		GLfloat mflhtview[16];
 		glGetFloatv(GL_MODELVIEW_MATRIX,mflhtview);
 
@@ -1862,14 +1869,14 @@ public:
 		glCullFace(GL_FRONT);
 		glEnable(GL_CULL_FACE);
 		glClear(GL_DEPTH_BUFFER_BIT);
+		glShadeModel(GL_FLAT);
 //		glColorMask(0,0,0,0);
 		glClear(GL_COLOR_BUFFER_BIT);
-		glShadeModel(GL_FLAT);
 		wold::get().culldraw(0,0);//? cull viewfurst
 		glBindTexture(GL_TEXTURE_2D,gltexshadowmap);
 		glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,0,0,0,shadowmapsize,shadowmapsize);
-
-//		return;
+		if(viewpointlht)
+			return;
 		glColorMask(1,1,1,1);
 		glClearColor(.3f,.3f,1,1);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
@@ -1942,7 +1949,7 @@ public:
 		glutSolidCube(2);
 		glPopMatrix();
 
-
+		//? farzplane
 
 		p3 rightplanenml(*this,p3());
 		rightplanenml.vecprod(pbr,ptr).norm();
@@ -2042,7 +2049,7 @@ public:
 			glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();
 			glOrtho(0,wi,0,hi,0,1);
-			glColor3b(0x00,0x00,0x40);
+			glColor3b(0x7f,0x00,0x00);
 			drawhud();
 		}
 		cout<<flush;
