@@ -1058,6 +1058,88 @@ public:
 unsigned short obcon::fnt_az[]={0x0552,0x0771,0x0212,0x0774,0x0737,0x0137,0x0651,0x0571,0x0220,0x0122,0x0531,0x0610,0x0770,0x0530,0x0252,0x1770,0x4770,0x0160,0x0324,0x0270,0x0650,0x0250,0x0775,0x0525,0x0225,0x0630};
 unsigned short obcon::fnt_09[]={0x0252,0x0220,0x0621,0x0642,0x0451,0x0324,0x0612,0x0247,0x2702,0x2452};
 
+class obray:public obtex,public keyb{
+	static unsigned short fnt_az[];
+	static unsigned short fnt_09[];
+	const static int fnt_w=4;
+	const static int fnt_h=4;
+	const static int bp=4;
+	GLubyte*p;
+	GLubyte*pnl;
+	const char*title;
+	ostringstream oss;
+	int x,y;
+public:
+	virtual void onkeyb(const char c,const bool pressed,const int x,const int y){
+		if(pressed)
+			oss<<c;
+		this->x=x;this->y=y;
+	}
+	obray(glob&g,const p3&p=p3(),const p3&a=p3(),const char*title="ray"):obtex(g,256,1,p,a),p(rgba+wihi*bp+bp),title(title){
+		setcolmx(true);
+	}
+	inline obray&phom(){p=rgba+wihi*bp+bp;return*this;}
+	inline obray&prnt(const char*s){return prnt(strlen(s),s);}
+	obray&prnt(const size_t len,const char*s){
+		pnl=p;
+		for(size_t i=0;i<len;i++){
+			const char ch=s[i];
+			if(ch==0)
+				break;
+			unsigned short sch;
+			if(ch>='a'&&ch<='z')
+				sch=fnt_az[ch-'a'];
+			else if(ch>='0'&&ch<='9'){
+				sch=fnt_09[ch-'0'];
+			}else if(ch=='\n'){
+				p=pnl+fnt_h*wihi*bp;
+				pnl=p;
+				continue;
+			}else if(ch==127){
+				p-=fnt_w*bp;
+				continue;
+			}else if(iswspace(ch)){
+				sch=0x0020;
+			}
+			int h=fnt_h;
+			while(h--){
+				for(int w=fnt_w;w>0;w--){
+					if(sch&1){
+						*p++=255;
+						*p++=255;
+						*p++=255;
+						*p++=255;
+					}else{
+						p+=4;
+//						*p++=0;
+//						*p++=0;
+//						*p++=0;
+//						*p++=0;
+					}
+					sch>>=1;
+				}
+				p=p+wihi*bp-fnt_w*bp;
+			}
+			p=p-wihi*bp*fnt_h+fnt_w*bp;
+		}
+		pnl=p=pnl+fnt_h*wihi*bp;
+		return *this;
+	}
+	inline obray&nl(){p=pnl+=wihi*bp;return*this;}
+	void tick(){
+		obtex::tick();
+		int n=wihi*wihi*bp/4;
+		GLuint*pp=(GLuint*)rgba;
+		while(n--){
+			*pp++=0x808080ff;
+		}
+		phom().prnt(title).nl();
+		updtx();
+	}
+};
+unsigned short obray::fnt_az[]={0x0552,0x0771,0x0212,0x0774,0x0737,0x0137,0x0651,0x0571,0x0220,0x0122,0x0531,0x0610,0x0770,0x0530,0x0252,0x1770,0x4770,0x0160,0x0324,0x0270,0x0650,0x0250,0x0775,0x0525,0x0225,0x0630};
+unsigned short obray::fnt_09[]={0x0252,0x0220,0x0621,0x0642,0x0451,0x0324,0x0612,0x0247,0x2702,0x2452};
+
 #include<typeinfo>
 
 class grid{
@@ -1236,14 +1318,19 @@ public:
 	inline void applyg(p3&dd)const{dd.transl(0,-9.82f,0);}
 	void load(){
 //		new obcon(*this,p3(radius(),0,radius()),p3(0,45,0));
-		new obcorp(*this,p3(0,4.2f,-6.5f));
+//		new obcorp(*this,p3(0,4.2f,-6.5f));
 //		new obcorp(*this,p3(0,0, 6.5f));
 //		mkiglos();
 //		mkexperiment();
 //		mkcradle();
 //		mkznjr();
-		new obball(*this,p3(-.7f,.4f,-1.9f),.4f,60*60);
+//		new obball(*this,p3(-.7f,.4f,-1.9f),.4f,60*60);
 //		mkscene();
+		mkray();
+	}
+	void mkray(){
+		hidezplane=true;
+		new obray(*this);
 	}
 	void mkscene(){
 //		new obball(*this,p3(0,0,-.5f),.025f,60*60);
@@ -1829,60 +1916,65 @@ public:
 	}
 	GLuint gltexshadowmap=0;
 	GLsizei shadowmapsize=512;
+	bool drawshadows;
 	void drawframe(){
 		cout<<"\rframe("<<metrics::frames++<<")";
 		clk::timerrestart();
-		if(!gltexshadowmap){
-			glGenTextures(1,&gltexshadowmap);
-			glBindTexture(GL_TEXTURE_2D,gltexshadowmap);
-			glTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT,shadowmapsize,shadowmapsize,0,GL_DEPTH_COMPONENT,GL_FLOAT,0);
-			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);
-			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
-		}
-
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		gluPerspective(45,1,.01,100);
-		GLfloat mflhtproj[16];
-		glGetFloatv(GL_PROJECTION_MATRIX,mflhtproj);
-//		const GLfloat lhtpos[]={7,1,7,1};
 		const GLfloat lhtpos[]={getx(),gety()+radius()*2,getz(),1};
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		const p3 lhtlookat=p3(mxv.zaxis().neg().scale(10)).transl(*this);
-		gluLookAt(lhtpos[0],lhtpos[1],lhtpos[2], lhtlookat.getx(),lhtlookat.gety(),lhtlookat.getz(), 0,1,0);
-//		gluLookAt(lhtpos[0],lhtpos[1],lhtpos[2], 0,3,0, 0,1,0);
-//		glTranslatef(-lhtpos[0],-lhtpos[1],-lhtpos[2]);
+		GLfloat mflhtproj[16];
 		GLfloat mflhtview[16];
-		glGetFloatv(GL_MODELVIEW_MATRIX,mflhtview);
+		if(drawshadows){
+			if(!gltexshadowmap){
+				glGenTextures(1,&gltexshadowmap);
+				glBindTexture(GL_TEXTURE_2D,gltexshadowmap);
+				glTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT,shadowmapsize,shadowmapsize,0,GL_DEPTH_COMPONENT,GL_FLOAT,0);
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_CLAMP);
+				glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP);
+			}
 
-		glMatrixMode(GL_PROJECTION);
-		glLoadMatrixf(mflhtproj);
-		glMatrixMode(GL_MODELVIEW);
-		glLoadMatrixf(mflhtview);
-		glViewport(0,0,shadowmapsize,shadowmapsize);
-		glDepthFunc(GL_LEQUAL);
-//		glClearDepth(1);
-		glEnable(GL_DEPTH_TEST);
-		glCullFace(GL_FRONT);
-		glEnable(GL_CULL_FACE);
-		glClear(GL_DEPTH_BUFFER_BIT);
-		glShadeModel(GL_FLAT);
-//		glColorMask(0,0,0,0);
-		glClear(GL_COLOR_BUFFER_BIT);
-		wold::get().culldraw(0,0);//? cull viewfurst
-		glBindTexture(GL_TEXTURE_2D,gltexshadowmap);
-		glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,0,0,0,shadowmapsize,shadowmapsize);
-		if(viewpointlht)
-			return;
-		glColorMask(1,1,1,1);
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			gluPerspective(45,1,.01,100);
+			glGetFloatv(GL_PROJECTION_MATRIX,mflhtproj);
+	//		const GLfloat lhtpos[]={7,1,7,1};
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			const p3 lhtlookat=p3(mxv.zaxis().neg().scale(10)).transl(*this);
+			gluLookAt(lhtpos[0],lhtpos[1],lhtpos[2], lhtlookat.getx(),lhtlookat.gety(),lhtlookat.getz(), 0,1,0);
+	//		gluLookAt(lhtpos[0],lhtpos[1],lhtpos[2], 0,3,0, 0,1,0);
+	//		glTranslatef(-lhtpos[0],-lhtpos[1],-lhtpos[2]);
+			glGetFloatv(GL_MODELVIEW_MATRIX,mflhtview);
+
+			glMatrixMode(GL_PROJECTION);
+			glLoadMatrixf(mflhtproj);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadMatrixf(mflhtview);
+			glViewport(0,0,shadowmapsize,shadowmapsize);
+			glDepthFunc(GL_LEQUAL);
+	//		glClearDepth(1);
+			glEnable(GL_DEPTH_TEST);
+			glCullFace(GL_FRONT);
+			glEnable(GL_CULL_FACE);
+			glClear(GL_DEPTH_BUFFER_BIT);
+			glShadeModel(GL_FLAT);
+	//		glColorMask(0,0,0,0);
+			glClear(GL_COLOR_BUFFER_BIT);
+			wold::get().culldraw(0,0);//? cull viewfurst
+			glBindTexture(GL_TEXTURE_2D,gltexshadowmap);
+			glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,0,0,0,shadowmapsize,shadowmapsize);
+			if(viewpointlht)
+				return;
+			glColorMask(1,1,1,1);
+		}
 		glClearColor(.3f,.3f,1,1);
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 		glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE) ;
 		glEnable(GL_COLOR_MATERIAL);
 		glCullFace(GL_BACK);
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
 		glViewport(0,0,wi,hi);
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
@@ -1993,50 +2085,51 @@ public:
 		glLightfv(GL_LIGHT1,GL_POSITION,lhtpos);
 		glEnable(GL_LIGHT1);
 		glEnable(GL_LIGHTING);
+		if(drawshadows){
+			m3 mxtex(mflhtview);
+			mxtex.mul(mflhtproj);
+			const GLfloat texshadowmapbias[]={.5f,0,0,0, 0,.5f,0,0, 0,0,.5f,0, .5f,.5f,.5f,1};
+			mxtex.mul(m3(texshadowmapbias));
 
-		m3 mxtex(mflhtview);
-		mxtex.mul(mflhtproj);
-		const GLfloat texshadowmapbias[]={.5f,0,0,0, 0,.5f,0,0, 0,0,.5f,0, .5f,.5f,.5f,1};
-		mxtex.mul(m3(texshadowmapbias));
+			GLfloat v[4];
+			glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
+			mxtex.xplane(v);
+			glTexGenfv(GL_S,GL_EYE_PLANE,v);
+			glEnable(GL_TEXTURE_GEN_S);
+			glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
+			mxtex.yplane(v);
+			glTexGenfv(GL_T,GL_EYE_PLANE,v);
+			glEnable(GL_TEXTURE_GEN_T);
+			glTexGeni(GL_R,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
+			mxtex.zplane(v);
+			glTexGenfv(GL_R,GL_EYE_PLANE,v);
+			glEnable(GL_TEXTURE_GEN_R);
+			glTexGeni(GL_Q,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
+			mxtex.wplane(v);
+			glTexGenfv(GL_Q,GL_EYE_PLANE,v);
+			glEnable(GL_TEXTURE_GEN_Q);
+			glBindTexture(GL_TEXTURE_2D,gltexshadowmap);
+			glEnable(GL_TEXTURE_2D);
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_COMPARE_MODE,GL_COMPARE_R_TO_TEXTURE);
+			glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_COMPARE_FUNC,GL_LEQUAL);
+			glTexParameteri(GL_TEXTURE_2D,GL_DEPTH_TEXTURE_MODE,GL_INTENSITY);
+	//		glAlphaFunc(GL_GEQUAL,.99f);
+	//		glEnable(GL_ALPHA_TEST);
 
-		GLfloat v[4];
-		glTexGeni(GL_S,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
-		mxtex.xplane(v);
-		glTexGenfv(GL_S,GL_EYE_PLANE,v);
-		glEnable(GL_TEXTURE_GEN_S);
-		glTexGeni(GL_T,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
-		mxtex.yplane(v);
-		glTexGenfv(GL_T,GL_EYE_PLANE,v);
-		glEnable(GL_TEXTURE_GEN_T);
-		glTexGeni(GL_R,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
-		mxtex.zplane(v);
-		glTexGenfv(GL_R,GL_EYE_PLANE,v);
-		glEnable(GL_TEXTURE_GEN_R);
-		glTexGeni(GL_Q,GL_TEXTURE_GEN_MODE,GL_EYE_LINEAR);
-		mxtex.wplane(v);
-		glTexGenfv(GL_Q,GL_EYE_PLANE,v);
-		glEnable(GL_TEXTURE_GEN_Q);
-		glBindTexture(GL_TEXTURE_2D,gltexshadowmap);
-		glEnable(GL_TEXTURE_2D);
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_COMPARE_MODE,GL_COMPARE_R_TO_TEXTURE);
-		glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_COMPARE_FUNC,GL_LEQUAL);
-		glTexParameteri(GL_TEXTURE_2D,GL_DEPTH_TEXTURE_MODE,GL_INTENSITY);
-//		glAlphaFunc(GL_GEQUAL,.99f);
-//		glEnable(GL_ALPHA_TEST);
-
-		const GLfloat white[]={1,1,1,1};
-		glLightfv(GL_LIGHT1,GL_DIFFUSE,white);
-		glLightfv(GL_LIGHT1,GL_SPECULAR,white);
+			const GLfloat white[]={1,1,1,1};
+			glLightfv(GL_LIGHT1,GL_DIFFUSE,white);
+			glLightfv(GL_LIGHT1,GL_SPECULAR,white);
+		}
 		parent().culldraw(5,cullplanes);
-
-		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_TEXTURE_GEN_S);
-		glDisable(GL_TEXTURE_GEN_T);
-		glDisable(GL_TEXTURE_GEN_R);
-		glDisable(GL_TEXTURE_GEN_Q);
-		glDisable(GL_LIGHTING);
-		glDisable(GL_ALPHA_TEST);
-
+		if(drawshadows){
+			glDisable(GL_TEXTURE_2D);
+			glDisable(GL_TEXTURE_GEN_S);
+			glDisable(GL_TEXTURE_GEN_T);
+			glDisable(GL_TEXTURE_GEN_R);
+			glDisable(GL_TEXTURE_GEN_Q);
+			glDisable(GL_LIGHTING);
+			glDisable(GL_ALPHA_TEST);
+		}
 		metrics::dtrend=clk::timerdt();
 
 		if(dodrawhud){
@@ -2391,7 +2484,7 @@ namespace glut{
 //		players[0]->agl().set(0,90,0);
 		players[1]=new windo();
 		players[1]->player=1;
-		players[1]->set(0,players[1]->radius(),3.f);
+		players[1]->set(0,0,1.8f);
 //		players[1]->set(0,.1f,-10);
 		players[1]->agl().set(0,0,0);
 		keyb=players[1];
