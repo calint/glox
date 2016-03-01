@@ -1,0 +1,993 @@
+		//		new obball(*this,p3(-1,radius(),-1),r,lft,density,bounc);
+		//		new obball(*this,p3(1,radius(),-1),r,lft,density,bounc);
+		//		new obball(*this,p3(1,radius(), 1),r,lft,density,bounc);
+		//		new obball(*this,p3(-1,radius(), 1),r,lft,density,bounc);
+		//		new obball(*this,p3(0,radius()*2, 0),r,lft,density,bounc);
+
+
+		//		new obball(*this,p3(0,radius()*1.5f,0),r,lft,density,bounc);
+		//		new obball(*this,p3(0,radius()*.5f,0),r,lft,density,bounc);
+		//		new obball(*this,p3(0,radius()*2,0),r,lft,density,bounc);
+		//		new obball(*this,p3(0,radius()*3,0),r,lft,density,bounc);
+		//		new obball(*this,p3(0,0,0),r,lft,density,bounc);
+
+		//		new obball(*this,p3(0,radius()*.2f,0),r,lft,density,bounc);
+		//		new obball(*this,p3(0,radius()*2,0),r,lft,density,bounc);
+		//		new obball(*this,p3(0,radius()*2.5f,0),1,100,1,.5f);
+		//		new obball(*this,p3(0,radius()*3,0),1,100,1,.5f);
+//		fufo=new f3("ufo.f3",p3(1.5,.25,1));//? leak
+//		new obufocluster(*this,p3(50,0,0));
+
+
+
+bool gluInvertMatrix(const float m[16],float invOut[16]){
+	double inv[16],det;
+	int i;
+
+	inv[0] = m[5]  * m[10] * m[15] -
+             m[5]  * m[11] * m[14] -
+             m[9]  * m[6]  * m[15] +
+             m[9]  * m[7]  * m[14] +
+             m[13] * m[6]  * m[11] -
+             m[13] * m[7]  * m[10];
+
+	inv[4] = -m[4]  * m[10] * m[15] +
+              m[4]  * m[11] * m[14] +
+              m[8]  * m[6]  * m[15] -
+              m[8]  * m[7]  * m[14] -
+              m[12] * m[6]  * m[11] +
+              m[12] * m[7]  * m[10];
+
+	inv[8] = m[4]  * m[9] * m[15] -
+             m[4]  * m[11] * m[13] -
+             m[8]  * m[5] * m[15] +
+             m[8]  * m[7] * m[13] +
+             m[12] * m[5] * m[11] -
+             m[12] * m[7] * m[9];
+
+	inv[12] = -m[4]  * m[9] * m[14] +
+               m[4]  * m[10] * m[13] +
+               m[8]  * m[5] * m[14] -
+               m[8]  * m[6] * m[13] -
+               m[12] * m[5] * m[10] +
+               m[12] * m[6] * m[9];
+
+	inv[1] = -m[1]  * m[10] * m[15] +
+              m[1]  * m[11] * m[14] +
+              m[9]  * m[2] * m[15] -
+              m[9]  * m[3] * m[14] -
+              m[13] * m[2] * m[11] +
+              m[13] * m[3] * m[10];
+
+	inv[5] = m[0]  * m[10] * m[15] -
+             m[0]  * m[11] * m[14] -
+             m[8]  * m[2] * m[15] +
+             m[8]  * m[3] * m[14] +
+             m[12] * m[2] * m[11] -
+             m[12] * m[3] * m[10];
+
+	inv[9] = -m[0]  * m[9] * m[15] +
+              m[0]  * m[11] * m[13] +
+              m[8]  * m[1] * m[15] -
+              m[8]  * m[3] * m[13] -
+              m[12] * m[1] * m[11] +
+              m[12] * m[3] * m[9];
+
+	inv[13] = m[0]  * m[9] * m[14] -
+              m[0]  * m[10] * m[13] -
+              m[8]  * m[1] * m[14] +
+              m[8]  * m[2] * m[13] +
+              m[12] * m[1] * m[10] -
+              m[12] * m[2] * m[9];
+
+	inv[2] = m[1]  * m[6] * m[15] -
+             m[1]  * m[7] * m[14] -
+             m[5]  * m[2] * m[15] +
+             m[5]  * m[3] * m[14] +
+             m[13] * m[2] * m[7] -
+             m[13] * m[3] * m[6];
+
+	inv[6] = -m[0]  * m[6] * m[15] +
+              m[0]  * m[7] * m[14] +
+              m[4]  * m[2] * m[15] -
+              m[4]  * m[3] * m[14] -
+              m[12] * m[2] * m[7] +
+              m[12] * m[3] * m[6];
+
+	inv[10] = m[0]  * m[5] * m[15] -
+              m[0]  * m[7] * m[13] -
+              m[4]  * m[1] * m[15] +
+              m[4]  * m[3] * m[13] +
+              m[12] * m[1] * m[7] -
+              m[12] * m[3] * m[5];
+
+	inv[14] = -m[0]  * m[5] * m[14] +
+               m[0]  * m[6] * m[13] +
+               m[4]  * m[1] * m[14] -
+               m[4]  * m[2] * m[13] -
+               m[12] * m[1] * m[6] +
+               m[12] * m[2] * m[5];
+
+	inv[3] = -m[1] * m[6] * m[11] +
+              m[1] * m[7] * m[10] +
+              m[5] * m[2] * m[11] -
+              m[5] * m[3] * m[10] -
+              m[9] * m[2] * m[7] +
+              m[9] * m[3] * m[6];
+
+	inv[7] = m[0] * m[6] * m[11] -
+             m[0] * m[7] * m[10] -
+             m[4] * m[2] * m[11] +
+             m[4] * m[3] * m[10] +
+             m[8] * m[2] * m[7] -
+             m[8] * m[3] * m[6];
+
+	inv[11] = -m[0] * m[5] * m[11] +
+               m[0] * m[7] * m[9] +
+               m[4] * m[1] * m[11] -
+               m[4] * m[3] * m[9] -
+               m[8] * m[1] * m[7] +
+               m[8] * m[3] * m[5];
+
+	inv[15] = m[0] * m[5] * m[10] -
+              m[0] * m[6] * m[9] -
+              m[4] * m[1] * m[10] +
+              m[4] * m[2] * m[9] +
+              m[8] * m[1] * m[6] -
+              m[8] * m[2] * m[5];
+
+	det=m[0]*inv[0]+m[1]*inv[4]+m[2]*inv[8]+m[3]*inv[12];
+	if(det==0)
+		return false;
+
+	det=1.0/det;
+	for(i=0;i<16;i++)
+		invOut[i]=(float)(inv[i]*det);
+	return true;
+}
+
+
+
+
+
+
+//	static void mainxit(){
+//		if(metrics::nglobs==0){
+//			cout<<" globs recycled"<<endl;
+//			return;
+//		}
+//		cout<<" !¡! globsdealloc  "<<metrics::nglobs<<" "<<endl;
+//	}
+	//		atexit(mainxit);
+
+
+
+CVector3 GetOGLPos(int x, int y)
+{
+    GLint viewport[4];
+    GLdouble modelview[16];
+    GLdouble projection[16];
+    GLfloat winX, winY, winZ;
+    GLdouble posX, posY, posZ;
+ 
+    glGetDoublev( GL_MODELVIEW_MATRIX, modelview );
+    glGetDoublev( GL_PROJECTION_MATRIX, projection );
+    glGetIntegerv( GL_VIEWPORT, viewport );
+ 
+    winX = (float)x;
+    winY = (float)viewport[3] - (float)y;
+    glReadPixels( x, int(winY), 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ );
+ 
+    gluUnProject( winX, winY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
+ 
+    return CVector3(posX, posY, posZ);
+}
+
+
+
+
+
+;
+; 4x4 font
+;
+fnt:
+.wi		equ 4
+.hi		equ 4
+.s		equ 2
+.b		equ 1
+.t:
+.nbr.i equ ($-fnt.t)>>fnt.b
+; .o..
+; o.o.
+; .o..
+; ....
+dw 0100101001000000b
+; oo..
+; .o..
+; .o..
+; ....
+dw 1100010001000000b
+; o...
+; .o..
+; .oo.
+; ....
+dw 1000010001100000b
+; .o..
+; ..o.
+; .oo.
+; ....
+dw 0100001001100000b
+; o...
+; o.o.
+; ..o.
+; ....
+dw 1000101000100000b
+; ..o.
+; .o..
+; oo..
+; ....
+dw 0010010011000000b
+; .o..
+; o...
+; .oo.
+; ....
+dw 0100100001100000b
+; ooo.
+; ..o.
+; .o..
+; ....
+dw 1110001001000000b
+; .o..
+; ....
+; ooo.
+; .o..
+dw 0100000011100100b
+; .o..
+; o.o.
+; ..o.
+; .o..
+dw 0100101000100100b
+; .o..
+; o.o.
+; o.o.
+; ....
+dw 0100101010100000b
+; o...
+; ooo.
+; ooo.
+; ....
+dw 1000111011100000b
+; .oo.
+; o...
+; .oo.
+; ....
+dw 0110100001100000b
+; ..o.
+; ooo.
+; ooo.
+; ....
+dw 0010111011100000b
+; ooo.
+; oo..
+; ooo.
+; ....
+dw 1110110011100000b
+; ooo.
+; oo..
+; o...
+; ....
+dw 1110110010000000b
+; o...
+; o.o.
+; .oo.
+; ....
+dw 1000101001100000b
+; o...
+; ooo.
+; o.o.
+; ....
+dw 1000111010100000b
+; ....
+; .o..
+; .o..
+; ....
+dw 0000010001000000b
+; .o..
+; .o..
+; o...
+; ....
+dw 0100010010000000b
+; o...
+; oo..
+; o.o.
+; ....
+dw 1000110010100000b
+; ....
+; o...
+; .oo.
+; ....
+dw 0000100001100000b
+; ....
+; ooo.
+; ooo.
+; ....
+dw 0000111011100000b
+; ....
+; oo..
+; o.o.
+; ....
+dw 0000110010100000b
+; .o..
+; o.o.
+; .o..
+; ....
+dw 0100101001000000b
+; ....
+; ooo.
+; ooo.
+; o...
+dw 0000111011101000b
+; ....
+; ooo.
+; ooo.
+; ..o.
+dw 0000111011100010b
+; ....
+; .oo.
+; o...
+; ....
+dw 0000011010000000b
+; ..o.
+; .o..
+; oo..
+; ....
+dw 0010010011000000b
+; ....
+; ooo.
+; .o..
+; ....
+dw 0000111001000000b
+; ....
+; o.o.
+; .oo.
+; ....
+dw 0000101001100000b
+; ....
+; o.o.
+; .o..
+; ....
+dw 0000101001000000b
+; o.o.
+; ooo.
+; ooo.
+; ....
+dw 1010111011100000b
+; o.o.
+; .o..
+; o.o.
+; ....
+dw 1010010010100000b
+; o.o.
+; .o..
+; .o..
+; ....
+dw 1010010001000000b
+; ....
+; oo..
+; .oo.
+; ....
+dw 0000110001100000b
+; ....
+; ....
+; ....
+; ....
+.spc.i equ ($-fnt.t)>>fnt.b
+.spc dw 0b
+; ....
+; ....
+; .o..
+; ....
+.prd.i equ ($-fnt.t)>>fnt.b
+.prd dw 0000000001000000b
+; ....
+; .o..
+; ....
+; ....
+.dot.i equ ($-fnt.t)>>fnt.b
+.dot dw 0000010000000000b
+; .o..
+; ....
+; ....
+dw 0100000000000000b
+; .o..
+; ....
+; .o..
+; ....
+.cln.i equ ($-fnt.t)>>fnt.b
+.cln dw 0100000001000000b
+; .o..
+; ..o.
+; ....
+; .o..
+dw 0100001000000100b
+; ....
+; ....
+; .o..
+; o...
+dw 0000000001001000b
+; .oo.
+; .o..
+; .oo.
+; ....
+dw 0110010001100000b
+; o...
+; o...
+; o...
+; ....
+dw 1000100010000000b
+; oo..
+; .o..
+; oo..
+; ....
+dw 1100010011000000b
+; ..o.
+; ..o.
+; ..o.
+; ....
+dw 0010001000100000b
+; ..o.
+; .o..
+; o...
+; ....
+dw 0010010010000000b
+; ....
+; ooo.
+; ....
+; ....
+.mns.i equ ($-fnt.t)>>fnt.b
+.mns dw 0000111000000000b
+; oooo
+; ..oo
+; ....
+; ....
+.gn	dw 1111001100000000b
+; o..o
+; ...o
+; o..o
+; oooo
+.oj	dw 1001000110011111b
+; .o.o
+; ...o
+; oo..
+; oooo
+.gm	dw 0101000111001111b
+; o.o.
+; ....
+; ooo.
+; .oo.
+.gm2	dw 1010000011100110b
+; o.o.
+; ....
+; ooo.
+; ooo.
+.gm3	dw 1010000011101110b
+; .o..
+; ooo.
+; .o..
+; ....
+.pls.i equ ($-fnt.t)>>fnt.b
+.pls    dw 0100111001000000b
+; ooo.
+; ....
+; ooo.
+; ....
+.eq.i equ ($-fnt.t)>>fnt.b
+.eq    dw 1110000011100000b
+.t.c	equ ($-.t)>>.b
+;...............................
+
+
+
+
+//
+//class obquad:public glob{
+//public:
+//	obquad(glob&g):glob(g){}
+//	void gldraw(){
+//		const float s=15.f;
+//
+//		glColor3b(0,0,0x7f);
+//		glBegin(GL_QUADS);
+//		glVertex2f(-s,-s);
+//		glVertex2f( s,-s);
+//		glVertex2f( s, s);
+//		glVertex2f(-s, s);
+//		glEnd();
+//
+//		glColor3b(0,0,127);
+//		glBegin(GL_LINE_STRIP);
+//		glVertex3f(s,0,.01f);
+//		glVertex3f(0,0,.01f);
+//		glColor3b(127,127,127);
+//		glVertex3f(0,s,.02f);
+//		glEnd();
+//
+//		const float r=.75*s;
+//		glPushMatrix();
+//		glTranslatef(0,0,.01f);
+//		glColor3b(0,0x7f,0);
+//		glBegin(GL_TRIANGLE_FAN);
+//		glVertex2f(0,0);
+//		glVertex2f(r,0);
+//		const float dtr=3.14159/180;
+//		const int di=360/12;
+//		for(int i=di;i<=360;i+=di){
+//			const float rd=i*dtr;
+//			glVertex2f(r*cos(rd),r*sin(rd));
+//		}
+//		glEnd();
+//		glPopMatrix();
+//	}
+//	virtual void tick(){
+//		agl().transl(dt(360/60),0,0);
+//		glob::tick();
+//	}
+//};
+//
+
+//class obteapot:public glob{
+//	float dy;
+//public:
+//	obteapot(glob&pt):glob(pt),dy(.1f){}
+//	void gldraw(){
+//		glPushAttrib(GL_ENABLE_BIT);
+//		glEnable(GL_CULL_FACE);
+//		glFrontFace(GL_CW);
+//		glEnable(GL_LIGHTING);
+//		glEnable(GL_LIGHT0);
+//		glutSolidTeapot(1);
+//		glPopAttrib();
+//	}
+//	virtual void tick(){
+//		glob::tick();
+//		transl(0,dt(dy),0);
+//		if(gety()>10||gety()<0)dy=-dy;
+//	}
+//};
+
+
+
+//#define mhello()cout<<"hello"<<endl;
+//static inline ostream&ll(const char*s="",const char*file="",int lineno=0,const char*func=""){return l(s,file,lineno,func)<<endl;}
+
+
+
+template<class T>class arai{
+private:
+	T*ar;
+	int of,ln;
+	inline void asrt(const int offset,const int len)const{if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinrw");}
+public:
+	inline arai(T a[],const int offset,const int len):ar(a),of(offset),ln(len){}
+	inline T&operator[](const int i)const{asrt(i,1);return ar[of+i];}
+	inline int ofs()const{return of;}
+	inline int len()const{return ln;}
+	inline void ro(const int offset,const int len,void(*f)(const T&e))const{if(offset<0||(offset+len)>ln)throw signl(1,"spanoutofboundsinro");T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
+	inline void rw(const int offset,const int len,void(*f)(T&e)){asrt(offset,len);T*p=ar+of+offset;int i=len;while(i--)(*f)(*p++);}
+};
+
+
+
+
+
+glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION)
+
+
+//	m3 m;
+//	cin>>m;
+//	cout<<m;
+//	m3 m;
+//	m.ident();
+//	m.transl(p3(1,0,1));
+//	p3 z;
+//	m.axisz(z);
+//	cout<<m<<endl;
+//	cout<<z<<endl;
+//	p3 p;
+//	m.mult(p3(1,0,0),p);
+//	cout<<p<<endl;
+	//	flf();ll();
+	//	bvol::checkcol(p3(),m3(),bvol(1,p3(1,1,1)),p3(1,0,0),m3(),bvol(1,p3(1,1,1)));
+	//	throw signl(1,"gnoxstop");
+
+
+//		glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
+//		glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
+
+
+//		cout<<glGetString(GL_VENDOR)<<"  "<<glGetString(GL_VERSION)<<"  "<<glGetString(GL_VERSION)<<"  glsl "<<GL_SHADING_LANGUAGE_VERSION<<endl;
+//		cout<<"opengl("<<glGetString(GL_VERSION)<<")"<<" glsl("<<GL_SHADING_LANGUAGE_VERSION<<")"<<endl;
+
+
+
+		glDisable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_LIGHTING);
+		glEnable(GL_BLEND);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glBegin(GL_QUADS);
+		glColor3b(0x7f,0,0);
+		glVertex2f(0,0);
+		glVertex2f(.5f,0);
+		glVertex2f(.5f,.5f);
+		glVertex2f(0,.5f);
+		glEnd();
+		glOrtho(0,w,0,h,-1000,1000);
+		glBegin(GL_QUADS);
+		glColor3b(0x7f,0,0);
+		glVertex2f(0,0);
+		glVertex2f(w>>1,0);
+		glVertex2f(w>>1,h>>1);
+		glVertex2f(0,h>>1);
+		glEnd();
+
+
+
+
+		bvol a(1,p3(1,1,1));
+		bvol b(2,p3(2,1,1));
+		ofstream ofs("bvol.cin");
+		ofs<<a<<endl;
+		ofs.close();
+		ifstream ifs("bvol.cin");
+		ifs>>b;
+		ifs.close();
+		cout<<b<<endl;
+
+
+		bool col=bvol::checkcol(p3(),a,p3(),b);
+		cout<<"collision: "<<col<<endl;
+		cout<<"collision: "<<bvol::checkcol(p3(3,0,0),a,p3(),b)<<endl;
+
+
+
+at start or end of frame
+ glBufferSubData, glBufferData, glMapBuffer, glTexSubImage, glCopyTexImage, glCopyTexSubImage, glReadPixels, glBindFramebuffer, glFlush, and glFinish.
+
+
+
+
+Table 3-3  OpenGL ES 1.1 values
+Maximum number of texture units available to the fixed function pipeline
+GL_MAX_TEXTURE_UNITS
+Maximum number of clip planes
+GL_MAX_CLIP_PLANES
+
+
+
+
+Table 3-2  OpenGL ES 2.0 shader values
+Maximum number of vertex attributes
+GL_MAX_VERTEX_ATTRIBS
+Maximum number of uniform vertex vectors
+GL_MAX_VERTEX_UNIFORM_VECTORS
+Maximum number of uniform fragment vectors
+GL_MAX_FRAGMENT_UNIFORM_VECTORS
+Maximum number of varying vectors
+GL_MAX_VARYING_VECTORS
+Maximum number of texture units usable in a vertex shader
+GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS
+Maximum number of texture units usable in a fragment shader
+GL_MAX_TEXTURE_IMAGE_UNITS
+
+
+
+
+
+
+default precision highp; // Default precision declaration is required in fragment shaders.
+uniform lowp sampler2D sampler; // Texture2D() result is lowp.
+varying lowp vec4 color;
+varying vec2 texCoord;   // Uses default highp precision.
+ 
+void main()
+{
+    gl_FragColor = color * texture2D(sampler, texCoord);
+}
+
+
+/** Initialization-time for shader **/
+            GLuint shader, prog;
+            GLchar *shaderText = "... shader text ...";
+
+            // Create ID for shader
+           shader = glCreateShader(GL_VERTEX_SHADER);
+
+           // Define shader text
+           glShaderSource(shaderText);
+
+           // Compile shader
+           glCompileShader(shader);
+
+           // Associate shader with program
+           glAttachShader(prog, shader);
+
+          // Link program
+           glLinkProgram(prog);
+    
+           // Validate program
+           glValidateProgram(prog);
+
+           // Check the status of the compile/link
+           glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &logLen);
+           if(logLen > 0)
+           {
+               // Show any errors as appropriate
+               glGetProgramInfoLog(prog, logLen, &logLen, log);
+               fprintf(stderr, "Prog Info Log: %s\n", log);
+       }
+
+     // Retrieve all uniform locations that are determined during link phase
+           for(i = 0; i < uniformCt; i++)
+           {
+               uniformLoc[i] = glGetUniformLocation(prog, uniformName);
+           }
+
+           // Retrieve all attrib locations that are determined during link phase
+           for(i = 0; i < attribCt; i++)
+           {
+               attribLoc[i] = glGetAttribLocation(prog, attribName);
+           }
+
+    /** Render stage for shaders **/
+    glUseProgram(prog);
+
+
+
+glGenTextures(1, &spriteTexture);
+glBindTexture(GL_TEXTURE_2D, spriteTexture);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, spriteData);
+
+
+glGetIntegerv(GL_MAX_TEXTURE_UNITS)
+
+
+
+
+
+glDisable(GL_DITHER);
+glDisable(GL_ALPHA_TEST);
+glDisable(GL_BLEND);
+glDisable(GL_STENCIL_TEST);
+glDisable(GL_FOG);
+glDisable(GL_TEXTURE_2D);
+glDisable(GL_DEPTH_TEST);
+
+
+
+
+
+
+typedef struct _vertexStatic{GLfloat position[2];}vertexStatic;
+typedef struct _vertexDynamic{GLubyte color[4];}vertexDynamic;
+ 
+GLuint    staticBuffer;
+GLuint    dynamicBuffer;
+GLuint    indexBuffer;
+ 
+const vertexStatic staticVertexData[] = {...};
+vertexDynamic dynamicVertexData[] = {...};
+const GLubyte indices[] = {...};
+ 
+void CreateBuffers(){
+    glGenBuffers(1, &staticBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, staticBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(staticVertexData), staticVertexData, GL_STATIC_DRAW);
+    glGenBuffers(1, &dynamicBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, dynamicBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(dynamicVertexData), dynamicVertexData, GL_DYNAMIC_DRAW);
+    glGenBuffers(1, &indexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+}
+ 
+void DrawModelUsingMultipleVertexBuffers(){
+    glBindBuffer(GL_ARRAY_BUFFER, staticBuffer);
+    glVertexAttribPointer(ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(vertexStruct), (void*)offsetof(vertexStruct,position));
+    glEnableVertexAttribArray(ATTRIB_POSITION);
+    glBindBuffer(GL_ARRAY_BUFFER, dynamicBuffer);
+    glVertexAttribPointer(ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(vertexStruct), (void*)offsetof(vertexStruct,color);
+    glEnableVertexAttribArray(ATTRIB_COLOR);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glDrawElements(GL_TRIANGLE_STRIP, sizeof(indices)/sizeof(GLubyte), GL_UNSIGNED_BYTE, (void*)0);
+}
+
+
+
+
+
+GLuint    vertexBuffer;
+GLuint    indexBuffer;
+ 
+void CreateVertexBuffers()
+{
+ 
+    glGenBuffers(1, &vertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+ 
+    glGenBuffers(1, &indexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+ 
+}
+
+
+	cout.setf(ios::fixed,ios::floatfield);
+	cout.setf(ios::showpoint);
+	cout.precision(2);
+
+
+
+void gnox_sandbox(){
+//	cout<<cin.rdbuf();
+	ofstream ofs("p3.cout");
+	if(!ofs.good())throw"fileopenerr";
+	p3 po(1,2,3.33333);
+	cout<<po<<endl;
+	ofs<<po<<endl;
+	if(!ofs.good())throw"filewriteerr";
+	ofs.close();
+	po=p3();
+	ifstream ifs("p3.cout");
+	if(!ifs.good())throw"fileopenerr";
+	ifs>>po;
+	ifs.close();
+	cout<<po<<endl;
+	p3 p=p3();
+	cin>>p;
+	if(!cin.good())throw"cinreaderr";
+	cout<<p<<endl;
+	cin>>p;
+	cout<<p<<endl;
+}
+
+
+
+
+
+	cout<<cin.rdbuf();
+	ofstream ofs("p3.cout");
+	p3 po(1,2,3.33333);
+	cout<<po<<endl;
+	ofs<<po<<endl;
+	ofs.close();;
+	ifstream ifs("p3.cout");
+	ifs>>po;
+	ifs.close();
+	cout<<po<<endl;
+	p3 p=p3();
+	cin>>p;
+	cout<<p<<endl;
+	cin>>p;
+	cout<<p<<endl;
+
+
+// redirecting cout's output
+#include <iostream>
+#include <fstream>
+using namespace std;
+
+int main () {
+  streambuf *psbuf, *backup;
+  ofstream filestr;
+  filestr.open ("test.txt");
+  backup = cout.rdbuf();     // back up cout's streambuf
+  psbuf = filestr.rdbuf();   // get file's streambuf
+  cout.rdbuf(psbuf);         // assign streambuf to cout
+  cout << "This is written to the file";
+  cout.rdbuf(backup);        // restore cout's original streambuf
+  filestr.close();
+  return 0;
+}
+
+
+ cout<<cin.rdbuf();
+
+
+#include <iostream>
+using namespace std;
+int main () {
+  cout.setf ( ios_base::hex, ios_base::basefield );  // set hex as the basefield
+  cout.setf ( ios_base::showbase );                  // activate showbase
+  cout << 100 << endl;
+  cout.unsetf ( ios_base::showbase );                // deactivate showbase
+  cout << 100 << endl;
+  return 0;
+}
+
+g++ -nostartfiles -nodefaultlibs -nostdlib
+
+class xser{
+private:
+	FILE*in;
+	FILE*out;
+public:
+	xser(FILE*in,FILE*out):in(in),out(out){}
+	xser&w(const size_t d){fprintf(out,"%lu ",d);return*this;}
+	xser&r(size_t&d){fscanf(in,"%lu ",&d);return*this;}
+	xser&w(const char*b,const size_t size=0){fprintf(out,"%lu %s ",size?size:strlen(b),b);return*this;}
+	xser&r(char**buf,size_t&size){
+		if(*buf)
+			delete *buf;//?
+		fscanf(in,"%lu ",&size);
+		*buf=new char[size];
+		const size_t s=fread(*buf,size,1,in);
+		if(s!=1){
+			perror("rs");
+			throw "error while reading";
+//			exit(101);
+		}
+		return*this;
+	}
+	xser&r(char**buf){size_t size=0;return r(buf,size);}
+	xser&flush(){fflush(out);return*this;}
+};
+
+//try{return window::main(0,NULL);}
+//catch(const char*p){cout<<"••• error: "<<p<<endl;stktrace();}
+//catch(const void*p){cout<<"•• error: "<<p<<" "<<p<<endl;stktrace();}
+//catch(...){cerr<<"• error:"<<endl;stktrace();}
+
+
+//inline static void f(const char&c){cout<<c;}
+//inline static void f2(char&c){cout<<c;c=' ';}
+//	char s[]="jello world";
+//	puts(s);
+//	array<const char>a=array<const char>("hello world",0,3);
+//	a.ro(0,a.len(),f);
+//	a.rw(0,a.len(),f);
+//	cout<<endl;
+//	array<char>b=array<char>(s,0,3);
+//	b.ro(0,a.len(),f);
+//	b.rw(0,a.len(),f2);
+//	cout<<endl;
+//	puts(s);
+
+// ⦾⦿⧀⧁ ⊕⊖⊗⊘⊙⊚⊛⊜⊝ ℹ⏩⏪⏫⏬⛎✅❎  ㋞㋡
+
+
+static void main_sigf(const int a){
+	cout<<" ⦿ terminated with signal "<<a<<endl;
+	exit(a);
+}
+int main(){
+	for(int i=0;i<32;i++)signal(i,main_sigf);
+	return window::main(0,NULL);
+}
+
+
+//		throw signl(2,"exception");
+//		throw signl(__LINE__,__FUNCTION__);
+
+
+
+
+
+//		for(vector<obj*>::iterator it=chs.begin();it!=chs.end();++it){
+//			(*it)->draw();
+//		}
+
+
+		lut<bool>lutc=lut<bool>();
+		const unsigned char ch='a';
+		const char ke[]={ch,0};
+		cout<<lutc[ke]<<endl;
+		lutc.put(ke,true);
+		cout<<lutc[ke]<<endl;
+		lutc.put(ke,false);
+		cout<<lutc[ke]<<endl;
